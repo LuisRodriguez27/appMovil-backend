@@ -1,4 +1,4 @@
-import { Student, StudentPrimitives } from "./Student";
+import { Student } from "./Student";
 
 export interface StudentRepository {
   add(student: Student): Promise<void>;
