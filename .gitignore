@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.vscode/
+.idea/
+.env
+ai.log
+httpRequests/http-client.env.json
+
+# Environment files
+.env.qa
+.env.prod
+.env.local
+.env.development
+.env.production

@@ -1,0 +1,32 @@
+# Dependencias
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Archivos de construcción
+dist
+build
+
+# Archivos de entorno
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Archivos del sistema
+.DS_Store
+.git
+.gitignore
+
+# Archivos de IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Archivos de documentación
+README.md
+CHANGELOG.md
+docs/ 
