@@ -3,65 +3,49 @@ import { uid } from 'uid';
 export class User {
   constructor(
     public readonly id: string,
-    private numeroControl: string,
+    private controlNumber: string,
     private name: string,
     private email: string,
-    private carrera: string,
-    private semestre: number,
     private xp: number,
     private level: number,
     private streak: number,
     private currentCourse: string | null,
-    private learningStyle: string | null,
-    private profilePicture: string | null,
-    private preferences: UserPreferences
+    private profilePicture: string | null
   ) {}
 
   static create(data: Omit<UserPrimitives, 'id'>): User {
     return new User(
       uid(),
-      data.numeroControl,
+      data.controlNumber,
       data.name,
       data.email,
-      data.carrera,
-      data.semestre,
       data.xp || 0,
       data.level || 1,
       data.streak || 0,
       data.currentCourse || null,
-      data.learningStyle || null,
       data.profilePicture || null,
-      data.preferences || { theme: 'light', notifications: true }
     );
   }
 
   static fromPrimitives(data: UserPrimitives): User {
     return new User(
       data.id,
-      data.numeroControl,
+      data.controlNumber,
       data.name,
       data.email,
-      data.carrera,
-      data.semestre,
       data.xp,
       data.level,
       data.streak,
       data.currentCourse,
-      data.learningStyle,
-      data.profilePicture,
-      data.preferences
+      data.profilePicture
     );
   }
 
-  public update(data: Partial<UpdateUserData>): void {
+  public update(data: Partial<UserPrimitives>): void {
     if (data.name !== undefined) this.name = data.name;
     if (data.email !== undefined) this.email = data.email;
-    if (data.carrera !== undefined) this.carrera = data.carrera;
-    if (data.semestre !== undefined) this.semestre = data.semestre;
     if (data.currentCourse !== undefined) this.currentCourse = data.currentCourse;
-    if (data.learningStyle !== undefined) this.learningStyle = data.learningStyle;
     if (data.profilePicture !== undefined) this.profilePicture = data.profilePicture;
-    if (data.preferences !== undefined) this.preferences = { ...this.preferences, ...data.preferences };
   }
 
   public addXP(points: number): void {
@@ -89,8 +73,8 @@ export class User {
     return this.id;
   }
 
-  public getNumeroControl(): string {
-    return this.numeroControl;
+  public getControlNumber(): string {
+    return this.controlNumber;
   }
 
   public getName(): string {
@@ -99,14 +83,6 @@ export class User {
 
   public getEmail(): string {
     return this.email;
-  }
-
-  public getCarrera(): string {
-    return this.carrera;
-  }
-
-  public getSemestre(): number {
-    return this.semestre;
   }
 
   public getXP(): number {
@@ -125,65 +101,33 @@ export class User {
     return this.currentCourse;
   }
 
-  public getLearningStyle(): string | null {
-    return this.learningStyle;
-  }
-
   public getProfilePicture(): string | null {
     return this.profilePicture;
   }
 
-  public getPreferences(): UserPreferences {
-    return this.preferences;
-  }
-
-  public toPrimitives(): UserPrimitives {
+  toPrimitives(): UserPrimitives {
     return {
       id: this.id,
-      numeroControl: this.numeroControl,
+      controlNumber: this.controlNumber,
       name: this.name,
       email: this.email,
-      carrera: this.carrera,
-      semestre: this.semestre,
       xp: this.xp,
       level: this.level,
       streak: this.streak,
       currentCourse: this.currentCourse,
-      learningStyle: this.learningStyle,
       profilePicture: this.profilePicture,
-      preferences: this.preferences,
     };
   }
 }
 
 export type UserPrimitives = {
   id: string;
-  numeroControl: string;
+  controlNumber: string;
   name: string;
   email: string;
-  carrera: string;
-  semestre: number;
   xp: number;
   level: number;
   streak: number;
   currentCourse: string | null;
-  learningStyle: string | null;
   profilePicture: string | null;
-  preferences: UserPreferences;
-};
-
-export type UserPreferences = {
-  theme: 'light' | 'dark';
-  notifications: boolean;
-};
-
-export type UpdateUserData = {
-  name?: string;
-  email?: string;
-  carrera?: string;
-  semestre?: number;
-  currentCourse?: string | null;
-  learningStyle?: string | null;
-  profilePicture?: string | null;
-  preferences?: Partial<UserPreferences>;
 };

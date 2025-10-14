@@ -1,21 +1,17 @@
-import { User, UserPrimitives, UserPreferences } from '../../domain/User';
+import { User, UserPrimitives } from '../../domain/User';
 import { UserRepository } from '../../domain/UserRepository';
 import { firestore } from '../../../../app/config/configureFirebase';
 
 interface UserDocument {
   __id: string;
-  numero_control: string;
+  control_number: string;
   name: string;
   email: string;
-  carrera: string;
-  semestre: number;
   xp: number;
   level: number;
   streak: number;
   current_course: string | null;
-  learning_style: string | null;
   profile_picture: string | null;
-  preferences: UserPreferences;
 }
 
 export class FirebaseUserRepository implements UserRepository {
@@ -54,10 +50,10 @@ export class FirebaseUserRepository implements UserRepository {
     return this.toDomainEntity(data);
   }
 
-  async findByNumeroControl(numeroControl: string): Promise<User | null> {
+  async findByNumeroControl(controlNumber: string): Promise<User | null> {
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('numero_control', '==', numeroControl)
+      .where('control_number', '==', controlNumber)
       .limit(1)
       .get();
 
@@ -117,36 +113,28 @@ export class FirebaseUserRepository implements UserRepository {
   private toFirestoreDocument(primitives: UserPrimitives): UserDocument {
     return {
       __id: primitives.id,
-      numero_control: primitives.numeroControl,
+      control_number: primitives.controlNumber,
       name: primitives.name,
       email: primitives.email,
-      carrera: primitives.carrera,
-      semestre: primitives.semestre,
       xp: primitives.xp,
       level: primitives.level,
       streak: primitives.streak,
       current_course: primitives.currentCourse,
-      learning_style: primitives.learningStyle,
       profile_picture: primitives.profilePicture,
-      preferences: primitives.preferences,
     };
   }
 
   private toDomainEntity(document: UserDocument): User {
     return User.fromPrimitives({
       id: document.__id,
-      numeroControl: document.numero_control,
+      controlNumber: document.control_number,
       name: document.name,
       email: document.email,
-      carrera: document.carrera,
-      semestre: document.semestre,
       xp: document.xp,
       level: document.level,
       streak: document.streak,
       currentCourse: document.current_course,
-      learningStyle: document.learning_style,
       profilePicture: document.profile_picture,
-      preferences: document.preferences,
     });
   }
 }

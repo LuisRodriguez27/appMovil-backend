@@ -28,12 +28,8 @@ export class UpdateUserUseCase {
     user.update({
       name: request.name,
       email: request.email,
-      carrera: request.carrera?.toUpperCase(),
-      semestre: request.semestre,
       currentCourse: request.currentCourse,
-      learningStyle: request.learningStyle,
       profilePicture: request.profilePicture,
-      preferences: request.preferences,
     });
 
     await this.userRepository.update(user);

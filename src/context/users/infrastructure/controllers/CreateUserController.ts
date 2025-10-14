@@ -7,15 +7,12 @@ export class CreateUserController {
 
   async run(req: Request, res: Response): Promise<void> {
     try {
-      const { numeroControl, name, email, carrera, semestre, learningStyle, profilePicture } = req.body;
+      const { controlNumber, name, email, profilePicture } = req.body;
 
       const request = new CreateUserRequest(
-        numeroControl,
+        controlNumber,
         name,
         email,
-        carrera,
-        semestre,
-        learningStyle,
         profilePicture
       );
 

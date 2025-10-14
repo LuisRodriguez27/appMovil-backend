@@ -8,17 +8,13 @@ export class UpdateUserController {
   async run(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const { name, email, carrera, semestre, currentCourse, learningStyle, profilePicture, preferences } = req.body;
+      const { name, email, currentCourse, profilePicture } = req.body;
 
       const request = new UpdateUserRequest(
         name,
         email,
-        carrera,
-        semestre,
         currentCourse,
-        learningStyle,
         profilePicture,
-        preferences
       );
 
       const user = await this.updateUserUseCase.execute(id, request);

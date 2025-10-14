@@ -13,28 +13,21 @@ export class CreateUserUseCase {
     }
 
     // Verificar que el número de control no esté registrado
-    const existingUserByNumeroControl = await this.userRepository.findByNumeroControl(request.numeroControl);
+    const existingUserByNumeroControl = await this.userRepository.findByNumeroControl(request.controlNumber);
     if (existingUserByNumeroControl) {
       throw new Error('El número de control ya está registrado');
     }
 
     // Crear el usuario
     const user = User.create({
-      numeroControl: request.numeroControl,
+      controlNumber: request.controlNumber,
       name: request.name,
       email: request.email,
-      carrera: request.carrera.toUpperCase(),
-      semestre: request.semestre,
       xp: 0,
       level: 1,
       streak: 0,
       currentCourse: null,
-      learningStyle: request.learningStyle || null,
-      profilePicture: request.profilePicture || null,
-      preferences: {
-        theme: 'light',
-        notifications: true,
-      },
+      profilePicture: request.profilePicture || null
     });
 
     await this.userRepository.create(user);

@@ -41,7 +41,7 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 ```typescript
 {
   __id: string;                    // ID único del usuario
-  numero_control: string;          // Número de control del estudiante
+  control_number: string;          // Número de control del estudiante
   name: string;                    // Nombre completo
   email: string;                   // Correo electrónico
   carrera: string;                 // Carrera (ISC, IIA, etc.)
@@ -61,7 +61,7 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 
 **Campos**:
 - `__id` (string, required): Identificador único del usuario (ej: "uid_juan_perez_123")
-- `numero_control` (string, required): Número de control institucional (ej: "19170123")
+- `control_number` (string, required): Número de control institucional (ej: "19170123")
 - `name` (string, required): Nombre completo del estudiante
 - `email` (string, required): Correo electrónico único
 - `carrera` (string, required): Código de la carrera (ISC, IIA, IM, etc.)
@@ -80,7 +80,7 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 
 **Índices sugeridos**:
 - `email` (único)
-- `numero_control` (único)
+- `control_number` (único)
 - `carrera` + `semestre` (compuesto)
 - `xp` (descendente, para ranking)
 
@@ -940,7 +940,7 @@ context/
 // Domain Entity
 class User {
   id: string;
-  numeroControl: string;
+  controlNumber: string;
   name: string;
   email: string;
   // ...
@@ -949,7 +949,7 @@ class User {
 // Firestore Document
 {
   __id: "uid_juan_perez_123",
-  numero_control: "19170123",
+  control_number: "19170123",
   name: "Juan Pérez García",
   email: "juan.perez@ejemplo.com",
   // ...
@@ -961,14 +961,14 @@ class User {
 // Firestore Document
 const doc = {
   __id: "uid_juan_perez_123",
-  numero_control: "19170123",
+  control_number: "19170123",
   name: "Juan Pérez García"
 }
 
 // Domain Entity
 User.fromPrimitives({
   id: doc.__id,
-  numeroControl: doc.numero_control,
+  controlNumber: doc.control_number,
   name: doc.name
 })
 ```
