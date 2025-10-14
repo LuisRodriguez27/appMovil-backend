@@ -44,35 +44,24 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
   control_number: string;          // Número de control del estudiante
   name: string;                    // Nombre completo
   email: string;                   // Correo electrónico
-  carrera: string;                 // Carrera (ISC, IIA, etc.)
-  semestre: number;                // Semestre actual
   xp: number;                      // Puntos de experiencia acumulados
   level: number;                   // Nivel actual del usuario
   streak: number;                  // Días consecutivos estudiando
-  current_course: string;          // ID del curso activo (ref: courses)
-  learning_style: string;          // Estilo de aprendizaje (visual, auditivo, etc.)
-  profile_picture: string;         // URL de la foto de perfil
-  preferences: {
-    theme: string;                 // Tema de la UI (dark, light)
-    notifications: boolean;        // Preferencia de notificaciones
-  };
+  current_course: string | null;   // ID del curso activo (ref: courses)
+  profile_picture: string | null;  // URL de la foto de perfil
 }
 ```
 
 **Campos**:
-- `__id` (string, required): Identificador único del usuario (ej: "uid_juan_perez_123")
+- `__id` (string, required): Identificador único del usuario generado automáticamente con uid()
 - `control_number` (string, required): Número de control institucional (ej: "19170123")
 - `name` (string, required): Nombre completo del estudiante
 - `email` (string, required): Correo electrónico único
-- `carrera` (string, required): Código de la carrera (ISC, IIA, IM, etc.)
-- `semestre` (number, required): Semestre actual (1-9)
 - `xp` (number, required): Puntos de experiencia totales (default: 0)
-- `level` (number, required): Nivel del usuario basado en XP (default: 1)
+- `level` (number, required): Nivel del usuario basado en XP (default: 1, calculado con fórmula: floor(sqrt(xp/100)) + 1)
 - `streak` (number, required): Días consecutivos de estudio (default: 0)
-- `current_course` (string, optional): Referencia al curso que está cursando actualmente
-- `learning_style` (string, optional): Estilo de aprendizaje preferido
-- `profile_picture` (string, optional): URL de la imagen de perfil
-- `preferences` (object, required): Configuraciones personales del usuario
+- `current_course` (string | null, optional): Referencia al curso que está cursando actualmente
+- `profile_picture` (string | null, optional): URL de la imagen de perfil
 
 **Relaciones**:
 - `current_course` → `courses.__id`
@@ -97,11 +86,8 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 ```typescript
 {
   __id: string;                    // ID único del curso
-  code: string;                    // Código del curso (ej: FP101)
   title: string;                   // Título del curso
   description: string;             // Descripción breve
-  semester: number;                // Semestre recomendado
-  prerequisites: string[];         // Array de IDs de cursos prerequisitos
   tags: string[];                  // Etiquetas descriptivas
   color: string;                   // Color hex para UI
   topics_count: number;            // Cantidad de temas principales
@@ -109,24 +95,19 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 ```
 
 **Campos**:
-- `__id` (string, required): Identificador único (ej: "FP101")
-- `code` (string, required): Código del curso (mismo que __id)
+- `__id` (string, required): Identificador único generado con uid() (ej: "fp_fundamentos_programacion")
 - `title` (string, required): Nombre del curso
 - `description` (string, required): Descripción del contenido
-- `semester` (number, required): Semestre sugerido (1-9)
-- `prerequisites` (array, required): Cursos que deben completarse antes (puede estar vacío)
 - `tags` (array, required): Palabras clave para búsqueda/filtrado
-- `color` (string, required): Color hex para identificación visual
+- `color` (string, required): Color hex para identificación visual (ej: "#3B82F6")
 - `topics_count` (number, required): Número total de temas del curso
 
 **Relaciones**:
-- `prerequisites` → `courses.__id[]`
 - Relacionado con: `topics`, `subtopics`, `lessons`, `exercises`, `user_progress`
 
 **Ejemplos de valores**:
-- Códigos: "FP101", "POO201", "ED301", etc.
-- Carreras: ["ISC", "IIA", "IM"]
 - Tags: ["programación", "básico", "c", "java", "intermedio"]
+- Colors: "#3B82F6", "#10B981", "#F59E0B"
 
 ---
 
@@ -699,7 +680,6 @@ users
   └── notifications (1:N) → notifications.user_id
 
 courses
-  ├── prerequisites → courses.__id[]
   ├── topics (1:N) → topics.course_id
   ├── subtopics (1:N) → subtopics.course_id
   ├── lessons (1:N) → lessons.course_id

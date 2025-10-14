@@ -16,10 +16,10 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   const updateUserXPController = container.get<UpdateUserXPController>("UpdateUserXPController");
 
   // Rutas de usuarios
-  app.post('/api/users', createUserController.run.bind(createUserController));
-  app.get('/api/users', findAllUsersController.run.bind(findAllUsersController));
-  app.get('/api/users/:id', findUserByIdController.run.bind(findUserByIdController));
-  app.put('/api/users/:id', updateUserController.run.bind(updateUserController));
-  app.delete('/api/users/:id', deleteUserController.run.bind(deleteUserController));
-  app.patch('/api/users/:id/xp', updateUserXPController.run.bind(updateUserXPController));
+  app.post('/users', createUserController.run.bind(createUserController));
+  app.get('/users', findAllUsersController.run.bind(findAllUsersController));
+  app.get('/users/:id', findUserByIdController.run.bind(findUserByIdController));
+  app.put('/users/:id', updateUserController.run.bind(updateUserController));
+  app.delete('/users/:id', deleteUserController.run.bind(deleteUserController));
+  app.patch('/users/:id/xp', updateUserXPController.run.bind(updateUserXPController));
 };
