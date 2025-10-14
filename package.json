@@ -54,7 +54,7 @@
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/errorhandler": "^1.5.3",
-    "@types/express": "^5.0.3",
+    "@types/express": "^4.17.23",
     "@types/helmet": "^0.0.48",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
