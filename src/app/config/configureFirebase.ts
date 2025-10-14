@@ -1,18 +1,50 @@
-import { App, cert, initializeApp } from "firebase-admin/app";
+import { App, cert, initializeApp, applicationDefault } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
-import { AppOptions } from "./config";
+import { FirebaseConfig } from "./config";
+import * as path from "path";
 
 export let firebaseApp: App;
 
-const serviceAccount = JSON.parse(Buffer.from(AppOptions.SERVICE_ACCOUNT_JSON_BASE64, 'base64').toString('utf8'));
-
 export default function configureFirebase() {
-    firebaseApp = initializeApp({
-        credential: cert(serviceAccount),
-    }, 'firebase-app');
-    console.log("Firebase app initialized");
+    // Opción 1: Usar GOOGLE_APPLICATION_CREDENTIALS (Recomendado por Google)
+    if (FirebaseConfig.credentialsPath) {
+        // Establecer la variable de entorno con ruta absoluta para que ADC la encuentre
+        process.env.GOOGLE_APPLICATION_CREDENTIALS = path.resolve(
+            process.cwd(),
+            FirebaseConfig.credentialsPath
+        );
+
+        firebaseApp = initializeApp({
+            credential: applicationDefault(), // Usa Application Default Credentials
+        }, 'firebase-app');
+
+        console.log("✅ Firebase app initialized with GOOGLE_APPLICATION_CREDENTIALS");
+        console.log(`📁 Credentials file: ${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
+    }
+    // Opción 2: Usar SERVICE_ACCOUNT_JSON_BASE64 (Fallback para producción)
+    else if (FirebaseConfig.serviceAccountBase64) {
+        const serviceAccount = JSON.parse(
+            Buffer.from(FirebaseConfig.serviceAccountBase64, 'base64').toString('utf8')
+        );
+
+        firebaseApp = initializeApp({
+            credential: cert(serviceAccount),
+        }, 'firebase-app');
+
+        console.log("✅ Firebase app initialized with Base64 credentials");
+    }
+    // Opción 3: Error si no hay credenciales
+    else {
+        throw new Error(
+            '❌ No Firebase credentials found. Please set either:\n' +
+            '  - GOOGLE_APPLICATION_CREDENTIALS (path to serviceAccountKey.json)\n' +
+            '  - SERVICE_ACCOUNT_JSON_BASE64 (base64 encoded credentials)'
+        );
+    }
+
+    console.log(`🔥 Firestore Database: ${FirebaseConfig.databaseId}`);
     return firebaseApp;
 }
 
@@ -25,5 +57,5 @@ export function bucket() {
 }
 
 export function firestore() {
-    return getFirestore(firebaseApp, "chatbot-dev")
+    return getFirestore(firebaseApp, FirebaseConfig.databaseId);
 }
