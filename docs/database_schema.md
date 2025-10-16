@@ -23,7 +23,7 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 1. **users**
 2. **topics**
 3. **lessons**
-4. **archivements**
+4. **achievements**
 5. **notifications**
 6. **courses**
 
@@ -49,22 +49,24 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
   level: number;                   // Nivel actual del usuario
   current_course: string | null;   // ID del curso activo (ref: courses)
   profile_picture: string | null;  // URL de la foto de perfil
-  created_at: Data;
+  created_at: Date;
   
-  // PROGRESO POR CURSO
+  // PROGRESO POR CURSO (optimizado para 2 cursos: POO y Fundamentos)
   progress: {
     [course_id: string]: {
-      lessons_completed: string[];      // IDs de lecciones completadas
+      lessons_completed: {              // Mapa de lecciones completadas (O(1) lookup)
+        [lesson_id: string]: true;      // true si la lección está completada
+      };
+      completed_count: number;          // Contador total de lecciones completadas
       percentage: number;               // Porcentaje de curso completado
       last_viewed_lesson: string | null; // Última lección vista
       updated_at: Date;                 // Última actualización
     }
   };
   
-  // LOGROS OBTENIDOS
+  // LOGROS OBTENIDOS (referencia al catálogo achievements)
   achievements: {
-    achievement_id: string;        // ID del logro
-    xp_earned: number;             // XP ganado por este logro
+    achievement_id: string;        // ID del logro (ref: achievements.__id)
     unlocked_at: Date;             // Fecha de desbloqueo
   }[];
   
@@ -74,6 +76,15 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
     best_streak: number;           // Mejor racha histórica
     last_study_date: string;       // Última fecha de estudio (YYYY-MM-DD)
     streak_freeze_count: number;   // Congeladores de racha disponibles
+  };
+
+  // ESTADÍSTICAS GENERALES
+  stats: {
+    total_lessons_completed: number;      // Total de lecciones completadas
+    total_exercises_completed: number;    // Total de ejercicios completados
+    total_courses_completed: number;      // Cursos finalizados al 100%
+    average_score: number;                // Promedio de puntuación en ejercicios
+    study_time_minutes: number;           // Tiempo total de estudio en minutos
   };
 }
 ```
@@ -90,15 +101,15 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 
 **Objeto progress**:
 - Mapa de progreso por curso, donde la key es el `course_id`
-- `lessons_completed` (array): IDs de lecciones completadas
+- `lessons_completed` (object): Mapa de lecciones completadas con lookup O(1) (key: lesson_id, value: true)
+- `completed_count` (number): Contador total de lecciones completadas
 - `percentage` (number): Porcentaje de completitud (0-100)
 - `last_viewed_lesson` (string): ID de la última lección vista
 - `updated_at` (Date): Última actualización del progreso
 
 **Array achievements**:
 - Lista de logros obtenidos por el usuario
-- `achievement_id` (string): Referencia al logro en la colección `achievements`
-- `xp_earned` (number): Puntos XP ganados por este logro
+- `achievement_id` (string): Referencia al logro en la colección `achievements` (los puntos XP se obtienen del catálogo)
 - `unlocked_at` (Date): Fecha y hora de desbloqueo
 
 **Objeto streak_data**:
@@ -107,10 +118,17 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 - `last_study_date` (string): Última fecha de actividad en formato "YYYY-MM-DD"
 - `streak_freeze_count` (number): Congeladores de racha disponibles (default: 0)
 
+**Objeto stats**:
+- `total_lessons_completed` (number): Total de lecciones completadas en toda la plataforma (default: 0)
+- `total_exercises_completed` (number): Total de ejercicios completados (default: 0)
+- `total_courses_completed` (number): Cursos finalizados al 100% (default: 0)
+- `average_score` (number): Promedio de puntuación en ejercicios (0-100) (default: 0)
+- `study_time_minutes` (number): Tiempo total de estudio acumulado en minutos (default: 0)
+
 **Relaciones**:
 - `current_course` → `courses.__id`
 - `progress[course_id]` → `courses.__id`
-- `progress[].lessons_completed[]` → `lessons.__id[]`
+- `progress[].lessons_completed[lesson_id]` → `lessons.__id`
 - `achievements[].achievement_id` → `achievements.__id`
 
 **Índices sugeridos**:
@@ -126,10 +144,13 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 - Un usuario solo puede obtener cada logro una vez
 - El XP de logros se suma automáticamente al total del usuario
 
-**Ventajas de esta estructura**:
+**Ventajas de esta estructura optimizada**:
 - Perfil completo del usuario en una sola lectura
 - Evita múltiples consultas para obtener progreso, logros y rachas
 - Actualización atómica del progreso y logros
+- Búsqueda O(1) de lecciones completadas usando mapa en vez de array
+- Eliminación de datos redundantes (xp_earned se obtiene del catálogo de achievements)
+- Estadísticas pre-calculadas para dashboards sin queries adicionales
 
 ---
 
@@ -160,7 +181,7 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 - `total_lessons` (number, required): Cantidad total de lecciones del curso (actualizado automáticamente)
 - `created_at` (Date, required): Fecha de creación del curso
 
-**Nota sobre contadores**: Estos campos se actualizan automáticamente al crear/eliminar temas y lecciones. Como los cursos se definen al inicio y raramente cambian, mantener estos contadores optimiza el rendimiento al calcular porcentajes de progreso del usuario.
+**Nota sobre contadores**: Estos campos se actualizan automáticamente al crear/eliminar temas y lecciones. Como solo existen 2 cursos (POO y Fundamentos de Programación) que raramente cambian, mantener estos contadores optimiza el rendimiento al calcular porcentajes de progreso del usuario.
 
 **Relaciones**:
 - Relacionado con: `topics`, `lessons`, `users.progress`
@@ -309,7 +330,7 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 **Relaciones**:
 - `topic_id` → `topics.__id`
 - `subtopic_id` → `topics.subtopics[].id`
-- Relacionado con: `users.progress[].lessons_completed[]`
+- Relacionado con: `users.progress[].lessons_completed[lesson_id]`
 
 **Índices sugeridos**:
 - `topic_id` + `order` (compuesto, para listar lecciones en orden)
@@ -439,6 +460,8 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
   message: string;                 // Mensaje descriptivo
   is_read: boolean;                // Estado de lectura
   created_at: Date;                // Fecha de creación
+  expires_at?: Date;               // Fecha de expiración automática (opcional)
+  priority?: number;               // Prioridad de la notificación (1-5, default: 3)
   action_url?: string;             // URL opcional para acción
   metadata?: object;               // Datos adicionales opcionales
 }
@@ -452,6 +475,8 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 - `message` (string, required): Contenido del mensaje
 - `is_read` (boolean, required): Si el usuario la ha leído (default: false)
 - `created_at` (Date, required): Timestamp de creación
+- `expires_at` (Date, optional): Fecha de expiración automática (ej: 30 días después de created_at)
+- `priority` (number, optional): Nivel de prioridad de 1 (baja) a 5 (crítica) (default: 3)
 - `action_url` (string, optional): URL para navegar al hacer click
 - `metadata` (object, optional): Datos adicionales según el tipo
 
@@ -469,13 +494,15 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 
 **Índices sugeridos**:
 - `user_id` + `is_read` (compuesto)
-- `user_id` + `created_at` (compuesto, descendente)
+- `user_id` + `priority` + `created_at` (compuesto, para ordenar por prioridad y fecha)
+- `expires_at` (para limpieza automática de notificaciones expiradas)
 
 **Reglas de negocio**:
 - Se marcan como leídas cuando el usuario las visualiza
 - Pueden tener enlaces a secciones específicas de la app
-- Se pueden eliminar después de cierto tiempo o al marcarlas como leídas
-- Implementación futura con cron-job para notificaciones automáticas
+- Las notificaciones con `expires_at` se eliminan automáticamente mediante Cloud Functions scheduled
+- Las notificaciones con mayor `priority` se muestran primero en el listado
+- Implementación futura con cron-job para notificaciones automáticas y limpieza de expiradas
 
 **Nota**: Esta colección se mantiene separada porque puede crecer mucho y se consulta frecuentemente por separado del perfil de usuario.
 
@@ -483,7 +510,25 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 
 ## Notas Importantes
 
-- **Límite de documento**: Firebase Firestore tiene un límite de 1MB por documento. Con la estructura actual, un usuario típico no debería superar este límite.
+### Optimizaciones para 2 cursos (POO y Fundamentos de Programación)
+
+Esta estructura está optimizada considerando que solo existen 2 cursos en la plataforma:
+
+- **Progreso embebido**: Con solo 2 cursos, el objeto `progress` en usuarios se mantiene pequeño y eficiente
+- **Mapa de lecciones completadas**: Uso de mapas (`{[lesson_id]: true}`) en vez de arrays para búsquedas O(1)
+- **Sin datos redundantes**: Eliminación de `xp_earned` en achievements (se obtiene del catálogo)
+- **Estadísticas pre-calculadas**: Campo `stats` para evitar cálculos costosos en dashboards
+
+### Límites de Firestore
+
+- **Límite de documento**: Firebase Firestore tiene un límite de 1MB por documento. Con la estructura actual y 2 cursos, un usuario típico no debería superar este límite.
 - **Arrays**: Los arrays en Firestore tienen un límite de ~20,000 elementos, suficiente para logros y progreso.
 - **Índices**: Crear índices compuestos según sea necesario para queries frecuentes.
 - **Migraciones**: Si ya tienes datos en la estructura anterior, necesitarás scripts de migración.
+
+### Recomendaciones de implementación
+
+1. **Verificar lección completada**: `if (user.progress[courseId].lessons_completed[lessonId]) { ... }`
+2. **Agregar lección completada**: Usar `set()` con merge para actualizar atómicamente
+3. **Obtener puntos de logro**: Hacer lookup en la colección `achievements` usando el `achievement_id`
+4. **Limpieza de notificaciones**: Implementar Cloud Function scheduled que elimine notificaciones donde `expires_at < now()`
