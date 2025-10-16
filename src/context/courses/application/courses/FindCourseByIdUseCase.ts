@@ -1,5 +1,5 @@
-import { Course } from "../domain/Course";
-import { CourseRepository } from "../domain/CourseRepository";
+import { Course } from "../../domain/Course";
+import { CourseRepository } from "../../domain/CourseRepository";
 
 export class FindCourseByIdUseCase {
   constructor(private readonly courseRepository: CourseRepository) { }
