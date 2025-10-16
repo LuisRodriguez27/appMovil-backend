@@ -9,7 +9,6 @@ interface UserDocument {
   email: string;
   xp: number;
   level: number;
-  streak: number;
   current_course: string | null;
   profile_picture: string | null;
 }
@@ -104,12 +103,6 @@ export class FirebaseUserRepository implements UserRepository {
     });
   }
 
-  async updateStreak(id: string, newStreak: number): Promise<void> {
-    await firestore().collection(this.collection).doc(id).update({
-      streak: newStreak,
-    });
-  }
-
   private toFirestoreDocument(primitives: UserPrimitives): UserDocument {
     return {
       __id: primitives.id,
@@ -118,7 +111,6 @@ export class FirebaseUserRepository implements UserRepository {
       email: primitives.email,
       xp: primitives.xp,
       level: primitives.level,
-      streak: primitives.streak,
       current_course: primitives.currentCourse,
       profile_picture: primitives.profilePicture,
     };
@@ -132,7 +124,6 @@ export class FirebaseUserRepository implements UserRepository {
       email: document.email,
       xp: document.xp,
       level: document.level,
-      streak: document.streak,
       currentCourse: document.current_course,
       profilePicture: document.profile_picture,
     });

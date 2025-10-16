@@ -8,7 +8,6 @@ export class User {
     private email: string,
     private xp: number,
     private level: number,
-    private streak: number,
     private currentCourse: string | null,
     private profilePicture: string | null
   ) {}
@@ -21,7 +20,6 @@ export class User {
       data.email,
       data.xp || 0,
       data.level || 1,
-      data.streak || 0,
       data.currentCourse || null,
       data.profilePicture || null,
     );
@@ -35,7 +33,6 @@ export class User {
       data.email,
       data.xp,
       data.level,
-      data.streak,
       data.currentCourse,
       data.profilePicture
     );
@@ -56,12 +53,6 @@ export class User {
     this.recalculateLevel();
   }
 
-  public updateStreak(newStreak: number): void {
-    if (newStreak < 0) {
-      throw new Error('Streak cannot be negative');
-    }
-    this.streak = newStreak;
-  }
 
   private recalculateLevel(): void {
     // Fórmula: level = floor(sqrt(xp / 100)) + 1
@@ -93,10 +84,6 @@ export class User {
     return this.level;
   }
 
-  public getStreak(): number {
-    return this.streak;
-  }
-
   public getCurrentCourse(): string | null {
     return this.currentCourse;
   }
@@ -113,7 +100,6 @@ export class User {
       email: this.email,
       xp: this.xp,
       level: this.level,
-      streak: this.streak,
       currentCourse: this.currentCourse,
       profilePicture: this.profilePicture,
     };
@@ -127,7 +113,6 @@ export type UserPrimitives = {
   email: string;
   xp: number;
   level: number;
-  streak: number;
   currentCourse: string | null;
   profilePicture: string | null;
 };

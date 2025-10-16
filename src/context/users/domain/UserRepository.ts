@@ -9,5 +9,4 @@ export interface UserRepository {
   update(user: User): Promise<void>;
   delete(id: string): Promise<void>;
   updateXP(id: string, xpToAdd: number): Promise<void>;
-  updateStreak(id: string, newStreak: number): Promise<void>;
 }
