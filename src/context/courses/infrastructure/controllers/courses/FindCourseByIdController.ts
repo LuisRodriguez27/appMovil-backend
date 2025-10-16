@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { FindCourseByIdUseCase } from '../../application/FindCourseByIdUseCase';
+import { FindCourseByIdUseCase } from '../../../application/courses/FindCourseByIdUseCase';
 
 export class FindCourseByIdController {
   constructor(private readonly findCourseByIdUseCase: FindCourseByIdUseCase) {}

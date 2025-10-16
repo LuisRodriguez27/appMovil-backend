@@ -156,9 +156,11 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 - `__id` (string, required): Identificador único generado con uid() (ej: "fp_fundamentos_programacion")
 - `title` (string, required): Nombre del curso
 - `description` (string, required): Descripción del contenido
-- `total_topics` (number, required): Cantidad total de temas (para calcular porcentajes)
-- `total_lessons` (number, required): Cantidad total de lecciones (para calcular porcentajes)
+- `total_topics` (number, required): Cantidad total de temas del curso (actualizado automáticamente)
+- `total_lessons` (number, required): Cantidad total de lecciones del curso (actualizado automáticamente)
 - `created_at` (Date, required): Fecha de creación del curso
+
+**Nota sobre contadores**: Estos campos se actualizan automáticamente al crear/eliminar temas y lecciones. Como los cursos se definen al inicio y raramente cambian, mantener estos contadores optimiza el rendimiento al calcular porcentajes de progreso del usuario.
 
 **Relaciones**:
 - Relacionado con: `topics`, `lessons`, `users.progress`
@@ -270,7 +272,7 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
   content: string;                 // Contenido en texto/markdown
   order: number;                   // Orden dentro del subtema
   
-  // EJERCICIOS EMBEBIDOS
+  // OBJETOS DE EJERCICIOS EMBEBIDOS
   exercises: {
     id: string;                    // ID único del ejercicio
     question: string;              // Enunciado de la pregunta

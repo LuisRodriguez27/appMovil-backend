@@ -1,22 +1,22 @@
 import { Request, Response } from 'express';
-import { DeleteCourseUseCase } from "../../application/DeleteCourseUseCase";
+import { FindTopicByIdUseCase } from '../../../application/topics/FindTopicByIdUseCase';
 
-export class DeleteCourseController {
-  constructor(private readonly deleteCourseUseCase: DeleteCourseUseCase) {}
+export class FindTopicByIdController {
+  constructor(private readonly findTopicByIdUseCase: FindTopicByIdUseCase) {}
 
   async run(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
 
-      await this.deleteCourseUseCase.execute(id);
+      const topic = await this.findTopicByIdUseCase.execute(id);
 
       res.status(200).json({
-        succes: true,
-        message: 'Curso eliminado existosamente',
+        success: true,
+        data: topic.toPrimitives(),
       });
     } catch (error) {
       if (error instanceof Error) {
-        const statusCode = error.message === 'Curso no encontrado' ? 404 : 400;
+        const statusCode = error.message === 'Tema no encontrado' ? 404 : 400;
         res.status(statusCode).json({
           success: false,
           message: error.message,

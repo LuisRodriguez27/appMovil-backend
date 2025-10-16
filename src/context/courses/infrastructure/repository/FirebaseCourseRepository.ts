@@ -5,7 +5,10 @@ import { CourseRepository } from "../../domain/CourseRepository";
 interface CourseDocument {
   __id: string,
   title: string,
-  description: string
+  description: string,
+  total_topics: number,
+  total_lessons: number,
+  created_at: FirebaseFirestore.Timestamp
 }
 
 export class FirebaseCourseRepository implements CourseRepository {
@@ -29,7 +32,7 @@ export class FirebaseCourseRepository implements CourseRepository {
     return this.toDomainEntity(data);
   }
 
-  async findByName(title: string): Promise<Course | null> {
+  async findByTitle(title: string): Promise<Course | null> {
     const snapshot = await firestore()
       .collection(this.collection)
       .where('title', '==', title)
@@ -64,12 +67,31 @@ export class FirebaseCourseRepository implements CourseRepository {
   async delete(id: string): Promise<void> {
     await firestore().collection(this.collection).doc(id).delete();
   }
-  
+
+  async updateCounters(id: string, totalTopics?: number, totalLessons?: number): Promise<void> {
+    const updateData: any = {};
+
+    if (totalTopics !== undefined) {
+      updateData.total_topics = totalTopics;
+    }
+
+    if (totalLessons !== undefined) {
+      updateData.total_lessons = totalLessons;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await firestore().collection(this.collection).doc(id).update(updateData);
+    }
+  }
+
   private toFirestoreDocument(primitives: CoursePrimitives): CourseDocument {
     return {
       __id: primitives.id,
       title: primitives.title,
-      description: primitives.description
+      description: primitives.description,
+      total_topics: primitives.totalTopics,
+      total_lessons: primitives.totalLessons,
+      created_at: FirebaseFirestore.Timestamp.fromDate(primitives.createdAt)
     }
   }
 
@@ -77,7 +99,10 @@ export class FirebaseCourseRepository implements CourseRepository {
     return Course.fromPrimitives({
       id: document.__id,
       title: document.title,
-      description: document.title
+      description: document.description,
+      totalTopics: document.total_topics,
+      totalLessons: document.total_lessons,
+      createdAt: document.created_at.toDate()
     })
   }
 }
