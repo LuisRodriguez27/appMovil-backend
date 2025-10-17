@@ -75,7 +75,6 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
     current_streak: number;        // Racha actual en días
     best_streak: number;           // Mejor racha histórica
     last_study_date: string;       // Última fecha de estudio (YYYY-MM-DD)
-    streak_freeze_count: number;   // Congeladores de racha disponibles
   };
 
   // ESTADÍSTICAS GENERALES
@@ -83,8 +82,6 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
     total_lessons_completed: number;      // Total de lecciones completadas
     total_exercises_completed: number;    // Total de ejercicios completados
     total_courses_completed: number;      // Cursos finalizados al 100%
-    average_score: number;                // Promedio de puntuación en ejercicios
-    study_time_minutes: number;           // Tiempo total de estudio en minutos
   };
 }
 ```
@@ -116,14 +113,11 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 - `current_streak` (number): Días consecutivos de estudio actual (default: 0)
 - `best_streak` (number): Máxima racha alcanzada (default: 0)
 - `last_study_date` (string): Última fecha de actividad en formato "YYYY-MM-DD"
-- `streak_freeze_count` (number): Congeladores de racha disponibles (default: 0)
 
 **Objeto stats**:
 - `total_lessons_completed` (number): Total de lecciones completadas en toda la plataforma (default: 0)
 - `total_exercises_completed` (number): Total de ejercicios completados (default: 0)
 - `total_courses_completed` (number): Cursos finalizados al 100% (default: 0)
-- `average_score` (number): Promedio de puntuación en ejercicios (0-100) (default: 0)
-- `study_time_minutes` (number): Tiempo total de estudio acumulado en minutos (default: 0)
 
 **Relaciones**:
 - `current_course` → `courses.__id`
