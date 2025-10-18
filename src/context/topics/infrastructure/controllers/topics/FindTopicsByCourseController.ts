@@ -1,17 +1,18 @@
 import { Request, Response } from 'express';
-import { FindAllCoursesUseCase } from "../../application/FindAllCoursesUseCase";
+import { FindTopicsByCourseUseCase } from '../../../application/topics/FindTopicsByCourseUseCase';
 
-export class FindAllCoursesController {
-  constructor(private readonly findAllCoursesUseCase: FindAllCoursesUseCase) {}
+export class FindTopicsByCourseController {
+  constructor(private readonly findTopicsByCourseUseCase: FindTopicsByCourseUseCase) {}
 
   async run(req: Request, res: Response): Promise<void> {
     try {
-      const courses = await this.findAllCoursesUseCase.execute();
+      const { courseId } = req.params;
+
+      const topics = await this.findTopicsByCourseUseCase.execute(courseId);
 
       res.status(200).json({
         success: true,
-        data: courses.map((course) => course.toPrimitives()),
-        count: courses.length,
+        data: topics.map(topic => topic.toPrimitives()),
       });
     } catch (error) {
       if (error instanceof Error) {

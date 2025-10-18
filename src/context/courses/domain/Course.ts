@@ -4,14 +4,20 @@ export class Course {
   constructor(
     public readonly id: string,
     private title: string,
-    private description: string
+    private description: string,
+    private totalTopics: number,
+    private totalLessons: number,
+    private createdAt: Date
   ) {}
 
-  static create(data:Omit<CoursePrimitives, 'id'>): Course {
+  static create(data:Omit<CoursePrimitives, 'id' | 'totalTopics' | 'totalLessons' | 'createdAt'>): Course {
     return new Course(
       uid(),
       data.title,
-      data.description
+      data.description,
+      0, // totalTopics inicial
+      0, // totalLessons inicial
+      new Date() // createdAt actual
     )
   }
 
@@ -19,13 +25,40 @@ export class Course {
     return new Course(
       data.id,
       data.title,
-      data.description
+      data.description,
+      data.totalTopics,
+      data.totalLessons,
+      data.createdAt
     );
   }
 
   public update(data: Partial<CoursePrimitives>): void {
     if (data.title !== undefined) this.title = data.title;
     if (data.description !== undefined) this.description = data.description;
+  }
+
+  public incrementTotalTopics(): void {
+    this.totalTopics += 1;
+  }
+
+  public decrementTotalTopics(): void {
+    if (this.totalTopics > 0) {
+      this.totalTopics -= 1;
+    }
+  }
+
+  public updateTotalLessons(count: number): void {
+    this.totalLessons = count;
+  }
+
+  public incrementTotalLessons(): void {
+    this.totalLessons += 1;
+  }
+
+  public decrementTotalLessons(): void {
+    if (this.totalLessons > 0) {
+      this.totalLessons -= 1;
+    }
   }
 
   public getId(): string {
@@ -40,11 +73,26 @@ export class Course {
     return this.description
   }
 
+  public getTotalTopics(): number {
+    return this.totalTopics
+  }
+
+  public getTotalLessons(): number {
+    return this.totalLessons
+  }
+
+  public getCreatedAt(): Date {
+    return this.createdAt
+  }
+
   public toPrimitives(): CoursePrimitives {
     return {
       id: this.id,
       title: this.title,
-      description: this.description
+      description: this.description,
+      totalTopics: this.totalTopics,
+      totalLessons: this.totalLessons,
+      createdAt: this.createdAt
     }
   }
 }
@@ -52,5 +100,8 @@ export class Course {
 export type CoursePrimitives = {
   id: string,
   title: string,
-  description: string
+  description: string,
+  totalTopics: number,
+  totalLessons: number,
+  createdAt: Date
 }

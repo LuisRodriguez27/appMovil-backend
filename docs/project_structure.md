@@ -1,63 +1,77 @@
+
+
 # Project Structure & Conventions
 
 Este archivo documenta la arquitectura del proyecto, las convenciones de código, los endpoints de la API y las reglas de negocio generales.
 
 ---
 
-## Diagrama de Relaciones de la Base de Datos
+## Diagrama de Relaciones de la Base de Datos (Optimizado NoSQL)
+
+**Nota**: Esta estructura ha sido optimizada para Firebase Firestore, priorizando menos consultas y datos embebidos.
 
 ```
-users
+users (6 colecciones principales)
   ├── current_course → courses.__id
-  ├── user_progress (1:N) → user_progress.user_id
-  ├── user_achievements (1:N) → user_achievements.user_id
-  ├── study_streaks (1:1) → study_streaks.user_id
+  ├── progress{} → (embebido) progreso por curso
+  │   └── [course_id] → lessons_completed[], percentage, last_viewed_lesson
+  ├── achievements[] → (embebido) logros obtenidos con xp_earned y unlocked_at
+  ├── streak_data{} → (embebido) current_streak, best_streak, last_study_date
   └── notifications (1:N) → notifications.user_id
 
 courses
   ├── topics (1:N) → topics.course_id
-  ├── subtopics (1:N) → subtopics.course_id
-  ├── lessons (1:N) → lessons.course_id
-  ├── exercises (1:N) → exercises.course_id
-  └── user_progress (1:N) → user_progress.course_id
+  └── lessons (1:N) → lessons.topic_id
 
 topics
   ├── course_id → courses.__id
-  ├── subtopics (1:N) → subtopics.topic_id
-  ├── lessons (1:N) → lessons.topic_id
-  └── exercises (1:N) → exercises.topic_id
-
-subtopics
-  ├── topic_id → topics.__id
-  ├── course_id → courses.__id
-  ├── lessons (1:N) → lessons.subtopic_id
-  └── exercises (1:N) → exercises.subtopic_id
+  ├── subtopics[] → (embebido) array de subtemas con id, title, description, order
+  └── lessons (1:N) → lessons.topic_id + lessons.subtopic_id
 
 lessons
-  ├── subtopic_id → subtopics.__id
   ├── topic_id → topics.__id
-  ├── course_id → courses.__id
-  └── exercises (1:N) → exercises.lesson_id
+  ├── subtopic_id → topics.subtopics[].id
+  └── exercises[] → (embebido) array de ejercicios con id, question, type, max_points
 
-exercises
-  ├── lesson_id → lessons.__id
-  ├── subtopic_id → subtopics.__id
-  ├── topic_id → topics.__id
-  ├── course_id → courses.__id
-  ├── submissions (1:N) → submissions.exercise_id
-  └── daily_challenges (1:N) → daily_challenges.exercise_id
+achievements (catálogo maestro)
+  └── Relacionado con users.achievements[]
 
-submissions
-  ├── user_id → users.__id
-
-achievements
-  └── user_achievements (1:N) → user_achievements.achievement_id
-
-daily_challenges
-  ├── exercise_id → exercises.__id
-  ├── course_id → courses.__id
-  └── participants[] → users.__id[]
+notifications
+  └── user_id → users.__id
 ```
+
+**Ventajas de la estructura**:
+- ⚡ **Menor latencia**: 1 lectura en lugar de múltiples consultas
+- 💰 **Menor costo**: Reducción del 60-70% en lecturas de Firestore
+- 🎯 **Simplicidad**: Menos colecciones que mantener y sincronizar
+- 🔒 **Atomicidad**: Actualizaciones transaccionales más sencillas
+- 📦 **Escalabilidad**: Mejor rendimiento con alta concurrencia
+
+---
+
+## 🎯 Arquitectura de la Aplicación
+
+### Aplicación Solo para Estudiantes
+
+**IMPORTANTE**: Esta aplicación backend está diseñada exclusivamente para dar servicio a la **aplicación móvil Flutter para estudiantes**.
+
+**Principios arquitectónicos**:
+- ✅ **API de solo lectura para contenido educativo** (cursos, temas, lecciones)
+- ✅ **API de escritura solo para progreso del usuario** (completar lecciones, ganar XP, logros)
+- ❌ **NO hay endpoints de administración** (crear/editar/eliminar contenido)
+- ❌ **NO hay roles de maestro/administrador** en la aplicación móvil
+
+**Gestión de contenido educativo**:
+- El contenido (cursos, temas, lecciones, ejercicios) se gestiona mediante:
+  - **Firebase Console** (para cambios manuales rápidos)
+  - **Scripts de migración** (para carga masiva de contenido)
+  - **Panel de administración web separado** (futuro, fuera de este proyecto)
+
+**Implicaciones de diseño**:
+- Los endpoints de cursos, temas y lecciones son **READ-ONLY** desde la app móvil
+- Los endpoints de usuarios son **READ-WRITE** para actualizar progreso
+- Optimización para consultas de lectura frecuentes (cache, índices)
+- Estructura de datos optimizada para consumo móvil (menos consultas, datos embebidos)
 
 ---
 
@@ -87,28 +101,29 @@ daily_challenges
 - Categorías: progreso, maestría, social, racha, velocidad
 
 #### Retos Diarios (Daily Challenges)
-- Cada día se publica un nuevo ejercicio con bonus XP
-- Los usuarios tienen 24 horas para completarlo
-- El bonus XP solo se otorga en el primer intento correcto del día
-- Los participantes se registran en el array del reto
+- **Nota**: Funcionalidad pendiente de implementación futura
+- Cada día se publicará un nuevo ejercicio con bonus XP
+- Los usuarios tendrán 24 horas para completarlo
+- El bonus XP solo se otorgará en el primer intento correcto del día
 
 ### Progreso y Evaluación
 
 #### Lecciones
 - Se marcan como completadas cuando el usuario las visualiza completamente
 - El tiempo estimado es referencial para planificación
-- Se registran en `user_progress.lessons_completed[]`
+- Se registran en `users.progress[course_id].lessons_completed[]`
 
 #### Ejercicios
-- Permiten múltiples intentos sin penalización
-- Solo el primer intento correcto otorga puntos completos
-- Cada intento se registra en `submissions` para analytics
-- El tiempo de respuesta se mide para estadísticas
+- Los ejercicios están embebidos dentro de cada lección (`lessons.exercises[]`)
+- Cada ejercicio tiene: id, pregunta, tipo, plantilla de código (opcional) y puntos máximos
+- Tipos: `fill_blank`, `multiple_choice`, `code_completion`, `true_false`, `open_ended`
+- El sistema de submissions para tracking de intentos está pendiente de implementación
 
 #### Progreso del Curso
-- El porcentaje se calcula: `(lecciones_completadas + ejercicios_correctos) / total * 100`
+- El porcentaje se almacena en `users.progress[course_id].percentage`
+- Se calcula automáticamente por Gemini considerando lecciones y ejercicios completados
 - Se actualiza automáticamente con cada actividad
-- El tiempo total incluye tiempo de lecciones y ejercicios
+- La última lección vista se guarda en `users.progress[course_id].last_viewed_lesson`
 
 ---
 
@@ -162,61 +177,80 @@ src/
                 └── FireBaseStudentRepository.ts
 ```
 
-### Estructura Recomendada para Nuevos Contextos
+### Estructura Real de Contextos (Estado Actual)
 
-Para agregar las nuevas entidades (users, courses, topics, etc.), se recomienda seguir el mismo patrón:
+**IMPORTANTE:** Los contextos están organizados según la división del equipo:
 
 ```
 context/
-├── users/
+├── users/                        # 👤 Context Users (Luis)
 │   ├── domain/
-│   │   ├── User.ts
+│   │   ├── User.ts              # Incluye progress{}, achievements[], streak_data{}
+│   │   ├── UserProgress.ts      # Value Object para progress
+│   │   ├── UserAchievement.ts   # Value Object para achievements
+│   │   ├── StreakData.ts        # Value Object para streak_data
 │   │   └── UserRepository.ts
 │   ├── application/
 │   │   ├── CreateUserUseCase.ts
 │   │   ├── UpdateUserXPUseCase.ts
-│   │   ├── GetUserProfileUseCase.ts
+│   │   ├── UpdateProgressUseCase.ts
 │   │   └── ...
 │   ├── infrastructure/
 │   │   ├── controllers/
 │   │   └── repository/
 │   │       └── FirebaseUserRepository.ts
-│   └── ENDPOINTS.md              # ⭐ REQUERIDO: Ejemplos de uso de la API
+│   ├── USE_CASES.md             # Documentación de casos de uso
+│   └── ENDPOINTS.md             # ⭐ Ejemplos de uso de la API
 │
-├── courses/
+├── courses/                      # 🟢🔵 Context Courses (Damian & Braulio)
+│   │                            # NOTA: Incluye COURSES Y TOPICS juntos
 │   ├── domain/
 │   │   ├── Course.ts
-│   │   └── CourseRepository.ts
+│   │   ├── CourseRepository.ts
+│   │   ├── Topic.ts             # Incluye Subtopic[] embebido
+│   │   └── TopicRepository.ts
+│   ├── application/
+│   │   ├── courses/             # Casos de uso de Courses
+│   │   │   ├── FindAllCoursesUseCase.ts
+│   │   │   ├── FindCourseByIdUseCase.ts
+│   │   │   └── GetCourseStructureUseCase.ts (pendiente)
+│   │   └── topics/              # Casos de uso de Topics
+│   │       ├── FindTopicByIdUseCase.ts
+│   │       └── FindTopicsByCourseUseCase.ts
+│   ├── infrastructure/
+│   │   ├── controllers/
+│   │   │   ├── courses/
+│   │   │   └── topics/
+│   │   └── repository/
+│   │       ├── FirebaseCourseRepository.ts
+│   │       └── FirebaseTopicRepository.ts
+│   ├── USE_CASES.md             # Documentación de casos de uso
+│   └── ENDPOINTS_TOPICS.md      # Documentación de endpoints de topics
+│
+├── lessons/                      # 🟡 Context Lessons (Tenorio) - SEPARADO
+│   ├── domain/
+│   │   ├── Lesson.ts            # Incluye Exercise[] embebido
+│   │   └── LessonRepository.ts
+│   ├── application/
+│   │   ├── FindLessonByIdUseCase.ts
+│   │   └── FindLessonsBySubtopicUseCase.ts
+│   └── infrastructure/
+│       ├── controllers/
+│       └── repository/
+│           └── FirebaseLessonRepository.ts
+│
+├── achievements/                 # 🏆 Context Achievements (Lorena) - SEPARADO
+│   ├── domain/
+│   │   ├── Achievement.ts       # Catálogo maestro
+│   │   └── AchievementRepository.ts
 │   ├── application/
 │   └── infrastructure/
 │
-├── lessons/
+├── notifications/                # 🔔 Context Notifications (Tenorio) - SEPARADO
 │   ├── domain/
+│   │   ├── Notification.ts
+│   │   └── NotificationRepository.ts
 │   ├── application/
-│   └── infrastructure/
-│
-├── exercises/
-│   ├── domain/
-│   ├── application/
-│   │   ├── SubmitExerciseUseCase.ts
-│   │   ├── ValidateAnswerUseCase.ts
-│   │   └── ...
-│   └── infrastructure/
-│
-├── achievements/
-│   ├── domain/
-│   ├── application/
-│   │   ├── CheckAchievementsUseCase.ts
-│   │   ├── UnlockAchievementUseCase.ts
-│   │   └── ...
-│   └── infrastructure/
-│
-├── gamification/
-│   ├── domain/
-│   ├── application/
-│   │   ├── UpdateStreakUseCase.ts
-│   │   ├── CalculateLevelUseCase.ts
-│   │   └── ...
 │   └── infrastructure/
 │
 └── shared/
@@ -225,6 +259,16 @@ context/
         ├── ValueObject.ts
         └── DomainEvent.ts
 ```
+
+**Notas importantes:**
+- **Courses y Topics están JUNTOS** en `src/context/courses/` (Damian & Braulio)
+- **Lessons está SEPARADO** en `src/context/lessons/` (Tenorio)
+- Los **Value Objects** representan datos embebidos:
+  - `Subtopic` (embebido en Topic)
+  - `Exercise` (embebido en Lesson)
+  - `UserProgress`, `UserAchievement`, `StreakData` (embebidos en User)
+- **Cada contexto tiene su propio DI container** en `src/app/di/`
+- **Dependencias cross-context:** GetCourseStructureUseCase (courses) necesita LessonRepository (lessons)
 
 ---
 
@@ -383,41 +427,153 @@ User.fromPrimitives({
 
 ---
 
-## Endpoints API Sugeridos
+## 👥 División de Responsabilidades por Contexto
 
-### Usuarios (Users)
-- `POST /api/users` - Crear usuario (registro)
-- `GET /api/users/:id` - Obtener perfil de usuario
-- `PUT /api/users/:id` - Actualizar perfil
-- `GET /api/users/:id/progress` - Obtener progreso general
-- `GET /api/users/:id/achievements` - Listar logros obtenidos
-- `GET /api/users/:id/streak` - Obtener racha actual
+### **Context: Users** 👤 (Luis)
+**Responsable de:** Gestión de usuarios, autenticación, progreso y gamificación
 
-### Temas y Lecciones (Topics & Lessons)
-- `GET /api/topics/:id` - Obtener detalles del tema
-- `GET /api/topics/:id/subtopics` - Listar subtemas
-- `GET /api/lessons/:id` - Obtener contenido de la lección
-- `POST /api/lessons/:id/complete` - Marcar lección como completada
+**Archivos:**
+- `src/context/users/domain/User.ts`
+- `src/context/users/domain/UserRepository.ts`
+- `src/context/users/infrastructure/repository/FirebaseUserRepository.ts`
+- `src/context/users/application/*` - Casos de uso de usuarios
+- `src/context/users/infrastructure/controllers/*`
+- `src/app/routes/user.route.ts`
+- `src/app/di/users.ts` - DI container
 
-### Ejercicios (Exercises)
-- `GET /api/exercises/:id` - Obtener ejercicio
-- `POST /api/exercises/:id/submit` - Enviar respuesta del ejercicio
-- `GET /api/exercises/:id/submissions/:userId` - Historial de intentos
+**Estado:** ⚠️ En desarrollo
 
-### Logros (Achievements)
-- `GET /api/achievements` - Listar todos los logros
-- `GET /api/achievements/:userId` - Logros del usuario
-- `POST /api/achievements/:id/unlock` - Desbloquear logro (interno)
+---
 
-### Retos Diarios (Daily Challenges)
-- `GET /api/daily-challenge` - Obtener reto del día
-- `POST /api/daily-challenge/complete` - Completar reto diario
-- `GET /api/daily-challenge/history/:userId` - Historial de retos
+### **Context: Courses** 🟢🔵 (Damian & Braulio)
+**Responsable de:** Gestión de cursos Y temas (ambos en el mismo contexto)
 
-### Notificaciones (Notifications)
-- `GET /api/notifications/:userId` - Listar notificaciones
-- `PUT /api/notifications/:id/read` - Marcar como leída
-- `DELETE /api/notifications/:id` - Eliminar notificación
+**Nota importante:** Este contexto incluye tanto Courses como Topics juntos. Los subtopics están embebidos en los documentos Topic.
+
+**Archivos - Módulo Courses:**
+- `src/context/courses/domain/Course.ts`
+- `src/context/courses/domain/CourseRepository.ts`
+- `src/context/courses/infrastructure/repository/FirebaseCourseRepository.ts`
+- `src/context/courses/application/courses/FindAllCoursesUseCase.ts`
+- `src/context/courses/application/courses/FindCourseByIdUseCase.ts`
+- `src/context/courses/application/courses/GetCourseStructureUseCase.ts` (pendiente)
+- `src/context/courses/infrastructure/controllers/courses/*`
+- `src/app/routes/course.route.ts`
+
+**Archivos - Módulo Topics:**
+- `src/context/courses/domain/Topic.ts` (incluye Subtopic[] embebido)
+- `src/context/courses/domain/TopicRepository.ts`
+- `src/context/courses/infrastructure/repository/FirebaseTopicRepository.ts`
+- `src/context/courses/application/topics/FindTopicByIdUseCase.ts`
+- `src/context/courses/application/topics/FindTopicsByCourseUseCase.ts`
+- `src/context/courses/infrastructure/controllers/topics/*`
+- `src/app/routes/topic.route.ts`
+
+**DI Container:**
+- `src/app/di/courses.ts` - Registra ambos módulos (Courses y Topics)
+
+**Dependencia cross-context:**
+- GetCourseStructureUseCase necesita `LessonRepository` del contexto Lessons (Tenorio)
+
+**Estado:** ✅ Courses (2/3) y Topics (2/2) completados. Pendiente: GetCourseStructureUseCase
+
+---
+
+### **Context: Lessons** 🟡 (Tenorio)
+**Responsable de:** Gestión de lecciones y ejercicios (contexto completamente separado)
+
+**Nota importante:** Los exercises están embebidos en los documentos Lesson.
+
+**Archivos esperados:**
+- `src/context/lessons/domain/Lesson.ts` (incluye Exercise[] embebido)
+- `src/context/lessons/domain/LessonRepository.ts`
+- `src/context/lessons/infrastructure/repository/FirebaseLessonRepository.ts`
+- `src/context/lessons/application/FindLessonByIdUseCase.ts`
+- `src/context/lessons/application/FindLessonsBySubtopicUseCase.ts`
+- `src/context/lessons/infrastructure/controllers/*`
+- `src/app/routes/lesson.route.ts`
+- `src/app/di/lessons.ts` - Nuevo DI container
+
+**Métodos requeridos en LessonRepository:**
+```typescript
+interface LessonRepository {
+  findById(id: string): Promise<Lesson | null>;
+  findBySubtopicId(topicId: string, subtopicId: string): Promise<Lesson[]>;
+  countBySubtopicId(subtopicId: string): Promise<number>; // ⭐ CRÍTICO para GetCourseStructure
+}
+```
+
+**Estado:** 🔜 Pendiente - Bloqueador para GetCourseStructureUseCase del contexto Courses
+
+---
+
+### **Context: Achievements** 🏆 (Lorena)
+**Responsable de:** Gestión de logros y recompensas
+
+**Archivos esperados:**
+- `src/context/achievements/domain/Achievement.ts`
+- `src/context/achievements/domain/AchievementRepository.ts`
+- `src/context/achievements/infrastructure/repository/FirebaseAchievementRepository.ts`
+- `src/context/achievements/application/*`
+- `src/app/routes/achievement.route.ts`
+- `src/app/di/achievements.ts` - Nuevo DI container
+
+**Estado:** 🔜 Pendiente
+
+---
+
+### **Context: Notifications** 🔔 (Tenorio)
+**Responsable de:** Gestión de notificaciones y alertas
+
+**Archivos esperados:**
+- `src/context/notifications/domain/Notification.ts`
+- `src/context/notifications/domain/NotificationRepository.ts`
+- `src/context/notifications/infrastructure/repository/FirebaseNotificationRepository.ts`
+- `src/context/notifications/application/*`
+- `src/app/routes/notification.route.ts`
+- `src/app/di/notifications.ts` - Nuevo DI container
+
+**Estado:** 🔜 Pendiente
+
+---
+
+## 📱 Endpoints API para App Móvil (Student-Only)
+
+### Usuarios (Users) - READ/WRITE
+- `POST /users` - Crear usuario (registro)
+- `GET /users/:id` - Obtener perfil completo de usuario
+- `PUT /users/:id` - Actualizar perfil (nombre, foto)
+- `PATCH /users/:id/xp` - Actualizar XP del usuario
+- `PATCH /users/:id/progress` - Actualizar progreso de curso/lección
+- `POST /users/:id/achievements` - Registrar logro desbloqueado
+- `PATCH /users/:id/streak` - Actualizar racha de estudio
+
+### Cursos (Courses) - READ ONLY
+- `GET /courses` - Listar todos los cursos disponibles
+- `GET /courses/:id` - Obtener detalles básicos del curso
+- `GET /courses/:id/structure` - ⭐ **CRÍTICO** - Obtener estructura completa del curso (temas → subtemas → lecciones)
+
+### Temas (Topics) - READ ONLY
+- `GET /courses/:courseId/topics` - Listar temas de un curso (ordenados)
+- `GET /topics/:id` - Obtener tema con subtemas embebidos
+
+### Lecciones (Lessons) - READ ONLY
+- `GET /lessons/:id` - Obtener lección completa con ejercicios embebidos
+- `GET /topics/:topicId/subtopics/:subtopicId/lessons` - Listar lecciones de un subtema (ordenadas)
+
+### Logros (Achievements) - READ ONLY
+- `GET /achievements` - Listar catálogo completo de logros disponibles
+- `GET /achievements/:id` - Obtener detalles de un logro específico
+
+### Notificaciones (Notifications) - READ/WRITE
+- `GET /users/:userId/notifications` - Listar notificaciones del usuario
+- `PUT /notifications/:id/read` - Marcar notificación como leída
+- `DELETE /notifications/:id` - Eliminar notificación
+
+### Ranking (Leaderboard) - READ ONLY
+- `GET /ranking/xp` - Top usuarios por XP
+- `GET /ranking/streak` - Top usuarios por racha actual
+- `GET /users/:id/ranking-position` - Posición del usuario en el ranking
 
 ---
 
@@ -441,80 +597,135 @@ export function firestore() {
 // Obtener referencia a colección
 const usersRef = firestore().collection('users');
 const coursesRef = firestore().collection('courses');
+const topicsRef = firestore().collection('topics');
+const lessonsRef = firestore().collection('lessons');
 
-// Consultar con filtros
+// Consultar usuarios con filtros
 const query = usersRef
-  .where('carrera', '==', 'ISC')
-  .where('semestre', '==', 3)
+  .where('xp', '>=', 1000)
+  .orderBy('xp', 'desc')
   .limit(10);
 
-// Referencias denormalizadas
-// Guardar course_id en lessons para consultas rápidas
-const lessonsRef = firestore()
-  .collection('lessons')
-  .where('course_id', '==', 'FP101');
+// Obtener temas de un curso (denormalización optimizada)
+const courseTopics = topicsRef
+  .where('course_id', '==', 'fp_fundamentos_programacion')
+  .orderBy('order', 'asc');
+
+// Obtener lecciones de un subtema
+const subtopicLessons = lessonsRef
+  .where('subtopic_id', '==', 'sub_fp_integers')
+  .orderBy('order', 'asc');
+
+// Acceso a datos embebidos
+// Los subtopics están en topics.subtopics[]
+// Los exercises están en lessons.exercises[]
+// El progress está en users.progress{}
 ```
 
 ---
 
 ## Notas para Desarrollo
 
-### 1. Denormalización de Datos
+### 1. Datos Embebidos vs. Colecciones Separadas
+
+**Estructura optimizada para Firestore NoSQL**:
+
+**Datos embebidos** (menos consultas):
+- `users.progress{}` - Progreso por curso
+- `users.achievements[]` - Logros obtenidos
+- `users.streak_data{}` - Rachas de estudio
+- `topics.subtopics[]` - Subtemas dentro de un tema
+- `lessons.exercises[]` - Ejercicios dentro de una lección
+
+**Colecciones separadas** (para datos grandes o compartidos):
+- `courses` - Catálogo de cursos
+- `topics` - Temas principales
+- `lessons` - Contenido de lecciones
+- `achievements` - Catálogo maestro de logros
+- `notifications` - Notificaciones por usuario
+
+**Ventajas**:
+- Una sola lectura obtiene todo el perfil del usuario con su progreso
+- Un tema incluye todos sus subtemas sin consultas adicionales
+- Una lección incluye todos sus ejercicios de inmediato
+
+**Consideraciones**:
+- Los documentos tienen un límite de 1MB (suficiente para uso típico)
+- Los arrays tienen límite de ~20,000 elementos
+
+### 2. Denormalización de Referencias
 
 Para optimizar consultas, algunos campos se denormalizan:
-- `course_id` se repite en topics, subtopics, lessons, exercises
-- `topic_id` se repite en subtopics, lessons, exercises
-- `user_id` se duplica en leaderboard para acceso directo
+- `course_id` se repite en `topics` y `lessons` para consultas rápidas
+- `topic_id` y `subtopic_id` se repiten en `lessons` para filtrado eficiente
+- `user_id` se incluye en `notifications` para consultas por usuario
 
-**Ventajas**: Consultas más rápidas, menos joins
-**Desventajas**: Requiere actualización en múltiples lugares
-
-### 2. Identificadores Compuestos
-
-Algunas colecciones usan IDs compuestos para relaciones 1:1:
-- `user_progress`: `{user_id}_{course_id}`
-- `user_achievements`: `{user_id}_{achievement_id}`
-- `daily_challenges`: `YYYY-MM-DD`
-
-Esto permite acceso directo sin consultas adicionales.
+**Ventajas**: Consultas más rápidas sin joins
+**Desventajas**: Requiere actualización en múltiples lugares al cambiar datos
 
 ### 3. Transacciones y Consistencia
 
-Operaciones que podrían requerir transacciones:
-- Completar ejercicio → Actualizar submissions + user_progress
-- Desbloquear logro → Actualizar user_achievements + user.xp
-- Actualizar racha → Actualizar study_streaks + user.streak
+Operaciones que **requieren** transacciones atómicas:
+- Completar lección → Actualizar `users.progress[course_id].lessons_completed[]` + porcentaje
+- Desbloquear logro → Agregar a `users.achievements[]` + actualizar `users.xp`
+- Actualizar racha → Actualizar `users.streak_data{}` + verificar logros de racha
 
 ```typescript
+// Ejemplo: Desbloquear logro
 await firestore().runTransaction(async (transaction) => {
-  // Leer documento de usuario y logro
+  const userRef = firestore().collection('users').doc(userId);
   const userDoc = await transaction.get(userRef);
-  
-  // Realizar cambios
-  transaction.update(userRef, { xp: newXP });
-  
-  return newXP;
+
+  const currentXP = userDoc.data().xp;
+  const newAchievement = {
+    achievement_id: 'ach_primeros_pasos',
+    xp_earned: 50,
+    unlocked_at: new Date()
+  };
+
+  // Actualizar user con nuevo logro y XP
+  transaction.update(userRef, {
+    xp: currentXP + 50,
+    achievements: [...userDoc.data().achievements, newAchievement]
+  });
+
+  return currentXP + 50;
 });
 ```
 
 ### 4. Índices Compuestos Recomendados
 
 ```javascript
-// Firestore Indexes
+// Firestore Indexes (firestore.indexes.json)
 {
   "indexes": [
     {
-      "collectionGroup": "submissions",
+      "collectionGroup": "topics",
       "fields": [
-        { "fieldPath": "user_id", "order": "ASCENDING" },
-        { "fieldPath": "exercise_id", "order": "ASCENDING" },
-        { "fieldPath": "timestamp", "order": "DESCENDING" }
+        { "fieldPath": "course_id", "order": "ASCENDING" },
+        { "fieldPath": "order", "order": "ASCENDING" }
       ]
     },
     {
-      "collectionGroup": "user_progress",
+      "collectionGroup": "lessons",
+      "fields": [
+        { "fieldPath": "topic_id", "order": "ASCENDING" },
+        { "fieldPath": "subtopic_id", "order": "ASCENDING" },
+        { "fieldPath": "order", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "fields": [
+        { "fieldPath": "xp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
       "fields": [
         { "fieldPath": "user_id", "order": "ASCENDING" },
+        { "fieldPath": "is_read", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
       ]
     }
   ]
@@ -545,29 +756,8 @@ Estos eventos pueden ser manejados por listeners para:
 
 ---
 
-## Migraciones y Versionado
-
-**Versión actual del esquema**: `2.0.0`
-
-### Registro de Cambios
-
-#### v2.0.0 (13 de octubre de 2025)
-- ✅ Agregadas 13 colecciones completas del sistema de gamificación
-- ✅ Documentación completa de esquemas, relaciones y reglas de negocio
-- ✅ Definición de endpoints API sugeridos
-- ✅ Convenciones de nombrado y mapeo de datos
-
-#### v1.0.0 (9 de octubre de 2025)
-- ✅ Colección inicial `students` (legacy, deprecada)
-- ✅ Estructura base del proyecto
-
-### Notas de Migración
-
-**Deprecación de `students`**:
-La colección original `students` ha sido reemplazada por `users` que incluye más información y se integra con el sistema de gamificación. Si existen datos en `students`, considerar migrarlos a `users`.
 ---
 
-**Última actualización**: 13 de octubre de 2025  
-**Versión del esquema**: 2.0.0  
-**Autor**: Sistema de documentación automática  
+**Última actualización**: 15 de octubre de 2025
+**Versión**: 3.0.0
 **Base de datos**: Firebase Firestore (chatbot-dev)

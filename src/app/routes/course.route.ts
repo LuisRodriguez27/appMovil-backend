@@ -1,21 +1,19 @@
 import { Express } from "express";
 import { ContainerBuilder } from "node-dependency-injection";
-import { CreateCourseController } from "../../context/courses/infrastructure/controllers/CreateCourseController";
-import { FindCourseByIdController } from "../../context/courses/infrastructure/controllers/FindCourseByIdController";
-import { FindAllCoursesController } from "../../context/courses/infrastructure/controllers/FindAllCoursesController";
-import { UpdateCourseController } from "../../context/courses/infrastructure/controllers/UpdateCourseController";
-import { DeleteCourseController } from "../../context/courses/infrastructure/controllers/DeleteCourseController";
+import { FindCourseByIdController } from "../../context/courses/infrastructure/controllers/courses/FindCourseByIdController";
+import { FindAllCoursesController } from "../../context/courses/infrastructure/controllers/courses/FindAllCoursesController";
 
 export const register = async (app: Express, container: ContainerBuilder) => {
-  const createCourseController = container.get<CreateCourseController>("CreateCourseController");
   const findCourseByIdController = container.get<FindCourseByIdController>("FindCourseByIdController");
   const findAllCoursesController = container.get<FindAllCoursesController>("FindAllCoursesController");
-  const updateCourseController = container.get<UpdateCourseController>("UpdateCourseController");
-  const deleteCourseController = container.get<DeleteCourseController>("DeleteCourseController");
 
-  app.post("/courses", (req, res) => createCourseController.run(req, res));
-  app.get("/courses/:id", (req, res) => findCourseByIdController.run(req, res));
+  // ========================================
+  // COURSES API - READ ONLY (Student App)
+  // ========================================
+  // Nota: Este backend es solo para la app móvil de estudiantes.
+  // NO hay endpoints de creación/edición/eliminación de cursos.
+  // El contenido se gestiona desde Firebase Console o scripts de migración.
+
   app.get("/courses", (req, res) => findAllCoursesController.run(req, res));
-  app.put("/courses/:id", (req, res) => updateCourseController.run(req, res));
-  app.delete("/courses/:id", (req, res) => deleteCourseController.run(req, res)); 
+  app.get("/courses/:id", (req, res) => findCourseByIdController.run(req, res));
 };
