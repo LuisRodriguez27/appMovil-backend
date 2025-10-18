@@ -9,9 +9,7 @@ export class User {
     private xp: number,
     private level: number,
     private currentCourse: string | null,
-    private profilePicture: string | null,
-
-    public readonly createdAt: Date = new Date()
+    private profilePicture: string | null
   ) {}
 
   static create(data: Omit<UserPrimitives, 'id' | 'createdAt'>): User {
@@ -36,8 +34,7 @@ export class User {
       data.xp,
       data.level,
       data.currentCourse,
-      data.profilePicture, 
-      new Date(data.createdAt)
+      data.profilePicture
     );
   }
 
@@ -104,9 +101,7 @@ export class User {
       xp: this.xp,
       level: this.level,
       currentCourse: this.currentCourse,
-      profilePicture: this.profilePicture,
-
-      createdAt: this.createdAt.toISOString(),
+      profilePicture: this.profilePicture
     };
   }
 }
@@ -120,6 +115,4 @@ export type UserPrimitives = {
   level: number;
   currentCourse: string | null;
   profilePicture: string | null;
-
-  createdAt: string;
 };
