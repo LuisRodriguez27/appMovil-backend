@@ -2,8 +2,8 @@ import { ContainerBuilder, Reference } from "node-dependency-injection";
 import { FirebaseTopicRepository } from "../../context/topics/infrastructure/repository/FirebaseTopicRepository";
 
 // Topic Use Cases (READ ONLY)
-import { FindTopicByIdUseCase } from "../../context/topics/application/topics/FindTopicByIdUseCase";
-import { FindTopicsByCourseUseCase } from "../../context/topics/application/topics/FindTopicsByCourseUseCase";
+import { FindTopicByIdUseCase } from "../../context/topics/application/FindTopicByIdUseCase";
+import { FindTopicsByCourseUseCase } from "../../context/topics/application/FindTopicsByCourseUseCase";
 
 // Topic Controllers (READ ONLY)
 import { FindTopicByIdController } from "../../context/topics/infrastructure/controllers/topics/FindTopicByIdController";

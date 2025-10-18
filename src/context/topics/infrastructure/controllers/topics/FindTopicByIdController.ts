@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { FindTopicByIdUseCase } from '../../../application/topics/FindTopicByIdUseCase';
+import { FindTopicByIdUseCase } from '../../../application/FindTopicByIdUseCase';
 
 export class FindTopicByIdController {
   constructor(private readonly findTopicByIdUseCase: FindTopicByIdUseCase) {}

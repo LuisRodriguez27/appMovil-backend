@@ -1,5 +1,5 @@
-import { TopicRepository } from '../../domain/TopicRepository';
-import { Topic } from '../../domain/Topic';
+import { TopicRepository } from '../domain/TopicRepository';
+import { Topic } from '../domain/Topic';
 
 export class FindTopicByIdUseCase {
   constructor(private readonly topicRepository: TopicRepository) {}
