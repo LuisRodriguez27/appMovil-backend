@@ -1,4 +1,9 @@
 import { uid } from 'uid';
+import { Progress, ProgressPrimitives } from './value-objects/Progress';
+import { AchievementCollection, AchievementPrimitives } from './value-objects/Achievement';
+import { StreakData, StreakDataPrimitives } from './value-objects/StreakData';
+import { UserStats, UserStatsPrimitives } from './value-objects/UserStats';
+
 
 export class User {
   constructor(
@@ -10,11 +15,13 @@ export class User {
     private level: number,
     private currentCourse: string | null,
     private profilePicture: string | null,
-
-    public readonly createdAt: Date = new Date()
+    private progress: Progress,
+    private achievements: AchievementCollection,
+    private streakData: StreakData,
+    private stats: UserStats
   ) {}
 
-  static create(data: Omit<UserPrimitives, 'id' | 'createdAt'>): User {
+  static create(data: Omit<UserPrimitives, 'id'>): User {
     return new User(
       uid(),
       data.controlNumber,
@@ -24,6 +31,18 @@ export class User {
       data.level || 1,
       data.currentCourse || null,
       data.profilePicture || null,
+      Progress.create(data.progress),
+      AchievementCollection.fromArray(data.achievements || []),
+      StreakData.fromPrimitives(data.streakData || {
+        current_streak: 0,
+        best_streak: 0,
+        last_study_date: '',
+      }),
+      UserStats.fromPrimitives(data.stats || {
+        total_lessons_completed: 0,
+        total_exercises_completed: 0,
+        total_courses_completed: 0,
+      })
     );
   }
 
@@ -36,12 +55,17 @@ export class User {
       data.xp,
       data.level,
       data.currentCourse,
-      data.profilePicture, 
-      new Date(data.createdAt)
+      data.profilePicture,
+      Progress.create(data.progress),
+      AchievementCollection.fromArray(data.achievements),
+      StreakData.fromPrimitives(data.streakData),
+      UserStats.fromPrimitives(data.stats)
     );
   }
 
-  public update(data: Partial<UserPrimitives>): void {
+  // ========== MÉTODOS DE ACTUALIZACIÓN ==========
+
+  public update(data: Partial<Pick<UserPrimitives, 'name' | 'email' | 'currentCourse' | 'profilePicture'>>): void {
     if (data.name !== undefined) this.name = data.name;
     if (data.email !== undefined) this.email = data.email;
     if (data.currentCourse !== undefined) this.currentCourse = data.currentCourse;
@@ -56,13 +80,48 @@ export class User {
     this.recalculateLevel();
   }
 
+  public completeLesson(courseId: string, lessonId: string, totalLessons: number): void {
+    this.progress = this.progress.completeLesson(courseId, lessonId, totalLessons);
+    this.stats = this.stats.incrementLessonsCompleted();
+  }
+
+  public updateLastViewedLesson(courseId: string, lessonId: string): void {
+    this.progress = this.progress.updateLastViewedLesson(courseId, lessonId);
+  }
+
+  public unlockAchievement(achievementId: string): boolean {
+    if (this.achievements.has(achievementId)) {
+      return false; // Ya tiene el logro
+    }
+    
+    const achievement = require('./value-objects/Achievement').Achievement.create(achievementId);
+    this.achievements = this.achievements.add(achievement);
+    return true;
+  }
+
+  public updateStreak(today: string): void {
+    this.streakData = this.streakData.updateStreak(today);
+  }
+
+  public addStudyTime(minutes: number): void {
+    this.stats = this.stats.addStudyTime(minutes);
+  }
+
+  public completeExercise(score: number): void {
+    this.stats = this.stats.incrementExercisesCompleted(score);
+  }
+
+  public completeCourse(): void {
+    this.stats = this.stats.incrementCoursesCompleted();
+  }
 
   private recalculateLevel(): void {
     // Fórmula: level = floor(sqrt(xp / 100)) + 1
     this.level = Math.floor(Math.sqrt(this.xp / 100)) + 1;
   }
 
-  // Getters
+  // ========== GETTERS ==========
+
   public getId(): string {
     return this.id;
   }
@@ -95,6 +154,38 @@ export class User {
     return this.profilePicture;
   }
 
+  public getProgress(): Progress {
+    return this.progress;
+  }
+
+  public getAchievements(): AchievementCollection {
+    return this.achievements;
+  }
+
+  public getStreakData(): StreakData {
+    return this.streakData;
+  }
+
+  public getStats(): UserStats {
+    return this.stats;
+  }
+
+  // ========== QUERIES DE CONVENIENCIA ==========
+
+  public isLessonCompleted(courseId: string, lessonId: string): boolean {
+    return this.progress.isLessonCompleted(courseId, lessonId);
+  }
+
+  public hasAchievement(achievementId: string): boolean {
+    return this.achievements.has(achievementId);
+  }
+
+  public isStreakActive(today: string): boolean {
+    return this.streakData.isActive(today);
+  }
+
+  // ========== SERIALIZACIÓN ==========
+
   toPrimitives(): UserPrimitives {
     return {
       id: this.id,
@@ -105,8 +196,10 @@ export class User {
       level: this.level,
       currentCourse: this.currentCourse,
       profilePicture: this.profilePicture,
-
-      createdAt: this.createdAt.toISOString(),
+      progress: this.progress.toPrimitives(),
+      achievements: this.achievements.toPrimitives(),
+      streakData: this.streakData.toPrimitives(),
+      stats: this.stats.toPrimitives()
     };
   }
 }
@@ -120,6 +213,8 @@ export type UserPrimitives = {
   level: number;
   currentCourse: string | null;
   profilePicture: string | null;
-
-  createdAt: string;
+  progress: ProgressPrimitives;
+  achievements: AchievementPrimitives[];
+  streakData: StreakDataPrimitives;
+  stats: UserStatsPrimitives;
 };
