@@ -28,8 +28,11 @@ export class FirebaseCourseRepository implements CourseRepository {
       return null;
     }
 
-    const data = doc.data() as CourseDocument;
-    return this.toDomainEntity(data);
+    const data = doc.data() as Omit<CourseDocument, '__id'>;
+    return this.toDomainEntity({
+      __id: doc.id,  // Usar el ID del documento de Firestore
+      ...data
+    });
   }
 
   async findByTitle(title: string): Promise<Course | null> {
@@ -43,16 +46,23 @@ export class FirebaseCourseRepository implements CourseRepository {
       return null;
     }
 
-    const data = snapshot.docs[0].data() as CourseDocument;
-    return this.toDomainEntity(data);
+    const doc = snapshot.docs[0];
+    const data = doc.data() as Omit<CourseDocument, '__id'>;
+    return this.toDomainEntity({
+      __id: doc.id,  // Usar el ID del documento de Firestore
+      ...data
+    });
   }
 
   async findAll(): Promise<Course[]> {
     const snapshot = await firestore().collection(this.collection).get();
 
     return snapshot.docs.map((doc) => {
-      const data = doc.data() as CourseDocument;
-      return this.toDomainEntity(data);
+      const data = doc.data() as Omit<CourseDocument, '__id'>;
+      return this.toDomainEntity({
+        __id: doc.id,  // Usar el ID del documento de Firestore
+        ...data
+      });
     });
   }
 
