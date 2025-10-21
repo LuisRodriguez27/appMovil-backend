@@ -8,6 +8,7 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 - **Database ID**: `chatbot-dev`
 - **Tipo**: NoSQL Document Database
 - **Propósito**: Plataforma educativa gamificada para aprendizaje de programación
+- **Autenticación**: Firebase Authentication (integrado con Firestore)
 
 ## Índice de Colecciones
 
@@ -33,24 +34,31 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 
 ### users
 
-**Propósito**: Almacena el perfil completo de cada estudiante, incluyendo su progreso, logros obtenidos y rachas de estudio.
+**Propósito**: Almacena el perfil completo de cada usuario (estudiantes y administradores), incluyendo su progreso, logros obtenidos y rachas de estudio.
 
 **Ruta de colección**: `/users`
+
+**Integración con Firebase Authentication**:
+- El campo `__id` **DEBE** ser el mismo `uid` generado por Firebase Authentication
+- Las contraseñas se manejan en Firebase Authentication, NO en Firestore
+- El rol (`role`) se almacena en Firestore para control de acceso
 
 **Esquema del documento**:
 
 ```typescript
 {
-  __id: string;                    // ID único del usuario
+  __id: string;                    // ID único del usuario (MISMO que Firebase Auth UID)
   control_number: string;          // Número de control del estudiante
   name: string;                    // Nombre completo
-  email: string;                   // Correo electrónico
+  email: string;                   // Correo electrónico (sincronizado con Firebase Auth)
+  role: 'student' | 'admin';       // ← NUEVO: Rol del usuario
   xp: number;                      // Puntos de experiencia acumulados
   level: number;                   // Nivel actual del usuario
   current_course: string | null;   // ID del curso activo (ref: courses)
   profile_picture: string | null;  // URL de la foto de perfil
-  created_at: Date;
-  
+  created_at: Date;                // Fecha de creación del perfil
+  updated_at: Date;                // ← NUEVO: Última actualización del perfil
+
   // PROGRESO POR CURSO (optimizado para 2 cursos: POO y Fundamentos)
   progress: {
     [course_id: string]: {
@@ -63,13 +71,13 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
       updated_at: Date;                 // Última actualización
     }
   };
-  
+
   // LOGROS OBTENIDOS (referencia al catálogo achievements)
   achievements: {
     achievement_id: string;        // ID del logro (ref: achievements.__id)
     unlocked_at: Date;             // Fecha de desbloqueo
   }[];
-  
+
   // RACHA DE ESTUDIO
   streak_data: {
     current_streak: number;        // Racha actual en días
@@ -87,14 +95,17 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 ```
 
 **Campos principales**:
-- `__id` (string, required): Identificador único del usuario generado automáticamente con uid()
+- `__id` (string, required): **Identificador único del usuario (DEBE ser el mismo UID de Firebase Authentication)**
 - `control_number` (string, required): Número de control institucional (ej: "19170123")
 - `name` (string, required): Nombre completo del estudiante
-- `email` (string, required): Correo electrónico único
+- `email` (string, required): Correo electrónico único (sincronizado con Firebase Auth)
+- `role` (string, required): Rol del usuario - `'student'` (estudiante) o `'admin'` (administrador). Default: `'student'`
 - `xp` (number, required): Puntos de experiencia totales (default: 0)
 - `level` (number, required): Nivel del usuario basado en XP (default: 1, calculado con fórmula: floor(sqrt(xp/100)) + 1)
 - `current_course` (string | null, optional): Referencia al curso que está cursando actualmente
 - `profile_picture` (string | null, optional): URL de la imagen de perfil
+- `created_at` (Date, required): Fecha de creación del perfil
+- `updated_at` (Date, required): Fecha de última actualización del perfil
 
 **Objeto progress**:
 - Mapa de progreso por curso, donde la key es el `course_id`
@@ -120,6 +131,7 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 - `total_courses_completed` (number): Cursos finalizados al 100% (default: 0)
 
 **Relaciones**:
+- `__id` ↔ Firebase Authentication `uid` (sincronización obligatoria)
 - `current_course` → `courses.__id`
 - `progress[course_id]` → `courses.__id`
 - `progress[].lessons_completed[lesson_id]` → `lessons.__id`
@@ -128,15 +140,20 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 **Índices sugeridos**:
 - `email` (único)
 - `control_number` (único)
+- `role` (para filtrar por rol: estudiante/admin)
 - `xp` (descendente, para ranking)
 - `streak_data.current_streak` (descendente, para ranking de rachas)
 
 **Reglas de negocio**:
+- El `__id` **SIEMPRE** debe coincidir con el `uid` de Firebase Authentication
+- El rol por defecto al registrarse es `'student'`
+- Solo un usuario con rol `'admin'` puede cambiar el rol de otros usuarios
 - El nivel se calcula automáticamente: `floor(sqrt(xp/100)) + 1`
 - La racha se incrementa cuando el usuario estudia en días consecutivos
 - La racha se reinicia a 0 si pasa más de 1 día sin actividad
 - Un usuario solo puede obtener cada logro una vez
 - El XP de logros se suma automáticamente al total del usuario
+- Las contraseñas NO se almacenan en Firestore (Firebase Authentication las maneja)
 
 **Ventajas de esta estructura optimizada**:
 - Perfil completo del usuario en una sola lectura
@@ -526,3 +543,253 @@ Esta estructura está optimizada considerando que solo existen 2 cursos en la pl
 2. **Agregar lección completada**: Usar `set()` con merge para actualizar atómicamente
 3. **Obtener puntos de logro**: Hacer lookup en la colección `achievements` usando el `achievement_id`
 4. **Limpieza de notificaciones**: Implementar Cloud Function scheduled que elimine notificaciones donde `expires_at < now()`
+
+---
+
+## 🔐 Sistema de Autenticación y Roles
+
+### Integración Firebase Authentication + Firestore
+
+Este proyecto utiliza **dos servicios de Firebase** trabajando en conjunto:
+
+| Servicio | Responsabilidad |
+|----------|----------------|
+| **Firebase Authentication** | Gestiona emails, contraseñas y tokens JWT |
+| **Firestore** | Almacena roles, progreso, logros y perfiles completos |
+
+### Flujo de Sincronización
+
+```
+┌─────────────────────────────────────────┐
+│   Firebase Authentication               │
+│   (Autenticación de usuarios)           │
+│                                          │
+│   uid: "abc123xyz"                      │
+│   email: "juan@example.com"             │
+│   password: <hash_seguro_firebase>      │
+└──────────────┬──────────────────────────┘
+               │
+               │ Mismo UID
+               ▼
+┌─────────────────────────────────────────┐
+│   Firestore: Collection users           │
+│   (Perfiles y datos adicionales)        │
+│                                          │
+│   __id: "abc123xyz"  ← Mismo UID        │
+│   role: "student"    ← Dato adicional   │
+│   xp: 500                                │
+│   progress: {...}                        │
+└─────────────────────────────────────────┘
+```
+
+### Roles Disponibles
+
+| Rol | Descripción | Permisos |
+|-----|-------------|----------|
+| `student` | Estudiante | Ver cursos, completar lecciones, ver progreso propio |
+| `admin` | Administrador | Todo lo de estudiante + CRUD de contenido + gestión de usuarios |
+
+### Flujo de Registro
+
+1. Usuario se registra en la app
+2. **Firebase Authentication** crea cuenta (genera `uid` único)
+3. **Backend** crea documento en Firestore `/users/{uid}` con:
+   - `__id = uid` (mismo de Firebase Auth)
+   - `role = 'student'` (por defecto)
+   - Resto de datos del perfil
+
+### Flujo de Autenticación
+
+1. Usuario hace login con email/password
+2. **Firebase Authentication** valida credenciales
+3. Firebase genera **token JWT** automáticamente
+4. App obtiene el token y lo usa en headers: `Authorization: Bearer <token>`
+5. **Backend** verifica token con Firebase Admin SDK
+6. Backend lee el `role` desde Firestore
+7. Middleware valida permisos según el rol
+
+### Permisos por Rol
+
+#### Estudiante (`student`)
+- ✅ `GET /courses` - Ver cursos
+- ✅ `GET /lessons/:id` - Ver lecciones
+- ✅ `POST /lessons/:id/complete` - Completar lecciones
+- ✅ `GET /profile` - Ver perfil propio
+- ✅ `PUT /users/:id` - Actualizar perfil propio (con validación)
+- ✅ `GET /achievements` - Ver logros propios
+- ❌ Crear/modificar/eliminar contenido educativo
+- ❌ Ver datos de otros usuarios
+- ❌ Cambiar roles
+
+#### Administrador (`admin`)
+- ✅ Todo lo que puede hacer un estudiante
+- ✅ `POST /admin/courses` - Crear cursos
+- ✅ `PUT /admin/courses/:id` - Actualizar cursos
+- ✅ `DELETE /admin/courses/:id` - Eliminar cursos
+- ✅ `POST /admin/topics` - Crear temas
+- ✅ `PUT /admin/topics/:id` - Actualizar temas
+- ✅ `DELETE /admin/topics/:id` - Eliminar temas
+- ✅ `POST /admin/lessons` - Crear lecciones
+- ✅ `PUT /admin/lessons/:id` - Actualizar lecciones
+- ✅ `DELETE /admin/lessons/:id` - Eliminar lecciones
+- ✅ `GET /admin/users` - Listar todos los usuarios
+- ✅ `PATCH /admin/users/:id/role` - Cambiar rol de usuarios
+- ✅ `POST /admin/achievements` - Crear logros
+- ✅ `POST /admin/notifications` - Enviar notificaciones
+
+### Middleware de Seguridad (Backend)
+
+```typescript
+// Verificar token de Firebase
+verifyFirebaseToken()
+
+// Verificar rol específico
+requireRole(['admin'])
+requireRole(['student', 'admin'])
+
+// Verificar propiedad o admin
+requireOwnershipOrAdmin()
+```
+
+### Ejemplo de Protección de Rutas
+
+```typescript
+// Ruta pública (sin autenticación)
+POST /auth/register
+
+// Ruta autenticada (cualquier rol)
+GET /profile [verifyFirebaseToken]
+
+// Ruta de estudiante
+GET /lessons/:id [verifyFirebaseToken, requireRole(['student', 'admin'])]
+
+// Ruta solo admin
+POST /admin/courses [verifyFirebaseToken, requireRole(['admin'])]
+
+// Ruta de propiedad
+PUT /users/:id [verifyFirebaseToken, requireOwnershipOrAdmin]
+```
+
+### Reglas de Seguridad Firestore
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: verificar si el usuario está autenticado
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper: obtener rol del usuario
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    // Helper: verificar si es admin
+    function isAdmin() {
+      return isSignedIn() && getUserRole() == 'admin';
+    }
+
+    // Colección users
+    match /users/{userId} {
+      // Lectura: solo el propio usuario o admin
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+
+      // Creación: cualquiera puede crear su propio perfil (registro)
+      allow create: if isSignedIn() && request.auth.uid == userId
+                    && request.resource.data.role == 'student'; // Solo puede crearse como student
+
+      // Actualización: propio usuario (sin cambiar role) o admin (puede cambiar role)
+      allow update: if isSignedIn() && (
+        (request.auth.uid == userId && request.resource.data.role == resource.data.role) // Usuario no cambia role
+        || isAdmin() // Admin puede cambiar todo
+      );
+
+      // Eliminación: solo admin
+      allow delete: if isAdmin();
+    }
+
+    // Colección courses
+    match /courses/{courseId} {
+      allow read: if isSignedIn(); // Todos pueden leer
+      allow write: if isAdmin();   // Solo admin puede modificar
+    }
+
+    // Colección topics
+    match /topics/{topicId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Colección lessons
+    match /lessons/{lessonId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Colección achievements
+    match /achievements/{achievementId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Colección notifications
+    match /notifications/{notificationId} {
+      // Solo leer las propias notificaciones
+      allow read: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      // Solo admin puede crear/modificar notificaciones
+      allow write: if isAdmin();
+    }
+  }
+}
+```
+
+### Primer Administrador
+
+Para crear el primer administrador del sistema:
+
+**Opción 1: Manualmente en Firestore Console**
+1. Registrar usuario normalmente
+2. Ir a Firestore Console
+3. Buscar documento en `/users/{uid}`
+4. Cambiar campo `role` de `'student'` a `'admin'`
+
+**Opción 2: Script de inicialización**
+```typescript
+// scripts/createFirstAdmin.ts
+import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
+
+async function createFirstAdmin() {
+  const email = 'admin@example.com';
+  const password = 'secure_password';
+
+  // Crear en Firebase Auth
+  const userRecord = await getAuth().createUser({
+    email,
+    password,
+    displayName: 'Administrador',
+  });
+
+  // Crear en Firestore con role admin
+  await getFirestore().collection('users').doc(userRecord.uid).set({
+    __id: userRecord.uid,
+    control_number: 'ADMIN001',
+    name: 'Administrador',
+    email,
+    role: 'admin', // ← Rol admin
+    xp: 0,
+    level: 1,
+    // ... resto de campos
+  });
+
+  console.log('✅ Primer admin creado:', email);
+}
+```
+
+### Documentación Adicional
+
+Para más detalles sobre la implementación de autenticación y roles:
+- Ver: `docs/roles_authentication_firebase.md`
