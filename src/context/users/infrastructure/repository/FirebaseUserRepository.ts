@@ -7,10 +7,15 @@ interface UserDocument {
   control_number: string;
   name: string;
   email: string;
+  role: 'student' | 'admin';
   xp: number;
   level: number;
   current_course: string | null;
   profile_picture: string | null;
+  progress?: any;
+  achievements?: any[];
+  streak_data?: any;
+  stats?: any;
 }
 
 export class FirebaseUserRepository implements UserRepository {
@@ -109,10 +114,15 @@ export class FirebaseUserRepository implements UserRepository {
       control_number: primitives.controlNumber,
       name: primitives.name,
       email: primitives.email,
+      role: primitives.role,
       xp: primitives.xp,
       level: primitives.level,
       current_course: primitives.currentCourse,
       profile_picture: primitives.profilePicture,
+      progress: primitives.progress,
+      achievements: primitives.achievements,
+      streak_data: primitives.streakData,
+      stats: primitives.stats,
     };
   }
 
@@ -122,10 +132,23 @@ export class FirebaseUserRepository implements UserRepository {
       controlNumber: document.control_number,
       name: document.name,
       email: document.email,
+      role: document.role || 'student',
       xp: document.xp,
       level: document.level,
       currentCourse: document.current_course,
       profilePicture: document.profile_picture,
+      progress: document.progress || {},
+      achievements: document.achievements || [],
+      streakData: document.streak_data || {
+        current_streak: 0,
+        best_streak: 0,
+        last_study_date: '',
+      },
+      stats: document.stats || {
+        total_lessons_completed: 0,
+        total_exercises_completed: 0,
+        total_courses_completed: 0,
+      },
     });
   }
 }

@@ -23,10 +23,23 @@ export class CreateUserUseCase {
       controlNumber: request.controlNumber,
       name: request.name,
       email: request.email,
+      role: 'student', // Por defecto: student
       xp: 0,
       level: 1,
       currentCourse: null,
-      profilePicture: request.profilePicture || null
+      profilePicture: request.profilePicture || null,
+      progress: {},
+      achievements: [],
+      streakData: {
+        current_streak: 0,
+        best_streak: 0,
+        last_study_date: '',
+      },
+      stats: {
+        total_lessons_completed: 0,
+        total_exercises_completed: 0,
+        total_courses_completed: 0,
+      },
     });
 
     await this.userRepository.create(user);

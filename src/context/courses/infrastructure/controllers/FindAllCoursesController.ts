@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { FindAllCoursesUseCase } from "../../../application/courses/FindAllCoursesUseCase";
+import { FindAllCoursesUseCase } from "../../application/FindAllCoursesUseCase";
 
 export class FindAllCoursesController {
   constructor(private readonly findAllCoursesUseCase: FindAllCoursesUseCase) {}

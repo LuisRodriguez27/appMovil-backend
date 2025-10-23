@@ -1,18 +1,21 @@
 import { Request, Response } from 'express';
-import { FindCourseByIdUseCase } from '../../../application/courses/FindCourseByIdUseCase';
+import { DeleteCourseUseCase } from '../../application/DeleteCourseUseCase';
+import { DeleteCourseRequest } from '../../application/requests/DeleteCourseRequest';
 
-export class FindCourseByIdController {
-  constructor(private readonly findCourseByIdUseCase: FindCourseByIdUseCase) {}
-  
+export class DeleteCourseController {
+  constructor(private readonly deleteCourseUseCase: DeleteCourseUseCase) {}
+
   async run(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
 
-      const course = await this.findCourseByIdUseCase.execute(id);
+      const request = new DeleteCourseRequest(id);
+
+      await this.deleteCourseUseCase.execute(request);
 
       res.status(200).json({
         success: true,
-        data: course.toPrimitives(),
+        message: 'Curso eliminado exitosamente',
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -24,7 +27,7 @@ export class FindCourseByIdController {
         });
       } else {
         res.status(500).json({
-          succes: false,
+          success: false,
           message: 'Error interno del servidor',
         });
       }

@@ -11,6 +11,7 @@ export class User {
     private controlNumber: string,
     private name: string,
     private email: string,
+    private role: 'student' | 'admin',
     private xp: number,
     private level: number,
     private currentCourse: string | null,
@@ -27,6 +28,7 @@ export class User {
       data.controlNumber,
       data.name,
       data.email,
+      data.role || 'student', // Por defecto: student
       data.xp || 0,
       data.level || 1,
       data.currentCourse || null,
@@ -52,6 +54,7 @@ export class User {
       data.controlNumber,
       data.name,
       data.email,
+      data.role,
       data.xp,
       data.level,
       data.currentCourse,
@@ -170,7 +173,23 @@ export class User {
     return this.stats;
   }
 
+  public getRole(): 'student' | 'admin' {
+    return this.role;
+  }
+
   // ========== QUERIES DE CONVENIENCIA ==========
+
+  public isAdmin(): boolean {
+    return this.role === 'admin';
+  }
+
+  public isStudent(): boolean {
+    return this.role === 'student';
+  }
+
+  public changeRole(newRole: 'student' | 'admin'): void {
+    this.role = newRole;
+  }
 
   public isLessonCompleted(courseId: string, lessonId: string): boolean {
     return this.progress.isLessonCompleted(courseId, lessonId);
@@ -192,6 +211,7 @@ export class User {
       controlNumber: this.controlNumber,
       name: this.name,
       email: this.email,
+      role: this.role,
       xp: this.xp,
       level: this.level,
       currentCourse: this.currentCourse,
@@ -209,6 +229,7 @@ export type UserPrimitives = {
   controlNumber: string;
   name: string;
   email: string;
+  role: 'student' | 'admin';
   xp: number;
   level: number;
   currentCourse: string | null;

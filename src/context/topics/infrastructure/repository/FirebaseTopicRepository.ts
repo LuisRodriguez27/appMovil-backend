@@ -77,6 +77,21 @@ export class FirebaseTopicRepository implements TopicRepository {
     };
   }
 
+  async deleteAllByCourseId(courseId: string): Promise<void> {
+    const snapshot = await firestore()
+      .collection(this.collection)
+      .where('course_id', '==', courseId)
+      .get();
+
+    // Eliminar todos los topics del curso en batch
+    const batch = firestore().batch();
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+  }
+
   private toDomainEntity(document: TopicDocument): Topic {
     return Topic.fromPrimitives({
       id: document.__id,

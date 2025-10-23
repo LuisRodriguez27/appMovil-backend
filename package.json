@@ -7,7 +7,9 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "rimraf dist && tsc -p tsconfig.prod.json",
     "start": "node dist/index.js",
-    "test:firebase": "ts-node src/scripts/testFirebaseConnection.ts"
+    "test:firebase": "ts-node src/scripts/testFirebaseConnection.ts",
+    "generate:token": "ts-node src/scripts/generateAuthToken.ts",
+    "get:token": "ts-node src/scripts/getIdToken.ts"
   },
   "keywords": [],
   "author": "",

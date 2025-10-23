@@ -7,4 +7,5 @@ export interface TopicRepository {
   findAll(): Promise<Topic[]>;
   update(topic: Topic): Promise<void>;
   delete(id: string): Promise<void>;
+  deleteAllByCourseId(courseId: string): Promise<void>; // Para eliminación en cascada
 }

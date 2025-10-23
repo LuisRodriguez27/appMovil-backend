@@ -1,6 +1,7 @@
 import { firestore } from "../../../../app/config/configureFirebase";
 import { Course, CoursePrimitives } from "../../domain/Course";
 import { CourseRepository } from "../../domain/CourseRepository";
+import { Timestamp } from "firebase-admin/firestore";
 
 interface CourseDocument {
   __id: string,
@@ -8,7 +9,7 @@ interface CourseDocument {
   description: string,
   total_topics: number,
   total_lessons: number,
-  created_at: FirebaseFirestore.Timestamp
+  created_at: Timestamp
 }
 
 export class FirebaseCourseRepository implements CourseRepository {
@@ -101,7 +102,7 @@ export class FirebaseCourseRepository implements CourseRepository {
       description: primitives.description,
       total_topics: primitives.totalTopics,
       total_lessons: primitives.totalLessons,
-      created_at: FirebaseFirestore.Timestamp.fromDate(primitives.createdAt)
+      created_at: Timestamp.fromDate(primitives.createdAt)
     }
   }
 
