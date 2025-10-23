@@ -381,6 +381,111 @@ POST http://localhost:3000/api/users
 
 ---
 
+## 📝 Ejemplos de Topics (Admin)
+
+### Crear Topic
+
+**Endpoint**: `POST http://localhost:3000/api/topics`
+
+**Headers**:
+```
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+```
+
+**Body**:
+```json
+{
+  "courseId": "c1368d249a5",
+  "title": "Introducción a TypeScript",
+  "description": "Este tema cubre los fundamentos básicos de TypeScript y sus características principales",
+  "order": 1
+}
+```
+
+**Response** (201 Created):
+```json
+{
+  "id": "84f7a11c20c",
+  "courseId": "c1368d249a5",
+  "title": "Introducción a TypeScript",
+  "description": "Este tema cubre los fundamentos básicos de TypeScript y sus características principales",
+  "order": 1,
+  "subtopics": []
+}
+```
+
+### Actualizar Topic
+
+**Endpoint**: `PUT http://localhost:3000/api/topics/84f7a11c20c`
+
+**Headers**:
+```
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+```
+
+**Body** (todos los campos son opcionales):
+```json
+{
+  "title": "Introducción a TypeScript - Actualizado",
+  "order": 2
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "id": "84f7a11c20c",
+  "courseId": "c1368d249a5",
+  "title": "Introducción a TypeScript - Actualizado",
+  "description": "Este tema cubre los fundamentos básicos de TypeScript y sus características principales",
+  "order": 2,
+  "subtopics": []
+}
+```
+
+### Eliminar Topic
+
+**Endpoint**: `DELETE http://localhost:3000/api/topics/84f7a11c20c`
+
+**Headers**:
+```
+Authorization: Bearer <admin_token>
+```
+
+**Response** (200 OK):
+```json
+{
+  "message": "Tema eliminado correctamente"
+}
+```
+
+### Listar Topics de un Curso (Student/Admin)
+
+**Endpoint**: `GET http://localhost:3000/api/courses/c1368d249a5/topics`
+
+**Headers**:
+```
+Authorization: Bearer <student_token o admin_token>
+```
+
+**Response** (200 OK):
+```json
+[
+  {
+    "id": "84f7a11c20c",
+    "courseId": "c1368d249a5",
+    "title": "Introducción a TypeScript",
+    "description": "Este tema cubre los fundamentos básicos de TypeScript",
+    "order": 1,
+    "subtopics": []
+  }
+]
+```
+
+---
+
 ## 💡 Tips
 
 1. **Guarda los tokens en Postman Environment:**

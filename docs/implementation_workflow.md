@@ -696,6 +696,49 @@ created_at: Timestamp.fromDate(primitives.createdAt)
 
 ---
 
+## Implementaciones Completadas
+
+### Topics Admin (Octubre 2025)
+
+Se implementaron exitosamente los endpoints administrativos para Topics siguiendo este workflow:
+
+**Endpoints**:
+- `POST /api/topics` - Crear topic (solo admin)
+- `PUT /api/topics/:id` - Actualizar topic (solo admin)
+- `DELETE /api/topics/:id` - Eliminar topic (solo admin)
+
+**Archivos creados**:
+- 3 Request classes con validaciones completas
+- 3 Use Cases con lógica de negocio y validación de duplicados
+- 3 Controllers con manejo de errores HTTP
+- 5 Scripts de testing (create, update, delete, cleanup, index helper)
+
+**Firestore Index requerido**:
+- Colección: `topics`
+- Campos: `course_id` (Ascending) + `order` (Ascending)
+- Requerido para validación de títulos duplicados
+
+**Testing**:
+- 18 casos de prueba totales (7 create, 7 update, 4 delete)
+- Todos los tests pasando ✅
+
+**Scripts npm agregados**:
+```bash
+npm run test:create:topic
+npm run test:update:topic
+npm run test:delete:topic
+npm run cleanup:topics
+npm run create:index
+```
+
+**Aprendizajes**:
+1. Las queries con `.where()` + `.orderBy()` en campos diferentes requieren índice compuesto
+2. El índice tarda 1-2 minutos en construirse después de crearlo
+3. Es importante crear scripts de limpieza para resetear datos de prueba
+4. Los tests deben cubrir casos exitosos y todos los errores posibles
+
+---
+
 ## Checklist Final
 
 Antes de considerar completa la implementación, verificar:
