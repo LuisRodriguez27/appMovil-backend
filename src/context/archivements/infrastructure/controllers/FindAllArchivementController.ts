@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import { FindAllArchivementUseCase } from "../../application/FindAllArchivementUseCase";
 
-export class FindAllArchivementsController {
-	constructor(private findAllArchivementsUseCase: FindAllArchivementUseCase) {}
+export class FindAllArchivementController {
+	constructor(private findAllArchivementUseCase: FindAllArchivementUseCase) {}
 
 	async run(req: Request, res: Response): Promise<void> {
 		try {
-			const archivements = await this.findAllArchivementsUseCase.execute();
+			const archivements = await this.findAllArchivementUseCase.execute();
 
 			res.status(200).json({
 				success: true,

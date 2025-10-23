@@ -2,6 +2,7 @@ import { ContainerBuilder } from "node-dependency-injection";
 import registerUsersDependencies from "./users";
 import registerCoursesDependencies from "./courses";
 import registerTopicsDependencies from "./topics";
+import registerArchivementDependencies from "./archivement";
 
 function getContainer(): ContainerBuilder {
   const container = new ContainerBuilder(true, __dirname);
@@ -10,6 +11,7 @@ function getContainer(): ContainerBuilder {
   registerUsersDependencies(container);
   registerCoursesDependencies(container);
   registerTopicsDependencies(container);
+  registerArchivementDependencies(container);
 
   return container;
 }

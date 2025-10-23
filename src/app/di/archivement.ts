@@ -6,7 +6,7 @@ import { FindArchivementByIdUseCase } from "../../context/archivements/applicati
 import { UpdateArchivementUseCase } from "../../context/archivements/application/UpdateArchivementUseCase";
 import { DeleteArchivementUseCase } from "../../context/archivements/application/DeleteArchivementUseCase";
 import { CreateArchivementController } from "../../context/archivements/infrastructure/controllers/CreateArchivementController";
-import { FindAllArchivementsController } from "../../context/archivements/infrastructure/controllers/FindAllArchivementsController";
+import { FindAllArchivementController } from "../../context/archivements/infrastructure/controllers/FindAllArchivementController";
 import { FindArchivementByIdController } from "../../context/archivements/infrastructure/controllers/FindArchivementsByIdController";
 import { UpdateArchivementController } from "../../context/archivements/infrastructure/controllers/UpdateArchivementController";
 import { DeleteArchivementController } from "../../context/archivements/infrastructure/controllers/DeleteArchivementController";
@@ -43,7 +43,7 @@ export default function registerArchivementDependencies(container: ContainerBuil
 		.addArgument(new Reference("CreateArchivementUseCase"));
 
 	container
-		.register("FindAllArchivementController", FindAllArchivementsController)
+		.register("FindAllArchivementController", FindAllArchivementController)
 		.addArgument(new Reference("FindAllArchivementUseCase"));
 
 	container
