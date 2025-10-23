@@ -1,15 +1,15 @@
 import { ContainerBuilder, Reference } from "node-dependency-injection";
-import { FireBaseArchivementRepository } from "../../context/archivements/infrastructure/repository/FireBaseArchivementRepository";
-import { CreateArchivementUseCase } from "../../context/archivements/application/CreateArchivementUseCase";
-import { FindAllArchivementUseCase } from "../../context/archivements/application/FindAllArchivementUseCase";
-import { FindArchivementByIdUseCase } from "../../context/archivements/application/FindArchivementByIdUseCase";
-import { UpdateArchivementUseCase } from "../../context/archivements/application/UpdateArchivementUseCase";
-import { DeleteArchivementUseCase } from "../../context/archivements/application/DeleteArchivementUseCase";
-import { CreateArchivementController } from "../../context/archivements/infrastructure/controllers/CreateArchivementController";
-import { FindAllArchivementController } from "../../context/archivements/infrastructure/controllers/FindAllArchivementController";
-import { FindArchivementByIdController } from "../../context/archivements/infrastructure/controllers/FindArchivementsByIdController";
-import { UpdateArchivementController } from "../../context/archivements/infrastructure/controllers/UpdateArchivementController";
-import { DeleteArchivementController } from "../../context/archivements/infrastructure/controllers/DeleteArchivementController";
+import { FireBaseArchivementRepository } from "../../context/achievements/infrastructure/repository/FireBaseAchievementRepository";
+import { CreateArchivementUseCase } from "../../context/achievements/application/CreateAchievementUseCase";
+import { FindAllArchivementUseCase } from "../../context/achievements/application/FindAllAchievementsUseCase";
+import { FindArchivementByIdUseCase } from "../../context/achievements/application/FindAchievementByIdUseCase";
+import { UpdateArchivementUseCase } from "../../context/achievements/application/UpdateAchievementUseCase";
+import { DeleteArchivementUseCase } from "../../context/achievements/application/DeleteAchievementUseCase";
+import { CreateArchivementController } from "../../context/achievements/infrastructure/controllers/CreateAchievementController";
+import { FindAllArchivementController } from "../../context/achievements/infrastructure/controllers/FindAllAchievementsController";
+import { FindArchivementByIdController } from "../../context/achievements/infrastructure/controllers/FindAchievementByIdController";
+import { UpdateArchivementController } from "../../context/achievements/infrastructure/controllers/UpdateAchievementController";
+import { DeleteArchivementController } from "../../context/achievements/infrastructure/controllers/DeleteAchievementController";
 
 export default function registerArchivementDependencies(container: ContainerBuilder) {
 	// REPOSITORY

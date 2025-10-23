@@ -1,6 +1,6 @@
 import {Request, Response} from "express";
-import { CreateArchivementUseCase } from "../../application/CreateArchivementUseCase";
-import { CreateArchivementRequest } from "../../application/requests/CreateArchivementRequests";
+import { CreateArchivementUseCase } from "../../application/CreateAchievementUseCase";
+import { CreateArchivementRequest } from "../../application/requests/CreateAchievementRequests";
 
 export class CreateArchivementController {
 	constructor(private readonly createArchivementUseCase: CreateArchivementUseCase) {}

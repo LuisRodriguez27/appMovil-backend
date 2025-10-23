@@ -1,6 +1,6 @@
-import { Archivement } from "../domain/Archivement";
-import { ArchivementRepository } from "../domain/ArchivementRepository";
-import { UpdateArchivementRequest } from "./requests/UpdateArchivementRequest";
+import { Archivement } from "../domain/Achievement";
+import { ArchivementRepository } from "../domain/AchievementRepository";
+import { UpdateArchivementRequest } from "./requests/UpdateAchievementRequest";
 
 export class UpdateArchivementUseCase {
   constructor (private readonly ArchivementRepository: ArchivementRepository) {}

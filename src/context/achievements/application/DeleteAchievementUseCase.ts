@@ -1,4 +1,4 @@
-import { ArchivementRepository } from "../domain/ArchivementRepository";
+import { ArchivementRepository } from "../domain/AchievementRepository";
 
 export class DeleteArchivementUseCase {
 	constructor (private readonly archivementRepository: ArchivementRepository) {}

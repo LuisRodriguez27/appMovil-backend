@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { DeleteArchivementUseCase } from "../../application/DeleteArchivementUseCase";
+import { DeleteArchivementUseCase } from "../../application/DeleteAchievementUseCase";
 
 export class DeleteArchivementController {
 	constructor(private deleteArchivementUseCase: DeleteArchivementUseCase) {}

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { FindArchivementByIdUseCase } from "../../application/FindArchivementByIdUseCase";
+import { FindArchivementByIdUseCase } from "../../application/FindAchievementByIdUseCase";
 
 export class FindArchivementByIdController {
 	constructor(private findArchivementByIdUseCase: FindArchivementByIdUseCase) {}

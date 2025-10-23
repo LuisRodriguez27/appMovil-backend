@@ -1,10 +1,10 @@
-import { ArchivementsPrimitives } from "../domain/Archivement";
-import { ArchivementRepository } from "../domain/ArchivementRepository";
+import { AchievementsPrimitives } from "../domain/Achievement";
+import { ArchivementRepository } from "../domain/AchievementRepository";
 
 export class FindArchivementByIdUseCase {
   constructor(private archivementRepository: ArchivementRepository) {}
 
-  async execute(id: string): Promise<ArchivementsPrimitives> {
+  async execute(id: string): Promise<AchievementsPrimitives> {
     const archivement = await this.archivementRepository.findById(id);
 
     if (!archivement) {

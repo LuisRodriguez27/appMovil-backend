@@ -1,4 +1,4 @@
-import { Archivement } from "./Archivement";
+import { Archivement } from "./Achievement";
 
 export interface ArchivementRepository {
   create(archivement: Archivement): Promise<void>;

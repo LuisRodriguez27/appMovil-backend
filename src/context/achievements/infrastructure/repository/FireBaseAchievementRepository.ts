@@ -1,6 +1,6 @@
 import { firestore } from "../../../../app/config/configureFirebase";
-import { ArchivementRepository } from "../../domain/ArchivementRepository";
-import { Archivement, ArchivementsPrimitives } from "../../domain/Archivement";
+import { ArchivementRepository } from "../../domain/AchievementRepository";
+import { Archivement, AchievementsPrimitives } from "../../domain/Achievement";
 
 interface ArchivementDocument {
 	__id: string,
@@ -13,7 +13,7 @@ interface ArchivementDocument {
 }
 
 export class FireBaseArchivementRepository implements ArchivementRepository {
-	private readonly collection = 'archivements';
+	private readonly collection = 'achievements';
 
 	async create(archivement: Archivement): Promise<void> {
 		const primitives = archivement.toPrimitives();
@@ -57,7 +57,7 @@ export class FireBaseArchivementRepository implements ArchivementRepository {
 		await firestore().collection(this.collection).doc(id).delete();
 	}
 
-	private toFirestoreDocument(archivement: ArchivementsPrimitives): ArchivementDocument {
+	private toFirestoreDocument(archivement: AchievementsPrimitives): ArchivementDocument {
 		return {
 			__id: archivement.id,
 			title: archivement.title,

@@ -11,7 +11,7 @@ export class Archivement {
     private condition: { type: string; value: number | string } 
   ) {}
 
-  static create (data: Omit<ArchivementsPrimitives, 'id'>): Archivement {
+  static create (data: Omit<AchievementsPrimitives, 'id'>): Archivement {
     return new Archivement(
       uid(),
       data.title,
@@ -23,7 +23,7 @@ export class Archivement {
     );
   }
 
-  static fromPrimitives (data: ArchivementsPrimitives): Archivement {
+  static fromPrimitives (data: AchievementsPrimitives): Archivement {
     return new Archivement(
       data.id,
       data.title,
@@ -35,7 +35,7 @@ export class Archivement {
     );
   }
 
-  public update (data: Partial<Omit<ArchivementsPrimitives, 'id'>>): void {
+  public update (data: Partial<Omit<AchievementsPrimitives, 'id'>>): void {
     if (data.title !== undefined) this.title = data.title;
     if (data.description !== undefined) this.description = data.description;
     if (data.points !== undefined) this.points = data.points;
@@ -46,7 +46,7 @@ export class Archivement {
 
   
   
-  public toPrimitives (): ArchivementsPrimitives {
+  public toPrimitives (): AchievementsPrimitives {
     return {
       id: this.id,
       title: this.title,
@@ -59,7 +59,7 @@ export class Archivement {
   }
 }  
 
-export type ArchivementsPrimitives = {
+export type AchievementsPrimitives = {
   id: string;
   title: string;
   description: string;

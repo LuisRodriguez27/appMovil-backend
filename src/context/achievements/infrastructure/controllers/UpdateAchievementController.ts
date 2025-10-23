@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { UpdateArchivementRequest } from "../../application/requests/UpdateArchivementRequest";
-import { UpdateArchivementUseCase } from "../../application/UpdateArchivementUseCase";
+import { UpdateArchivementRequest } from "../../application/requests/UpdateAchievementRequest";
+import { UpdateArchivementUseCase } from "../../application/UpdateAchievementUseCase";
 
 export class UpdateArchivementController {
 	constructor(private readonly updateArchivementUseCase: UpdateArchivementUseCase) {}
