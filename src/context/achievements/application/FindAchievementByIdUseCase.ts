@@ -1,15 +1,15 @@
 import { AchievementsPrimitives } from "../domain/Achievement";
-import { ArchivementRepository } from "../domain/AchievementRepository";
+import { AchievementRepository } from "../domain/AchievementRepository";
 
-export class FindArchivementByIdUseCase {
-  constructor(private archivementRepository: ArchivementRepository) {}
+export class FindAchievementByIdUseCase {
+  constructor(private achievementRepository: AchievementRepository) {}
 
   async execute(id: string): Promise<AchievementsPrimitives> {
-    const archivement = await this.archivementRepository.findById(id);
+    const achievement = await this.achievementRepository.findById(id);
 
-    if (!archivement) {
-      throw new Error(`Archivement con el ${id} no encontrado.`);
+    if (!achievement) {
+      throw new Error(`Achievement con el ${id} no encontrado.`);
     }
-    return archivement.toPrimitives();
+    return achievement.toPrimitives();
   }
 }  

@@ -1,11 +1,11 @@
 import { AchievementsPrimitives } from "../domain/Achievement";
-import { ArchivementRepository } from "../domain/AchievementRepository";
+import { AchievementRepository } from "../domain/AchievementRepository";
 
-export class FindAllArchivementUseCase {
-  constructor(private readonly archivementRepository: ArchivementRepository) {}
+export class FindAllAchievementUseCase {
+  constructor(private readonly achievementRepository: AchievementRepository) {}
 
   async execute(): Promise<AchievementsPrimitives[]> {
-    const achievements = await this.archivementRepository.findAll();
-    return achievements.map(archivement => archivement.toPrimitives());
+    const achievements = await this.achievementRepository.findAll();
+    return achievements.map(achievement => achievement.toPrimitives());
   }
 }

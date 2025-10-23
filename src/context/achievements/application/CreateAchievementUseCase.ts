@@ -1,12 +1,12 @@
-import { Archivement } from "../domain/Achievement";
-import { ArchivementRepository } from "../domain/AchievementRepository";
-import { CreateArchivementRequest } from "./requests/CreateAchievementRequests";
+import { Achievement } from "../domain/Achievement";
+import { AchievementRepository } from "../domain/AchievementRepository";
+import { CreateAchievementRequest } from "./requests/CreateAchievementRequests";
 
-export class CreateArchivementUseCase {
-  constructor(private readonly archivementRepository: ArchivementRepository) {}
+export class CreateAchievementUseCase {
+  constructor(private readonly achievementRepository: AchievementRepository) {}
 
-  async execute(request: CreateArchivementRequest): Promise<Archivement> {
-    const archivement = Archivement.create({
+  async execute(request: CreateAchievementRequest): Promise<Achievement> {
+    const achievement = Achievement.create({
       title: request.title,
       description: request.description,
       points: request.points,
@@ -15,8 +15,8 @@ export class CreateArchivementUseCase {
       condition: request.condition
     });
 
-    await this.archivementRepository.create(archivement);
+    await this.achievementRepository.create(achievement);
 
-    return archivement;
+    return achievement;
   }
 }  

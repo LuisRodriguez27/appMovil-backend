@@ -1,15 +1,15 @@
 import {Request, Response} from "express";
-import { CreateArchivementUseCase } from "../../application/CreateAchievementUseCase";
-import { CreateArchivementRequest } from "../../application/requests/CreateAchievementRequests";
+import { CreateAchievementUseCase } from "../../application/CreateAchievementUseCase";
+import { CreateAchievementRequest } from "../../application/requests/CreateAchievementRequests";
 
-export class CreateArchivementController {
-	constructor(private readonly createArchivementUseCase: CreateArchivementUseCase) {}
+export class CreateAchievementController {
+	constructor(private readonly createAchievementUseCase: CreateAchievementUseCase) {}
 
 	async run(req: Request, res: Response): Promise<void> {
 		try {
 			const {title, description, points, rarity, icon, condition} = req.body;
 
-			const request = new CreateArchivementRequest(
+			const request = new CreateAchievementRequest(
 				title,
 				description,
 				points,
@@ -18,7 +18,7 @@ export class CreateArchivementController {
 				condition
 			);
 
-			await this.createArchivementUseCase.execute(request);
+			await this.createAchievementUseCase.execute(request);
 
 			res.status(201).json({
 				success: true,

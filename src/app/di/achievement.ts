@@ -1,62 +1,62 @@
 import { ContainerBuilder, Reference } from "node-dependency-injection";
-import { FireBaseArchivementRepository } from "../../context/achievements/infrastructure/repository/FireBaseAchievementRepository";
-import { CreateArchivementUseCase } from "../../context/achievements/application/CreateAchievementUseCase";
-import { FindAllArchivementUseCase } from "../../context/achievements/application/FindAllAchievementsUseCase";
-import { FindArchivementByIdUseCase } from "../../context/achievements/application/FindAchievementByIdUseCase";
-import { UpdateArchivementUseCase } from "../../context/achievements/application/UpdateAchievementUseCase";
-import { DeleteArchivementUseCase } from "../../context/achievements/application/DeleteAchievementUseCase";
-import { CreateArchivementController } from "../../context/achievements/infrastructure/controllers/CreateAchievementController";
-import { FindAllArchivementController } from "../../context/achievements/infrastructure/controllers/FindAllAchievementsController";
-import { FindArchivementByIdController } from "../../context/achievements/infrastructure/controllers/FindAchievementByIdController";
-import { UpdateArchivementController } from "../../context/achievements/infrastructure/controllers/UpdateAchievementController";
-import { DeleteArchivementController } from "../../context/achievements/infrastructure/controllers/DeleteAchievementController";
+import { FireBaseAchievementRepository } from "../../context/achievements/infrastructure/repository/FireBaseAchievementRepository";
+import { CreateAchievementUseCase } from "../../context/achievements/application/CreateAchievementUseCase";
+import { FindAllAchievementUseCase } from "../../context/achievements/application/FindAllAchievementsUseCase";
+import { FindAchievementByIdUseCase } from "../../context/achievements/application/FindAchievementByIdUseCase";
+import { UpdateAchievementUseCase } from "../../context/achievements/application/UpdateAchievementUseCase";
+import { DeleteAchievementUseCase } from "../../context/achievements/application/DeleteAchievementUseCase";
+import { CreateAchievementController } from "../../context/achievements/infrastructure/controllers/CreateAchievementController";
+import { FindAllAchievementController } from "../../context/achievements/infrastructure/controllers/FindAllAchievementsController";
+import { FindAchievementByIdController } from "../../context/achievements/infrastructure/controllers/FindAchievementByIdController";
+import { UpdateAchievementController } from "../../context/achievements/infrastructure/controllers/UpdateAchievementController";
+import { DeleteAchievementController } from "../../context/achievements/infrastructure/controllers/DeleteAchievementController";
 
-export default function registerArchivementDependencies(container: ContainerBuilder) {
+export default function registerAchievementDependencies(container: ContainerBuilder) {
 	// REPOSITORY
-	container.register("ArchivementRepository", FireBaseArchivementRepository);
+	container.register("AchievementRepository", FireBaseAchievementRepository);
 
-	// ARCHIVEMENT USE CASES
+	// ACHIEVEMENT USE CASES
 	container
-		.register("CreateArchivementUseCase", CreateArchivementUseCase)
-		.addArgument(new Reference("ArchivementRepository"));
-
-	container
-		.register("FindAllArchivementUseCase", FindAllArchivementUseCase)
-		.addArgument(new Reference("ArchivementRepository"));
+		.register("CreateAchievementUseCase", CreateAchievementUseCase)
+		.addArgument(new Reference("AchievementRepository"));
 
 	container
-		.register("FindArchivementByIdUseCase", FindArchivementByIdUseCase)
-		.addArgument(new Reference("ArchivementRepository"));
+		.register("FindAllAchievementUseCase", FindAllAchievementUseCase)
+		.addArgument(new Reference("AchievementRepository"));
 
 	container
-		.register("UpdateArchivementUseCase", UpdateArchivementUseCase)	
-		.addArgument(new Reference("ArchivementRepository"));
+		.register("FindAchievementByIdUseCase", FindAchievementByIdUseCase)
+		.addArgument(new Reference("AchievementRepository"));
 
 	container
-		.register("DeleteArchivementUseCase", DeleteArchivementUseCase)
-		.addArgument(new Reference("ArchivementRepository"));
+		.register("UpdateAchievementUseCase", UpdateAchievementUseCase)
+		.addArgument(new Reference("AchievementRepository"));
+
+	container
+		.register("DeleteAchievementUseCase", DeleteAchievementUseCase)
+		.addArgument(new Reference("AchievementRepository"));
 
 
 	// Controllers
 	container
-		.register("CreateArchivementController", CreateArchivementController)	
-		.addArgument(new Reference("CreateArchivementUseCase"));
+		.register("CreateAchievementController", CreateAchievementController)	
+		.addArgument(new Reference("CreateAchievementUseCase"));
 
 	container
-		.register("FindAllArchivementController", FindAllArchivementController)
-		.addArgument(new Reference("FindAllArchivementUseCase"));
+		.register("FindAllAchievementController", FindAllAchievementController)
+		.addArgument(new Reference("FindAllAchievementUseCase"));
 
 	container
-		.register("FindArchivementByIdController", FindArchivementByIdController)
-		.addArgument(new Reference("FindArchivementByIdUseCase"));
+		.register("FindAchievementByIdController", FindAchievementByIdController)
+		.addArgument(new Reference("FindAchievementByIdUseCase"));
 
 	container
-		.register("UpdateArchivementController", UpdateArchivementController)
-		.addArgument(new Reference("UpdateArchivementUseCase"));
+		.register("UpdateAchievementController", UpdateAchievementController)
+		.addArgument(new Reference("UpdateAchievementUseCase"));
 
 	container
-		.register("DeleteArchivementController", DeleteArchivementController)
-		.addArgument(new Reference("DeleteArchivementUseCase"));
+		.register("DeleteAchievementController", DeleteAchievementController)
+		.addArgument(new Reference("DeleteAchievementUseCase"));
 
 	return container;
 }

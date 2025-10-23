@@ -1,6 +1,6 @@
 import { uid } from "uid";
 
-export class Archivement {
+export class Achievement {
   constructor (
     public readonly id: string,
     private title: string,
@@ -11,8 +11,8 @@ export class Archivement {
     private condition: { type: string; value: number | string } 
   ) {}
 
-  static create (data: Omit<AchievementsPrimitives, 'id'>): Archivement {
-    return new Archivement(
+  static create (data: Omit<AchievementsPrimitives, 'id'>): Achievement {
+    return new Achievement (
       uid(),
       data.title,
       data.description,
@@ -23,8 +23,8 @@ export class Archivement {
     );
   }
 
-  static fromPrimitives (data: AchievementsPrimitives): Archivement {
-    return new Archivement(
+  static fromPrimitives (data: AchievementsPrimitives): Achievement {
+    return new Achievement (
       data.id,
       data.title,
       data.description,

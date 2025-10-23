@@ -1,15 +1,15 @@
-import { ArchivementRepository } from "../domain/AchievementRepository";
+import { AchievementRepository } from "../domain/AchievementRepository";
 
-export class DeleteArchivementUseCase {
-	constructor (private readonly archivementRepository: ArchivementRepository) {}
+export class DeleteAchievementUseCase {
+	constructor (private readonly achievementRepository: AchievementRepository) {}
 
 	async execute(id: string): Promise<void> {
-		const archivement = await this.archivementRepository.findById(id);
+		const achievement = await this.achievementRepository.findById(id);
 
-		if (!archivement) {
-			throw new Error(`Archivement con el ${id} no encontrado.`);
+		if (!achievement) {
+			throw new Error(`Achievement con el ${id} no encontrado.`);
 		}
 
-		await this.archivementRepository.delete(id);
+		await this.achievementRepository.delete(id);
 	}
 }

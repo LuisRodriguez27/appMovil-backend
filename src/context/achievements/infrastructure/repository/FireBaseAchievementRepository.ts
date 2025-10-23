@@ -1,8 +1,8 @@
 import { firestore } from "../../../../app/config/configureFirebase";
-import { ArchivementRepository } from "../../domain/AchievementRepository";
-import { Archivement, AchievementsPrimitives } from "../../domain/Achievement";
+import { AchievementRepository } from "../../domain/AchievementRepository";
+import { Achievement , AchievementsPrimitives } from "../../domain/Achievement";
 
-interface ArchivementDocument {
+interface AchievementDocument {
 	__id: string,
 	title: string,
 	description: string,
@@ -12,32 +12,32 @@ interface ArchivementDocument {
 	condition: { type: string; value: number | string }
 }
 
-export class FireBaseArchivementRepository implements ArchivementRepository {
+export class FireBaseAchievementRepository implements AchievementRepository {
 	private readonly collection = 'achievements';
 
-	async create(archivement: Archivement): Promise<void> {
-		const primitives = archivement.toPrimitives();
+	async create(achievement: Achievement): Promise<void> {
+		const primitives = achievement.toPrimitives();
 		const document = this.toFirestoreDocument(primitives);
 
 		await firestore().collection(this.collection).doc(document.__id).set(document);
 	}
 		
-	async findById(id: string): Promise<Archivement | null> {
+	async findById(id: string): Promise<Achievement | null> {
 		const doc = await firestore().collection(this.collection).doc(id).get();
 
 		if (!doc.exists) {
 			return null;
 		}
 
-		const data = doc.data() as ArchivementDocument;
+		const data = doc.data() as AchievementDocument;
 		return this.toDomainEntity(data);
 	}
 
-	async findAll(): Promise<Archivement[]> {
+	async findAll(): Promise<Achievement []> {
 		const doc = await firestore().collection(this.collection).get();
 
 		return doc.docs.map(doc => {
-			const data = doc.data() as Omit<ArchivementDocument, '__id'>;
+			const data = doc.data() as Omit<AchievementDocument, '__id'>;
 			return this.toDomainEntity({
 				__id: doc.id,
 				...data
@@ -45,8 +45,8 @@ export class FireBaseArchivementRepository implements ArchivementRepository {
 		});
 	}
 
-	async update(archivement: Archivement): Promise<void> {
-		const primitives = archivement.toPrimitives();
+	async update(achievement: Achievement ): Promise<void> {
+		const primitives = achievement.toPrimitives();
 		const document = this.toFirestoreDocument(primitives);
 		const { __id, ...data } = document;
 
@@ -57,23 +57,23 @@ export class FireBaseArchivementRepository implements ArchivementRepository {
 		await firestore().collection(this.collection).doc(id).delete();
 	}
 
-	private toFirestoreDocument(archivement: AchievementsPrimitives): ArchivementDocument {
+	private toFirestoreDocument(achievement: AchievementsPrimitives): AchievementDocument {
 		return {
-			__id: archivement.id,
-			title: archivement.title,
-			description: archivement.description,
-			points: archivement.points,
-			rarity: archivement.rarity,
-			icon: archivement.icon,
+			__id: achievement.id,
+			title: achievement.title,
+			description: achievement.description,
+			points: achievement.points,
+			rarity: achievement.rarity,
+			icon: achievement.icon,
 			condition: {
-				type: archivement.condition.type,
-				value: archivement.condition.value,
+				type: achievement.condition.type,
+				value: achievement.condition.value,
 			}
 		};
 	}
 
-	private toDomainEntity(doc: ArchivementDocument): Archivement {
-		return new Archivement(
+	private toDomainEntity(doc: AchievementDocument): Achievement {
+		return new Achievement (
 			doc.__id,
 			doc.title,
 			doc.description,

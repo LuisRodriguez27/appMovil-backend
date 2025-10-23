@@ -1,15 +1,15 @@
 import { Request, Response } from "express";
-import { FindArchivementByIdUseCase } from "../../application/FindAchievementByIdUseCase";
+import { FindAchievementByIdUseCase } from "../../application/FindAchievementByIdUseCase";
 
-export class FindArchivementByIdController {
-	constructor(private findArchivementByIdUseCase: FindArchivementByIdUseCase) {}
+export class FindAchievementByIdController {
+	constructor(private findAchievementByIdUseCase: FindAchievementByIdUseCase) {}
 
 	async run(req: Request, res: Response): Promise<void> {
 		try {
 			const { id } = req.params;
-			const archivement = await this.findArchivementByIdUseCase.execute(id);
+			const achievement = await this.findAchievementByIdUseCase.execute(id);
 
-			if (!archivement) {
+			if (!achievement) {
 				res.status(404).json({
 					success: false,
 					message: "Logro no encontrado",
@@ -19,7 +19,7 @@ export class FindArchivementByIdController {
 
 			res.status(200).json({
 				success: true,
-				data: archivement,
+				data: achievement,
 			});
 		} catch (error) {
 			if (error instanceof Error) {

@@ -1,4 +1,4 @@
-export class CreateArchivementRequest {
+export class CreateAchievementRequest {
   constructor(
     public readonly title: string,
     public readonly description: string,

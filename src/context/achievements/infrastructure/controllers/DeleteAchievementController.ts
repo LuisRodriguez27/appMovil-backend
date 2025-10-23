@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
-import { DeleteArchivementUseCase } from "../../application/DeleteAchievementUseCase";
+import { DeleteAchievementUseCase } from "../../application/DeleteAchievementUseCase";
 
-export class DeleteArchivementController {
-	constructor(private deleteArchivementUseCase: DeleteArchivementUseCase) {}
+export class DeleteAchievementController {
+	constructor(private deleteAchievementUseCase: DeleteAchievementUseCase) {}
 
 	async run(req: Request, res: Response): Promise<void> {
 		try {
 			const { id } = req.params;
-			await this.deleteArchivementUseCase.execute(id);
+			await this.deleteAchievementUseCase.execute(id);
 
 			res.status(204).send();
 

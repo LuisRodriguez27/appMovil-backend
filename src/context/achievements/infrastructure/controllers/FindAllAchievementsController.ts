@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { FindAllArchivementUseCase } from "../../application/FindAllAchievementsUseCase";
+import { FindAllAchievementUseCase } from "../../application/FindAllAchievementsUseCase";
 
-export class FindAllArchivementController {
-	constructor(private findAllArchivementUseCase: FindAllArchivementUseCase) {}
+export class FindAllAchievementController {
+	constructor(private findAllAchievementUseCase: FindAllAchievementUseCase) {}
 
 	async run(req: Request, res: Response): Promise<void> {
 		try {
-			const achievements = await this.findAllArchivementUseCase.execute();
+			const achievements = await this.findAllAchievementUseCase.execute();
 
 			res.status(200).json({
 				success: true,
