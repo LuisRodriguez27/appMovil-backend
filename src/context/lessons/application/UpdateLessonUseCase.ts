@@ -1,6 +1,6 @@
-import { LessonRepository } from '../../domain/LessonRepository';
-import { Lesson } from '../../domain/Lesson';
-import { UpdateLessonRequest } from '../requests/UpdateLessonRequest';
+import { LessonRepository } from '../domain/LessonRepository';
+import { Lesson } from '../domain/Lesson';
+import { UpdateLessonRequest } from './requests/UpdateLessonRequest';
 
 export class UpdateLessonUseCase {
   constructor(private readonly lessonRepository: LessonRepository) {}
