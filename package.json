@@ -9,7 +9,12 @@
     "start": "node dist/index.js",
     "test:firebase": "ts-node src/scripts/testFirebaseConnection.ts",
     "generate:token": "ts-node src/scripts/generateAuthToken.ts",
-    "get:token": "ts-node src/scripts/getIdToken.ts"
+    "get:token": "ts-node src/scripts/getIdToken.ts",
+    "test:create:topic": "ts-node src/scripts/testCreateTopic.ts",
+    "test:update:topic": "ts-node src/scripts/testUpdateTopic.ts",
+    "test:delete:topic": "ts-node src/scripts/testDeleteTopic.ts",
+    "cleanup:topics": "ts-node src/scripts/cleanupTestTopics.ts",
+    "create:index": "ts-node src/scripts/createFirestoreIndex.ts"
   },
   "keywords": [],
   "author": "",
