@@ -21,7 +21,11 @@
     "test:delete:lesson": "ts-node src/scripts/lessons/testDeleteLesson.ts",
     "cleanup:lessons": "ts-node src/scripts/lessons/cleanupTestLessons.ts",
     "create:index": "ts-node src/scripts/firestore/createFirestoreIndex.ts",
-    "create:lessons:indexes": "ts-node src/scripts/firestore/createLessonsIndexes.ts"
+    "create:lessons:indexes": "ts-node src/scripts/firestore/createLessonsIndexes.ts",
+    "seed:courses": "ts-node src/scripts/seed/seedCourses.ts",
+    "seed:topics": "ts-node src/scripts/seed/seedTopics.ts",
+    "seed:all": "npm run seed:courses && npm run seed:topics",
+    "seed:verify": "ts-node src/scripts/seed/verifySeed.ts"
   },
   "keywords": [],
   "author": "",
