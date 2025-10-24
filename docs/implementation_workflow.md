@@ -759,7 +759,7 @@ Antes de considerar completa la implementación, verificar:
 ## Referencias
 
 - [DDD Architecture](./project_structure.md)
-- [Firebase Authentication Guide](./roles_authentication_guide.md)
+- [Firebase Authentication Guide](./README_AUTHENTICATION.md)
 - [Database Schema](./database_schema.md)
 - [Postman Testing Guide](./postman_testing_guide.md)
 

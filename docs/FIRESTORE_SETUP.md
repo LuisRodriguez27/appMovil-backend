@@ -55,13 +55,76 @@ Antes de desplegar a producción, **debes crear estos índices** en Firestore. S
 
 ---
 
+### 2. Índices para Lessons (topic_id + subtopic_id + order) y (topic_id + order)
+
+**Colección**: `lessons`
+
+**Índice 2a - Por Subtopic**:
+- `topic_id` (Ascending)
+- `subtopic_id` (Ascending)
+- `order` (Ascending)
+
+**Índice 2b - Por Topic**:
+- `topic_id` (Ascending)
+- `order` (Ascending)
+
+**¿Por qué se necesitan?**
+- Permite listar lecciones de un subtema específico ordenadas
+- Permite listar todas las lecciones de un tema completo ordenadas
+- Usado en: `FindLessonsBySubtopicUseCase`, `FindLessonsByTopicUseCase`
+
+**¿Cómo crearlos?**
+
+**Opción A: Link Automático (Recomendado)**
+
+1. Ejecutar el script:
+   ```bash
+   npm run create:lessons:indexes
+   ```
+
+2. Copiar los links que aparecen en la terminal
+
+3. Abrirlos en el navegador y hacer clic en "Create Index"
+
+**Opción B: Manual**
+
+1. Ve a [Firebase Console](https://console.firebase.google.com/)
+2. Selecciona tu proyecto: **plataforma-estudio**
+3. Ve a **Firestore Database** → **Indexes** tab
+4. Haz clic en **"Create Index"**
+
+**Para Índice 2a (subtopic + order)**:
+- Collection ID: `lessons`
+- Fields:
+  - `topic_id` → Ascending
+  - `subtopic_id` → Ascending
+  - `order` → Ascending
+- Query scope: Collection
+
+**Para Índice 2b (topic + order)**:
+- Collection ID: `lessons`
+- Fields:
+  - `topic_id` → Ascending
+  - `order` → Ascending
+- Query scope: Collection
+
+**Estado**:
+- [ ] No creados
+- [ ] Creando (Building)
+- [ ] ✅ Ambos creados y habilitados
+
+---
+
 ## 🔍 Verificar Índices
 
 Para verificar que todos los índices están creados correctamente:
 
 ```bash
-# Script automático de verificación
-npx ts-node src/scripts/createFirestoreIndex.ts
+# Verificar índice de Topics
+npm run create:index
+
+# Verificar índices de Lessons
+npm run create:lessons:indexes
 ```
 
 **Output esperado** (cuando el índice existe):
@@ -84,13 +147,22 @@ https://console.firebase.google.com/...
 
 Antes de desplegar a producción, verifica:
 
-- [ ] Índice `topics (course_id + order)` está creado
-- [ ] El estado del índice es "Enabled" (no "Building")
-- [ ] Ejecutaste el script de verificación y pasó exitosamente
+### Índices de Firestore:
+- [ ] Índice `topics (course_id + order)` está creado y "Enabled"
+- [ ] Índice `lessons (topic_id + subtopic_id + order)` está creado y "Enabled"
+- [ ] Índice `lessons (topic_id + order)` está creado y "Enabled"
+- [ ] Ejecutaste los scripts de verificación y pasaron exitosamente
+
+### Tests:
 - [ ] Las pruebas unitarias pasan: `npm test` (cuando existan)
-- [ ] Los scripts de prueba pasan:
-  - [ ] `npx ts-node src/scripts/testCreateCourse.ts`
-  - [ ] `npx ts-node src/scripts/testCreateTopic.ts`
+- [ ] Scripts de prueba de Topics:
+  - [ ] `npm run test:create:topic`
+  - [ ] `npm run test:update:topic`
+  - [ ] `npm run test:delete:topic`
+- [ ] Scripts de prueba de Lessons:
+  - [ ] `npm run test:create:lesson`
+  - [ ] `npm run test:update:lesson`
+  - [ ] `npm run test:delete:lesson`
 
 ---
 
@@ -106,11 +178,13 @@ Para ver todos tus índices:
 Deberías ver:
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│ Collection ID │ Fields indexed          │ Query scope │ Status│
-├──────────────────────────────────────────────────────────────┤
-│ topics        │ course_id ↑, order ↑   │ Collection │ ✅    │
-└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│ Collection ID │ Fields indexed                        │ Status       │
+├──────────────────────────────────────────────────────────────────────┤
+│ topics        │ course_id ↑, order ↑                  │ ✅ Enabled   │
+│ lessons       │ topic_id ↑, subtopic_id ↑, order ↑   │ ✅ Enabled   │
+│ lessons       │ topic_id ↑, order ↑                   │ ✅ Enabled   │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -134,6 +208,21 @@ Error: 9 FAILED_PRECONDITION: The query requires an index.
 - ❌ Los estudiantes NO pueden ver los temas de un curso
 - ❌ Los admins NO pueden crear nuevos temas
 - ❌ Los admins NO pueden editar temas existentes
+
+### Error en Lessons:
+
+```
+Error: 9 FAILED_PRECONDITION: The query requires an index.
+```
+
+**Endpoints afectados**:
+- `GET /topics/:topicId/subtopics/:subtopicId/lessons` - Falla al listar lecciones de un subtema
+- `GET /topics/:topicId/lessons` - Falla al listar todas las lecciones de un tema
+
+**Impacto en usuarios**:
+- ❌ Los estudiantes NO pueden ver las lecciones de un subtema
+- ❌ Los estudiantes NO pueden ver todas las lecciones de un tema
+- ❌ La app móvil no puede cargar el contenido de estudio
 
 ---
 

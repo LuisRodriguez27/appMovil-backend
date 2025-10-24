@@ -1,7 +1,7 @@
-import configureFirebase from '../app/config/configureFirebase';
-import { FirebaseTopicRepository } from '../context/topics/infrastructure/repository/FirebaseTopicRepository';
-import { DeleteTopicUseCase } from '../context/topics/application/DeleteTopicUseCase';
-import { DeleteTopicRequest } from '../context/topics/application/requests/DeleteTopicRequest';
+import configureFirebase from '../../app/config/configureFirebase';
+import { FirebaseTopicRepository } from '../../context/topics/infrastructure/repository/FirebaseTopicRepository';
+import { DeleteTopicUseCase } from '../../context/topics/application/DeleteTopicUseCase';
+import { DeleteTopicRequest } from '../../context/topics/application/requests/DeleteTopicRequest';
 
 // Script para probar la eliminación de topics
 async function testDeleteTopic() {

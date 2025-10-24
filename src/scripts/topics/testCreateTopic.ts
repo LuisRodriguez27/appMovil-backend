@@ -1,8 +1,8 @@
-import configureFirebase from '../app/config/configureFirebase';
-import { FirebaseCourseRepository } from '../context/courses/infrastructure/repository/FirebaseCourseRepository';
-import { FirebaseTopicRepository } from '../context/topics/infrastructure/repository/FirebaseTopicRepository';
-import { CreateTopicUseCase } from '../context/topics/application/CreateTopicUseCase';
-import { CreateTopicRequest } from '../context/topics/application/requests/CreateTopicRequest';
+import configureFirebase from '../../app/config/configureFirebase';
+import { FirebaseCourseRepository } from '../../context/courses/infrastructure/repository/FirebaseCourseRepository';
+import { FirebaseTopicRepository } from '../../context/topics/infrastructure/repository/FirebaseTopicRepository';
+import { CreateTopicUseCase } from '../../context/topics/application/CreateTopicUseCase';
+import { CreateTopicRequest } from '../../context/topics/application/requests/CreateTopicRequest';
 
 // Script para probar la creación de topics
 async function testCreateTopic() {

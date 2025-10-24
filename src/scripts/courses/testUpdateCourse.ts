@@ -1,7 +1,7 @@
-import configureFirebase from '../app/config/configureFirebase';
-import { FirebaseCourseRepository } from '../context/courses/infrastructure/repository/FirebaseCourseRepository';
-import { UpdateCourseUseCase } from '../context/courses/application/UpdateCourseUseCase';
-import { UpdateCourseRequest } from '../context/courses/application/requests/UpdateCourseRequest';
+import configureFirebase from '../../app/config/configureFirebase';
+import { FirebaseCourseRepository } from '../../context/courses/infrastructure/repository/FirebaseCourseRepository';
+import { UpdateCourseUseCase } from '../../context/courses/application/UpdateCourseUseCase';
+import { UpdateCourseRequest } from '../../context/courses/application/requests/UpdateCourseRequest';
 
 // Script para probar la actualización de cursos
 async function testUpdateCourse() {

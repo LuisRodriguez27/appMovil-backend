@@ -15,25 +15,53 @@ Esta guía te muestra cómo obtener tokens JWT de Firebase para probar los endpo
 
 ## 1. Obtener Firebase Web API Key
 
-### Paso a Paso:
+### Método 1: Desde la Consola de Firebase (Recomendado)
+
+#### Paso a Paso:
 
 1. **Ir a Firebase Console**
    - URL: https://console.firebase.google.com/
+   - Inicia sesión con tu cuenta de Google
    - Selecciona tu proyecto: **plataforma-estudio**
 
 2. **Abrir Project Settings**
-   - Haz clic en el ícono de configuración ⚙️ (esquina superior izquierda)
-   - Selecciona **Project Settings**
+   - En la barra lateral izquierda, haz clic en el **ícono de engranaje ⚙️**
+   - Selecciona **"Project Settings"** (Configuración del proyecto)
 
-3. **Encontrar Web API Key**
-   - En la pestaña **General**
-   - Busca la sección **Your apps** o **SDK setup and configuration**
-   - Si no tienes una app web registrada:
-     - Haz clic en **Add app** → Selecciona el ícono **Web** (</>)
-     - Dale un nombre (ej: "Web App Testing")
-     - Haz clic en **Register app**
-   - Una vez registrada, verás **Web API Key**
-   - La clave se ve así: `AIzaSyC...` (una cadena larga)
+3. **Obtener la Web API Key**
+
+   **Opción A: Desde la pestaña General (MÁS FÁCIL)**
+
+   - Asegúrate de estar en la pestaña **"General"**
+   - Desplázate hacia abajo hasta la sección **"Your apps"** (Tus aplicaciones)
+   - Si NO tienes una app web registrada:
+     - Haz clic en el botón **"Add app"** (Agregar aplicación)
+     - Selecciona el ícono **Web** (</>)
+     - Dale un nombre: "Web App" o "Testing App"
+     - **NO** marques "Also set up Firebase Hosting" (déjalo sin marcar)
+     - Haz clic en **"Register app"**
+   - Verás una sección con código de configuración
+   - Busca la línea que dice: `apiKey: "AIzaSyC..."`
+   - **¡Esa es tu API Key!** Cópiala (solo el valor entre comillas)
+
+   **Ejemplo visual:**
+   ```javascript
+   const firebaseConfig = {
+     apiKey: "AIzaSyC1234567890abcdefGHIJKLMNOP",  ← COPIA ESTO
+     authDomain: "plataforma-estudio.firebaseapp.com",
+     projectId: "plataforma-estudio",
+     // ...
+   };
+   ```
+
+   **Opción B: Desde Google Cloud Console**
+
+   - Ve a: https://console.cloud.google.com/
+   - Selecciona tu proyecto: **plataforma-estudio**
+   - En el menú de la izquierda, ve a: **"APIs & Services"** → **"Credentials"**
+   - Busca en la lista una entrada que diga **"API key"** o **"Browser key"**
+   - Haz clic en el nombre de la clave
+   - Verás **"API key"** con un valor como `AIzaSyC...`
    - **¡Cópiala!**
 
 4. **Agregar al proyecto**
@@ -46,18 +74,9 @@ Esta guía te muestra cómo obtener tokens JWT de Firebase para probar los endpo
    FIREBASE_API_KEY=AIzaSyC_tu_clave_aqui_completa
    ```
 
-   Luego modifica `src/scripts/getAuthToken.ts` línea 20:
-   ```typescript
-   // Cambiar:
-   const FIREBASE_API_KEY = 'YOUR_FIREBASE_API_KEY_HERE';
-
-   // Por:
-   const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'YOUR_FIREBASE_API_KEY_HERE';
-   ```
-
    **Opción B: Directamente en el script**
 
-   Edita `src/scripts/getAuthToken.ts` línea 20:
+   Edita `src/scripts/getAuthToken.ts`:
    ```typescript
    const FIREBASE_API_KEY = 'AIzaSyC_tu_clave_aqui_completa';
    ```

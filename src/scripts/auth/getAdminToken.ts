@@ -1,4 +1,4 @@
-import configureFirebase, { firebaseAuth } from '../app/config/configureFirebase';
+import configureFirebase, { firebaseAuth } from '../../app/config/configureFirebase';
 
 // Script para obtener un custom token para el usuario admin
 async function getAdminToken() {

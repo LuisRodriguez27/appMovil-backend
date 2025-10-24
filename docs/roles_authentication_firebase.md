@@ -9,14 +9,6 @@ Este proyecto usa **dos servicios de Firebase** trabajando juntos:
 | **Firebase Authentication** | Maneja emails, contraseñas y tokens JWT |
 | **Firestore** | Almacena roles, progreso, logros, etc. |
 
-### ✨ Ventajas de Firebase Authentication
-
-- ✅ No manejas contraseñas (Firebase lo hace)
-- ✅ Tokens JWT automáticos y seguros
-- ✅ Refresh tokens automático
-- ✅ SDK unificado (mismo código backend/Flutter)
-- ✅ Múltiples métodos: email, Google, Facebook...
-
 ---
 
 ## 📊 Arquitectura: Dos Bases de Datos Sincronizadas

@@ -2,9 +2,34 @@
 
 Este módulo gestiona las lecciones de estudio con ejercicios embebidos para una aplicación tipo Duolingo.
 
+**Estado**: ✅ 90% Completado (9 casos de uso implementados de 10)
+**Última actualización**: Octubre 2025
+
 ---
 
-## 🎯 Casos de Uso Implementados
+## 📊 Resumen de Casos de Uso
+
+**Total: 10 casos de uso**
+
+### Lectura (Students/Admin):
+1. ✅ FindLessonByIdUseCase
+2. ✅ FindLessonsBySubtopicUseCase
+3. ✅ FindLessonsByTopicUseCase
+4. ✅ GetLessonStatsUseCase (Implementado Octubre 2025)
+5. ⚠️ GetLessonProgressUseCase (Pendiente - requiere colección user_lesson_progress)
+
+### Interacción Student:
+6. ✅ SubmitExerciseAnswerUseCase (Implementado Octubre 2025)
+7. ✅ CompleteLessonUseCase
+
+### Administración (Admin only):
+8. ✅ CreateLessonUseCase
+9. ✅ UpdateLessonUseCase
+10. ✅ DeleteLessonUseCase
+
+---
+
+## 🎯 Casos de Uso Implementados - Lectura
 
 ### **1. FindLessonByIdUseCase**
 **Propósito:** Obtener detalles completos de una lección específica
@@ -65,6 +90,7 @@ Este módulo gestiona las lecciones de estudio con ejercicios embebidos para una
 ---
 
 ### **4. GetLessonStatsUseCase**
+**Estado:** ✅ Implementado (Octubre 2025)
 **Propósito:** Obtener estadísticas y metadata de una lección
 
 **Input:**
@@ -93,6 +119,7 @@ Este módulo gestiona las lecciones de estudio con ejercicios embebidos para una
 ---
 
 ### **5. SubmitExerciseAnswerUseCase** ⭐
+**Estado:** ✅ Implementado (Octubre 2025)
 **Propósito:** Enviar y validar respuesta de un ejercicio
 
 **Input:**
@@ -217,6 +244,131 @@ Este módulo gestiona las lecciones de estudio con ejercicios embebidos para una
 - Mostrar barra de progreso en lección
 - Resume donde el usuario lo dejó
 - Dashboard de progreso personal
+
+---
+
+## 🔐 Casos de Uso Admin
+
+### **8. CreateLessonUseCase**
+**Estado**: ✅ Implementado (Octubre 2025)
+
+**Propósito:** Crear una nueva lección con ejercicios embebidos
+
+**Autorización**: Solo Admin
+
+**Input:** `CreateLessonRequest`
+```typescript
+{
+  topicId: string
+  subtopicId: string
+  title: string              // 1-200 caracteres
+  description: string        // No vacía
+  content: string            // No vacío
+  order: number              // >= 0
+  estimatedTime: number      // > 0 minutos
+  difficulty: 'easy' | 'medium' | 'hard'
+  exercises: Exercise[]
+}
+```
+
+**Output:** `Lesson` creada con ID generado
+
+**Validaciones:**
+- Todos los campos son requeridos
+- Title: 1-200 caracteres
+- Description y content no vacíos
+- Order no negativo
+- EstimatedTime > 0
+- Difficulty debe ser: easy, medium o hard
+- Exercises: array válido con validaciones por tipo de ejercicio
+
+**Validaciones de Ejercicios:**
+- ID requerido
+- Question no vacía
+- Type debe ser: fill_blank, multiple_choice, code_completion, true_false, open_ended
+- max_points > 0
+- Multiple choice debe tener al menos 2 opciones
+- Code completion requiere code_template
+- Debe tener correct_answer (excepto open_ended)
+
+**Endpoint**: `POST /api/lessons`
+
+**Implementación**:
+- Request: `src/context/lessons/application/requests/CreateLessonRequest.ts`
+- UseCase: `src/context/lessons/application/CreateLessonUseCase.ts`
+- Controller: `src/context/lessons/infrastructure/controllers/CreateLessonController.ts`
+- Ruta: `POST /lessons` (auth + requireRole(['admin']))
+
+**Test**: `npm run test:create:lesson` (7 casos de prueba)
+
+---
+
+### **9. UpdateLessonUseCase**
+**Estado**: ✅ Implementado (Octubre 2025)
+
+**Propósito:** Actualizar una lección existente (campos opcionales)
+
+**Autorización**: Solo Admin
+
+**Input:** `UpdateLessonRequest`
+```typescript
+{
+  title?: string
+  description?: string
+  content?: string
+  order?: number
+  estimatedTime?: number
+  difficulty?: 'easy' | 'medium' | 'hard'
+  exercises?: Exercise[]
+}
+```
+
+**Output:** `Lesson` actualizada
+
+**Validaciones:**
+- Al menos un campo debe ser proporcionado
+- Si se proporciona title: 1-200 caracteres
+- Si se proporciona description/content: no vacío
+- Si se proporciona order: no negativo
+- Si se proporciona estimatedTime: > 0
+- Si se proporciona difficulty: debe ser válida
+- Si se proporcionan exercises: validaciones completas
+
+**Endpoint**: `PUT /api/lessons/:id`
+
+**Implementación**:
+- Request: `src/context/lessons/application/requests/UpdateLessonRequest.ts`
+- UseCase: `src/context/lessons/application/UpdateLessonUseCase.ts`
+- Controller: `src/context/lessons/infrastructure/controllers/UpdateLessonController.ts`
+- Ruta: `PUT /lessons/:id` (auth + requireRole(['admin']))
+
+**Test**: `npm run test:update:lesson` (8 casos de prueba)
+
+---
+
+### **10. DeleteLessonUseCase**
+**Estado**: ✅ Implementado (Octubre 2025)
+
+**Propósito:** Eliminar una lección existente
+
+**Autorización**: Solo Admin
+
+**Input:** `lessonId: string`
+
+**Output:** `void`
+
+**Validaciones:**
+- ID no vacío
+- La lección debe existir
+
+**Endpoint**: `DELETE /api/lessons/:id`
+
+**Implementación**:
+- UseCase: `src/context/lessons/application/DeleteLessonUseCase.ts`
+- Controller: `src/context/lessons/infrastructure/controllers/DeleteLessonController.ts`
+- Ruta: `DELETE /lessons/:id` (auth + requireRole(['admin']))
+
+**Test**: `npm run test:delete:lesson` (4 casos de prueba)
 
 ---
 
@@ -405,18 +557,50 @@ Los casos de uso actuales **NO guardan** el progreso del usuario en la base de d
 
 ---
 
-## 🎯 Endpoints Sugeridos
+## 🎯 Endpoints Implementados
+
+| Método | Endpoint | Rol | Descripción |
+|--------|----------|-----|-------------|
+| GET | `/api/lessons/:id` | Student, Admin | Obtener lección por ID |
+| GET | `/api/topics/:topicId/subtopics/:subtopicId/lessons` | Student, Admin | Listar lecciones de un subtema |
+| GET | `/api/topics/:topicId/lessons` | Student, Admin | Listar todas las lecciones de un tema |
+| POST | `/api/lessons/:id/complete` | Student, Admin | Completar lección y ganar XP |
+| POST | `/api/lessons` | Admin | Crear nueva lección |
+| PUT | `/api/lessons/:id` | Admin | Actualizar lección |
+| DELETE | `/api/lessons/:id` | Admin | Eliminar lección |
+
+## 🎯 Endpoints Pendientes (Para Futuras Versiones)
 
 ```
-GET    /lessons/:id
-GET    /topics/:topicId/subtopics/:subtopicId/lessons
-GET    /topics/:topicId/lessons
-GET    /lessons/:id/stats
-POST   /lessons/:lessonId/exercises/:exerciseId/submit
-POST   /lessons/:lessonId/complete
-GET    /users/:userId/lessons/:lessonId/progress
+GET    /lessons/:id/stats                           # GetLessonStatsUseCase
+POST   /lessons/:lessonId/exercises/:exerciseId/submit  # SubmitExerciseAnswerUseCase
+GET    /users/:userId/lessons/:lessonId/progress    # GetLessonProgressUseCase
 ```
 
 ---
 
-Última actualización: 2025-10-19
+## 🧪 Testing
+
+### Scripts npm disponibles:
+```bash
+# Testing de casos de uso admin
+npm run test:create:lesson   # 7 casos de prueba
+npm run test:update:lesson   # 8 casos de prueba
+npm run test:delete:lesson   # 4 casos de prueba
+
+# Utilidades
+npm run cleanup:lessons           # Limpiar lecciones de prueba
+npm run create:lessons:indexes    # Verificar/crear índices Firestore
+```
+
+### Documentación de testing:
+- Ver `docs/postman_testing_guide.md` para ejemplos de uso en Postman
+- Ver `docs/implementation_workflow.md` para detalles de implementación
+- Ver `docs/FIRESTORE_SETUP.md` para índices requeridos en producción
+
+---
+
+**Última actualización**: Octubre 2025
+**Versión**: 2.1.0 (Student + Admin API)
+**Estado**: ✅ 90% Completado (9/10 casos de uso implementados)
+**Pendiente**: GetLessonProgressUseCase (requiere colección adicional)

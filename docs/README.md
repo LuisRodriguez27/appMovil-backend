@@ -13,7 +13,7 @@ Este directorio contiene toda la documentación técnica, guías de implementaci
 | Documento | Descripción |
 |-----------|-------------|
 | [TESTING_QUICK_START.md](./TESTING_QUICK_START.md) | Inicio rápido para probar endpoints en Postman |
-| [COMO_OBTENER_API_KEY.md](./COMO_OBTENER_API_KEY.md) | Guía visual para obtener Firebase Web API Key |
+| [GETTING_TOKENS_GUIDE.md](./GETTING_TOKENS_GUIDE.md) | **Guía completa:** Cómo obtener Firebase API Key y tokens JWT para pruebas |
 
 ---
 
@@ -22,9 +22,8 @@ Este directorio contiene toda la documentación técnica, guías de implementaci
 | Documento | Descripción |
 |-----------|-------------|
 | [README_AUTHENTICATION.md](./README_AUTHENTICATION.md) | **⭐ Guía completa de autenticación con Firebase JWT** |
-| [GETTING_TOKENS_GUIDE.md](./GETTING_TOKENS_GUIDE.md) | Cómo obtener tokens JWT para pruebas en Postman |
-| [roles_authentication_guide.md](./roles_authentication_guide.md) | Guía de roles y autenticación |
-| [roles_authentication_firebase.md](./roles_authentication_firebase.md) | Implementación de roles con Firebase |
+| [GETTING_TOKENS_GUIDE.md](./GETTING_TOKENS_GUIDE.md) | **⭐ Guía completa:** Obtener API Key y tokens JWT para pruebas |
+| [roles_authentication_firebase.md](./roles_authentication_firebase.md) | Implementación de roles con Firebase (Backend + Flutter) |
 
 ---
 
@@ -71,9 +70,9 @@ Este directorio contiene toda la documentación técnica, guías de implementaci
 2. Revisa: [project_structure.md](./project_structure.md)
 
 ### "Necesito probar endpoints en Postman"
-1. Lee: [COMO_OBTENER_API_KEY.md](./COMO_OBTENER_API_KEY.md)
-2. Sigue: [GETTING_TOKENS_GUIDE.md](./GETTING_TOKENS_GUIDE.md)
-3. Prueba con: [postman_testing_guide.md](./postman_testing_guide.md)
+1. Lee: [GETTING_TOKENS_GUIDE.md](./GETTING_TOKENS_GUIDE.md) - Obtener API Key y tokens
+2. Prueba con: [postman_testing_guide.md](./postman_testing_guide.md)
+3. Quick start: [TESTING_QUICK_START.md](./TESTING_QUICK_START.md)
 
 ### "Voy a desplegar a producción"
 1. **IMPORTANTE**: [FIRESTORE_SETUP.md](./FIRESTORE_SETUP.md)
@@ -81,7 +80,7 @@ Este directorio contiene toda la documentación técnica, guías de implementaci
 
 ### "Necesito entender la autenticación"
 1. Lee: [README_AUTHENTICATION.md](./README_AUTHENTICATION.md)
-2. Complementa con: [roles_authentication_guide.md](./roles_authentication_guide.md)
+2. Complementa con: [roles_authentication_firebase.md](./roles_authentication_firebase.md)
 
 ### "Quiero ver el esquema de la base de datos"
 1. Ve a: [database_schema.md](./database_schema.md)
@@ -121,10 +120,10 @@ Consulta estos documentos cuando necesites información específica:
 
 Tutoriales paso a paso para tareas específicas:
 
-- **[GETTING_TOKENS_GUIDE.md](./GETTING_TOKENS_GUIDE.md)** - Obtener tokens JWT
+- **[GETTING_TOKENS_GUIDE.md](./GETTING_TOKENS_GUIDE.md)** - Obtener API Key y tokens JWT
 - **[FIRESTORE_INDEX_GUIDE.md](./FIRESTORE_INDEX_GUIDE.md)** - Crear índices en Firestore
 - **[postman_testing_guide.md](./postman_testing_guide.md)** - Testing con Postman
-- **[COMO_OBTENER_API_KEY.md](./COMO_OBTENER_API_KEY.md)** - Obtener Firebase API Key
+- **[TESTING_QUICK_START.md](./TESTING_QUICK_START.md)** - Quick start para testing
 
 ---
 
@@ -136,12 +135,11 @@ docs/
 │
 ├── 🚀 Inicio Rápido
 │   ├── TESTING_QUICK_START.md
-│   └── COMO_OBTENER_API_KEY.md
+│   └── GETTING_TOKENS_GUIDE.md         ⭐ API Key + Tokens
 │
 ├── 🔐 Autenticación
 │   ├── README_AUTHENTICATION.md        ⭐ Principal
-│   ├── GETTING_TOKENS_GUIDE.md
-│   ├── roles_authentication_guide.md
+│   ├── GETTING_TOKENS_GUIDE.md         ⭐ Tokens JWT
 │   └── roles_authentication_firebase.md
 │
 ├── 🔥 Firebase/Firestore
@@ -227,8 +225,9 @@ Usamos emojis para mejorar la navegación:
 ### Por Tarea
 
 - **Crear endpoint**: [implementation_workflow.md](./implementation_workflow.md)
-- **Probar en Postman**: [postman_testing_guide.md](./postman_testing_guide.md), [GETTING_TOKENS_GUIDE.md](./GETTING_TOKENS_GUIDE.md)
+- **Probar en Postman**: [GETTING_TOKENS_GUIDE.md](./GETTING_TOKENS_GUIDE.md), [postman_testing_guide.md](./postman_testing_guide.md)
 - **Configurar auth**: [README_AUTHENTICATION.md](./README_AUTHENTICATION.md)
+- **Obtener tokens**: [GETTING_TOKENS_GUIDE.md](./GETTING_TOKENS_GUIDE.md)
 - **Crear índices**: [FIRESTORE_INDEX_GUIDE.md](./FIRESTORE_INDEX_GUIDE.md)
 - **Deployment**: [FIRESTORE_SETUP.md](./FIRESTORE_SETUP.md)
 

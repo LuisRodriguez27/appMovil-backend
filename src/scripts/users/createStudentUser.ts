@@ -1,4 +1,4 @@
-import configureFirebase, { firestore, firebaseAuth } from '../app/config/configureFirebase';
+import configureFirebase, { firestore, firebaseAuth } from '../../app/config/configureFirebase';
 
 // Script para crear un usuario estudiante en Firestore
 async function createStudentUser() {

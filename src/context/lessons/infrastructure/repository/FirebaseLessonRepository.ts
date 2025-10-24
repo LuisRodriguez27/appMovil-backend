@@ -1,6 +1,7 @@
 import { firestore } from "../../../../app/config/configureFirebase";
 import { Lesson, LessonPrimitives, Exercise } from "../../domain/Lesson";
 import { LessonRepository } from "../../domain/LessonRepository";
+import { Timestamp } from "firebase-admin/firestore";
 
 interface LessonDocument {
   __id: string;
@@ -164,8 +165,8 @@ export class FirebaseLessonRepository implements LessonRepository {
       estimated_time: primitives.estimated_time,
       difficulty: primitives.difficulty,
       exercises: primitives.exercises,
-      created_at: FirebaseFirestore.Timestamp.fromDate(primitives.created_at),
-      updated_at: FirebaseFirestore.Timestamp.fromDate(primitives.updated_at)
+      created_at: Timestamp.fromDate(primitives.created_at),
+      updated_at: Timestamp.fromDate(primitives.updated_at)
     };
   }
 

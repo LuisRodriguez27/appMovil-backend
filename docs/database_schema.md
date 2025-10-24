@@ -21,7 +21,7 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 
 ### Dificultad
 
-1. **users**
+1. **users** (+ subcolección **lesson_progress**)
 2. **topics**
 3. **lessons**
 4. **achievements**
@@ -93,8 +93,7 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
   };
 }
 ```
-
-**Campos principales**:
+**Campos principales del documento users**:
 - `__id` (string, required): **Identificador único del usuario (DEBE ser el mismo UID de Firebase Authentication)**
 - `control_number` (string, required): Número de control institucional (ej: "19170123")
 - `name` (string, required): Nombre completo del estudiante
@@ -162,6 +161,51 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 - Búsqueda O(1) de lecciones completadas usando mapa en vez de array
 - Eliminación de datos redundantes (xp_earned se obtiene del catálogo de achievements)
 - Estadísticas pre-calculadas para dashboards sin queries adicionales
+
+---
+
+**Subcolección de users**: `/users/{userId}/lesson_progress/{lessonId}`
+
+Esta subcolección almacena el progreso detallado por lección. Es una colección separada, no un campo embebido en el documento `users`.
+
+**Esquema de documentos en lesson_progress**:
+
+```typescript
+{
+  __id: string;                    // ID de la lección (lessonId)
+  userId: string;                  // ID del usuario
+  lessonId: string;                // ID de la lección (igual que __id)
+  completedExercises: string[];    // IDs de ejercicios completados en orden
+  totalPointsEarned: number;       // Puntos XP ganados en esta lección
+  attempts: number;                // Número de intentos realizados
+  isCompleted: boolean;            // true si completó todos los ejercicios
+  startedAt: Date;                 // Primera vez que accedió a la lección
+  lastAccessed: Date;              // Última vez que trabajó en la lección
+  completedAt?: Date;              // Fecha de completitud (solo si isCompleted = true)
+}
+```
+
+**Por qué es una subcolección**:
+- ✅ Progreso real por ejercicio - Seguimiento granular
+- ✅ Pausa y continuación - El usuario retoma donde quedó
+- ✅ Historial de intentos - Registro completo de intentos
+- ✅ Consultas rápidas - Organización lógica bajo cada usuario
+- ✅ Limpieza automática - Se elimina con el usuario
+- ✅ Features tipo Duolingo - Racha, progreso diario, estadísticas
+
+**Casos de uso**:
+1. SaveLessonProgressUseCase - Guardar progreso al completar ejercicios
+2. GetLessonProgressUseCase - Obtener progreso al entrar a una lección
+3. GetUserLessonProgressListUseCase - Listar todas las lecciones con progreso
+4. ResetLessonProgressUseCase - Reiniciar progreso de una lección
+
+**Reglas de negocio**:
+- Se crea al acceder por primera vez a una lección
+- Se actualiza al completar cada ejercicio
+- `attempts` se incrementa en cada intento
+- `totalPointsEarned` solo suma puntos correctos
+- `isCompleted = true` cuando `completedExercises.length === lessons.exercises.length`
+- Al completar, también actualiza `users.progress[course_id].lessons_completed[lesson_id] = true`
 
 ---
 

@@ -548,6 +548,12 @@ interface LessonRepository {
 - `POST /users/:id/achievements` - Registrar logro desbloqueado
 - `PATCH /users/:id/streak` - Actualizar racha de estudio
 
+### Progreso de Lecciones (Lesson Progress) - READ/WRITE
+- `POST /users/:userId/lesson-progress` - Guardar progreso de una lección (crear o actualizar)
+- `GET /users/:userId/lesson-progress/:lessonId` - Obtener progreso de una lección específica
+- `GET /users/:userId/lesson-progress` - Listar progreso de todas las lecciones del usuario
+- `DELETE /users/:userId/lesson-progress/:lessonId` - Reiniciar progreso de una lección
+
 ### Cursos (Courses) - READ ONLY
 - `GET /courses` - Listar todos los cursos disponibles
 - `GET /courses/:id` - Obtener detalles básicos del curso

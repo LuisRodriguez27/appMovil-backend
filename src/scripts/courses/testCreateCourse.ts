@@ -1,7 +1,7 @@
-import configureFirebase from '../app/config/configureFirebase';
-import { FirebaseCourseRepository } from '../context/courses/infrastructure/repository/FirebaseCourseRepository';
-import { CreateCourseUseCase } from '../context/courses/application/CreateCourseUseCase';
-import { CreateCourseRequest } from '../context/courses/application/requests/CreateCourseRequest';
+import configureFirebase from '../../app/config/configureFirebase';
+import { FirebaseCourseRepository } from '../../context/courses/infrastructure/repository/FirebaseCourseRepository';
+import { CreateCourseUseCase } from '../../context/courses/application/CreateCourseUseCase';
+import { CreateCourseRequest } from '../../context/courses/application/requests/CreateCourseRequest';
 
 // Script para probar la creación de cursos directamente
 async function testCreateCourse() {

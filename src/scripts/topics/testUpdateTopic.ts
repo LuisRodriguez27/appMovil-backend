@@ -1,7 +1,7 @@
-import configureFirebase from '../app/config/configureFirebase';
-import { FirebaseTopicRepository } from '../context/topics/infrastructure/repository/FirebaseTopicRepository';
-import { UpdateTopicUseCase } from '../context/topics/application/UpdateTopicUseCase';
-import { UpdateTopicRequest } from '../context/topics/application/requests/UpdateTopicRequest';
+import configureFirebase from '../../app/config/configureFirebase';
+import { FirebaseTopicRepository } from '../../context/topics/infrastructure/repository/FirebaseTopicRepository';
+import { UpdateTopicUseCase } from '../../context/topics/application/UpdateTopicUseCase';
+import { UpdateTopicRequest } from '../../context/topics/application/requests/UpdateTopicRequest';
 
 // Script para probar la actualización de topics
 async function testUpdateTopic() {

@@ -5,15 +5,13 @@ Esta guía explica cómo funciona el sistema de autenticación JWT con Firebase 
 ## Índice
 
 1. [Arquitectura de Autenticación](#arquitectura-de-autenticación)
-2. [¿Qué es Firebase Authentication?](#qué-es-firebase-authentication)
-3. [¿Qué es un JWT Token?](#qué-es-un-jwt-token)
-4. [Archivos Clave](#archivos-clave)
-5. [Flujo Completo de Autenticación](#flujo-completo-de-autenticación)
-6. [Cómo Obtener un Token JWT](#cómo-obtener-un-token-jwt)
-7. [Usar el Token en Postman](#usar-el-token-en-postman)
-8. [Middlewares de Autenticación](#middlewares-de-autenticación)
-9. [Crear Usuarios Admin y Student](#crear-usuarios-admin-y-student)
-10. [Troubleshooting](#troubleshooting)
+2. [Archivos Clave](#archivos-clave)
+3. [Flujo Completo de Autenticación](#flujo-completo-de-autenticación)
+4. [Cómo Obtener un Token JWT](#cómo-obtener-un-token-jwt)
+5. [Usar el Token en Postman](#usar-el-token-en-postman)
+6. [Middlewares de Autenticación](#middlewares-de-autenticación)
+7. [Crear Usuarios Admin y Student](#crear-usuarios-admin-y-student)
+8. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -72,68 +70,6 @@ Esta guía explica cómo funciona el sistema de autenticación JWT con Firebase 
 │     - Puede acceder a req.user.uid, req.user.role              │
 └─────────────────────────────────────────────────────────────────┘
 ```
-
----
-
-## ¿Qué es Firebase Authentication?
-
-**Firebase Authentication** es un servicio de Google que maneja:
-
-- 🔐 Autenticación de usuarios (email/password, Google, Facebook, etc.)
-- 🎫 Generación de tokens JWT seguros
-- ⏰ Expiración automática de tokens (1 hora por defecto)
-- 🔄 Refresh tokens para renovar sesiones
-- ✅ Verificación de tokens con Firebase Admin SDK
-
-**Ventajas**:
-- No necesitas implementar tu propio sistema JWT
-- Google maneja la seguridad y encriptación
-- Escalable y confiable
-- Integración fácil con Firestore
-
----
-
-## ¿Qué es un JWT Token?
-
-**JWT (JSON Web Token)** es un estándar para transmitir información de forma segura entre cliente y servidor.
-
-### Estructura de un JWT
-
-Un JWT tiene 3 partes separadas por puntos:
-
-```
-eyJhbGciOiJSUzI1NiIsImtpZCI6Ijg3...  ← Header
-.
-eyJpc3MiOiJodHRwczovL3NlY3VyZXRv...  ← Payload
-.
-cC4hiUPoj9Eetdgtv3hF80EGrhuB__dzERa... ← Signature
-```
-
-### ¿Qué contiene el token de Firebase?
-
-Cuando decodificas el token, contiene:
-
-```json
-{
-  "iss": "https://securetoken.google.com/plataforma-estudio",
-  "aud": "plataforma-estudio",
-  "auth_time": 1729564234,
-  "user_id": "admin_test_001",      ← UID del usuario
-  "sub": "admin_test_001",
-  "iat": 1729564234,                ← Issued at (cuándo se creó)
-  "exp": 1729567834,                ← Expiration (cuándo expira)
-  "email": "admin@test.com",        ← Email del usuario
-  "email_verified": false,
-  "firebase": {
-    "identities": {
-      "email": ["admin@test.com"]
-    },
-    "sign_in_provider": "password"
-  }
-}
-```
-
-**IMPORTANTE**: El token NO contiene el rol (admin/student). Por eso nuestro backend busca el rol en Firestore.
 
 ---
 

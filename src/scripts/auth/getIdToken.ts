@@ -16,7 +16,7 @@
  */
 
 import axios from 'axios';
-import configureFirebase, { firebaseAuth } from '../app/config/configureFirebase';
+import configureFirebase, { firebaseAuth } from '../../app/config/configureFirebase';
 
 interface TokenOptions {
   uid: string;

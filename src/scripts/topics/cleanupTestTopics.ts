@@ -1,4 +1,4 @@
-import configureFirebase, { firestore } from '../app/config/configureFirebase';
+import configureFirebase, { firestore } from '../../app/config/configureFirebase';
 
 // Script para limpiar topics de prueba antes de ejecutar tests
 async function cleanupTestTopics() {

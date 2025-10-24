@@ -1,4 +1,4 @@
-import configureFirebase, { firestore } from '../app/config/configureFirebase';
+import configureFirebase, { firestore } from '../../app/config/configureFirebase';
 
 /**
  * Script para obtener el link de creación del índice compuesto de Firestore

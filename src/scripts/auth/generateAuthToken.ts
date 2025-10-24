@@ -12,7 +12,7 @@
  *   npm run generate:token admin456 admin
  */
 
-import configureFirebase, { firebaseAuth } from '../app/config/configureFirebase';
+import configureFirebase, { firebaseAuth } from '../../app/config/configureFirebase';
 
 interface TokenOptions {
   uid: string;

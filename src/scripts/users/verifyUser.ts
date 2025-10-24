@@ -1,4 +1,4 @@
-import configureFirebase, { firebaseAuth, firestore } from '../app/config/configureFirebase';
+import configureFirebase, { firebaseAuth, firestore } from '../../app/config/configureFirebase';
 
 /**
  * Script para verificar que un usuario existe en Firebase Auth y Firestore

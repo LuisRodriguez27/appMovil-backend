@@ -1,9 +1,9 @@
-import configureFirebase from '../app/config/configureFirebase';
-import { FirebaseCourseRepository } from '../context/courses/infrastructure/repository/FirebaseCourseRepository';
-import { FirebaseTopicRepository } from '../context/topics/infrastructure/repository/FirebaseTopicRepository';
-import { DeleteCourseUseCase } from '../context/courses/application/DeleteCourseUseCase';
-import { DeleteCourseRequest } from '../context/courses/application/requests/DeleteCourseRequest';
-import { Topic } from '../context/topics/domain/Topic';
+import configureFirebase from '../../app/config/configureFirebase';
+import { FirebaseCourseRepository } from '../../context/courses/infrastructure/repository/FirebaseCourseRepository';
+import { FirebaseTopicRepository } from '../../context/topics/infrastructure/repository/FirebaseTopicRepository';
+import { DeleteCourseUseCase } from '../../context/courses/application/DeleteCourseUseCase';
+import { DeleteCourseRequest } from '../../context/courses/application/requests/DeleteCourseRequest';
+import { Topic } from '../../context/topics/domain/Topic';
 
 // Script para probar la eliminación de cursos con cascada
 async function testDeleteCourse() {
