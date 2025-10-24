@@ -7,8 +7,8 @@ import { FindLessonByIdController } from "../../context/lessons/infrastructure/c
 import { FindLessonsByTopicController } from "../../context/lessons/infrastructure/controllers/FindLessonsByTopicController";
 import { FindLessonsBySubtopicController } from "../../context/lessons/infrastructure/controllers/FindLessonsBySubtopicController";
 import { CompleteLessonController } from "../../context/lessons/infrastructure/controllers/CompleteLessonController";
-import { verifyFirebaseToken as authMiddleware } from "../middleware/auth.middleware";
-import { requireRole } from "../middleware/auth.middleware";
+import { UserRepository } from "../../context/users/domain/UserRepository";
+import { verifyFirebaseToken, requireRole } from "../middleware/auth.middleware";
 
 export const register = async (app: Express, container: ContainerBuilder) => {
   // Obtener controladores del contenedor de dependencias
@@ -19,6 +19,10 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   const findLessonsByTopicController = container.get<FindLessonsByTopicController>("FindLessonsByTopicController");
   const findLessonsBySubtopicController = container.get<FindLessonsBySubtopicController>("FindLessonsBySubtopicController");
   const completeLessonController = container.get<CompleteLessonController>("CompleteLessonController");
+
+  // Obtener UserRepository y crear el middleware de autenticación
+  const userRepository = container.get<UserRepository>("UserRepository");
+  const authMiddleware = verifyFirebaseToken(userRepository);
 
   app.post('/lessons',
     authMiddleware,

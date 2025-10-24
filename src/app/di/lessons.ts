@@ -16,66 +16,67 @@ import { UpdateLessonController } from '../../context/lessons/infrastructure/con
 import { DeleteLessonController } from '../../context/lessons/infrastructure/controllers/DeleteLessonController';
 import { CompleteLessonController } from '../../context/lessons/infrastructure/controllers/CompleteLessonController';
 
-const container = new ContainerBuilder();
+export default function registerLessonsDependencies(container: ContainerBuilder) {
+  // Repository
+  container
+    .register('LessonRepository', FirebaseLessonRepository);
 
-container
-  .register('LessonRepository', FirebaseLessonRepository);
+  // Use Cases
+  container
+    .register('FindLessonByIdUseCase', FindLessonByIdUseCase)
+    .addArgument(new Reference('LessonRepository'));
 
-container
-  .register('FindLessonByIdUseCase', FindLessonByIdUseCase)
-  .addArgument(new Reference('LessonRepository'));
+  container
+    .register('FindLessonsBySubtopicUseCase', FindLessonsBySubtopicUseCase)
+    .addArgument(new Reference('LessonRepository'));
 
-container
-  .register('FindLessonsBySubtopicUseCase', FindLessonsBySubtopicUseCase)
-  .addArgument(new Reference('LessonRepository'));
+  container
+    .register('FindLessonsByTopicUseCase', FindLessonsByTopicUseCase)
+    .addArgument(new Reference('LessonRepository'));
 
-container
-  .register('FindLessonsByTopicUseCase', FindLessonsByTopicUseCase)
-  .addArgument(new Reference('LessonRepository'));
+  container
+    .register('CreateLessonUseCase', CreateLessonUseCase)
+    .addArgument(new Reference('LessonRepository'));
 
-container
-  .register('CreateLessonUseCase', CreateLessonUseCase)
-  .addArgument(new Reference('LessonRepository'));
+  container
+    .register('UpdateLessonUseCase', UpdateLessonUseCase)
+    .addArgument(new Reference('LessonRepository'));
 
-container
-  .register('UpdateLessonUseCase', UpdateLessonUseCase)
-  .addArgument(new Reference('LessonRepository'));
+  container
+    .register('DeleteLessonUseCase', DeleteLessonUseCase)
+    .addArgument(new Reference('LessonRepository'));
 
-container
-  .register('DeleteLessonUseCase', DeleteLessonUseCase)
-  .addArgument(new Reference('LessonRepository'));
+  container
+    .register('CompleteLessonUseCase', CompleteLessonUseCase)
+    .addArgument(new Reference('LessonRepository'))
+    .addArgument(new Reference('UserRepository'));
 
-container
-  .register('CompleteLessonUseCase', CompleteLessonUseCase)
-  .addArgument(new Reference('LessonRepository'))
-  .addArgument(new Reference('UserRepository'));
+  // Controllers
+  container
+    .register('FindLessonByIdController', FindLessonByIdController)
+    .addArgument(new Reference('FindLessonByIdUseCase'));
 
-container
-  .register('FindLessonByIdController', FindLessonByIdController)
-  .addArgument(new Reference('FindLessonByIdUseCase'));
+  container
+    .register('FindLessonsBySubtopicController', FindLessonsBySubtopicController)
+    .addArgument(new Reference('FindLessonsBySubtopicUseCase'));
 
-container
-  .register('FindLessonsBySubtopicController', FindLessonsBySubtopicController)
-  .addArgument(new Reference('FindLessonsBySubtopicUseCase'));
+  container
+    .register('FindLessonsByTopicController', FindLessonsByTopicController)
+    .addArgument(new Reference('FindLessonsByTopicUseCase'));
 
-container
-  .register('FindLessonsByTopicController', FindLessonsByTopicController)
-  .addArgument(new Reference('FindLessonsByTopicUseCase'));
+  container
+    .register('CreateLessonController', CreateLessonController)
+    .addArgument(new Reference('CreateLessonUseCase'));
 
-container
-  .register('CreateLessonController', CreateLessonController)
-  .addArgument(new Reference('CreateLessonUseCase'));
+  container
+    .register('UpdateLessonController', UpdateLessonController)
+    .addArgument(new Reference('UpdateLessonUseCase'));
 
-container
-  .register('UpdateLessonController', UpdateLessonController)
-  .addArgument(new Reference('UpdateLessonUseCase'));
+  container
+    .register('DeleteLessonController', DeleteLessonController)
+    .addArgument(new Reference('DeleteLessonUseCase'));
 
-container
-  .register('DeleteLessonController', DeleteLessonController)
-  .addArgument(new Reference('DeleteLessonUseCase'));
-
-container
-  .register('CompleteLessonController', CompleteLessonController)
-  .addArgument(new Reference('CompleteLessonUseCase'));
-
-export default container;
+  container
+    .register('CompleteLessonController', CompleteLessonController)
+    .addArgument(new Reference('CompleteLessonUseCase'));
+}

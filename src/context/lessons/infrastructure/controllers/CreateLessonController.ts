@@ -7,6 +7,9 @@ export class CreateLessonController {
 
   async run(req: Request, res: Response): Promise<void> {
     try {
+      console.log('📝 CreateLessonController: Iniciando creación de lección...');
+      console.log('Body recibido:', JSON.stringify(req.body, null, 2));
+      
       const {
         topicId,
         subtopicId,
@@ -19,6 +22,7 @@ export class CreateLessonController {
         exercises
       } = req.body;
 
+      console.log('📝 Creando request...');
       const request = new CreateLessonRequest(
         topicId,
         subtopicId,
@@ -31,7 +35,9 @@ export class CreateLessonController {
         exercises
       );
 
+      console.log('📝 Ejecutando use case...');
       const lesson = await this.createLessonUseCase.execute(request);
+      console.log('✅ Lección creada:', lesson.id);
 
       res.status(201).json({
         success: true,
@@ -39,6 +45,7 @@ export class CreateLessonController {
         data: lesson.toPrimitives(),
       });
     } catch (error) {
+      console.error('❌ Error en CreateLessonController:', error);
       if (error instanceof Error) {
         res.status(400).json({
           success: false,
