@@ -448,7 +448,6 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
   __id: string;                    // ID único del logro
   title: string;                   // Nombre del logro
   description: string;             // Descripción de cómo obtenerlo
-  category: string;                // Categoría del logro
   points: number;                  // Puntos XP que otorga
   rarity: string;                  // Rareza del logro
   icon?: string;                   // URL del icono (opcional)
@@ -463,7 +462,6 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
 - `__id` (string, required): Identificador único (ej: "ach_primeros_pasos")
 - `title` (string, required): Nombre del logro
 - `description` (string, required): Descripción de cómo desbloquearlo
-- `category` (string, required): Categoría del logro
 - `points` (number, required): Puntos XP que otorga al desbloquearlo
 - `rarity` (string, required): Nivel de rareza
 - `icon` (string, optional): URL del icono representativo
@@ -473,17 +471,9 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
 - `type` (string): Tipo de condición (ej: "complete_lessons", "streak_days", "xp_total")
 - `value` (number | string): Valor requerido para desbloquear
 
-**Categorías**:
-- `progreso`: Logros de avance en cursos
-- `maestria`: Logros de perfección o excelencia
-- `social`: Logros de interacción social
-- `racha`: Logros de constancia y rachas
-- `velocidad`: Logros de rapidez
-
 **Valores de rareza**:
 - `comun`: Fácil de obtener (25-50 XP)
-- `poco_comun`: Requiere esfuerzo (50-100 XP)
-- `raro`: Difícil de conseguir (100-250 XP)
+- `especial`: Requiere esfuerzo (50-100 XP)
 - `epico`: Muy difícil (250-500 XP)
 - `legendario`: Extremadamente difícil (500+ XP)
 
@@ -491,7 +481,6 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
 - Relacionado con: `users.achievements[]`
 
 **Índices sugeridos**:
-- `category` (para filtrar por categoría)
 - `rarity` (para filtrar por rareza)
 
 **Nota**: Los logros obtenidos por usuarios se almacenan en `users.achievements[]`, no en una colección separada.
