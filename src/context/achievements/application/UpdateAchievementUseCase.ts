@@ -3,15 +3,15 @@ import { AchievementRepository } from "../domain/AchievementRepository";
 import { UpdateAchievementRequest } from "./requests/UpdateAchievementRequest";
 
 export class UpdateAchievementUseCase {
-  constructor (private readonly AchievementRepository: AchievementRepository) {}
+  constructor (private readonly achievementRepository: AchievementRepository) {}
 
-  async execute(archivementId: string, request: UpdateAchievementRequest): Promise<Achievement > {
-    // Validar que el archivementId no esté vacío
-    if (!archivementId || archivementId.trim().length === 0) {
+  async execute(achievementId: string, request: UpdateAchievementRequest): Promise<Achievement> {
+    // Validar que el achievementId no esté vacío
+    if (!achievementId || achievementId.trim().length === 0) {
       throw new Error('ID de logro es requerido');
     }
 
-    const achievement = await this.AchievementRepository.findById(archivementId);
+    const achievement = await this.achievementRepository.findById(achievementId);
     if (!achievement) {
       throw new Error('Logro no encontrado');
     }
@@ -21,10 +21,11 @@ export class UpdateAchievementUseCase {
       description: request.description,
       points: request.points,
       rarity: request.rarity,
-      icon: request.icon
+      icon: request.icon,
+      condition: request.condition
     });
 
-    await this.AchievementRepository.update(achievement);
+    await this.achievementRepository.update(achievement);
 
     return achievement;
   }

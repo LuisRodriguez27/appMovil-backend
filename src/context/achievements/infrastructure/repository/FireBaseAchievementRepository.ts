@@ -2,14 +2,8 @@ import { firestore } from "../../../../app/config/configureFirebase";
 import { AchievementRepository } from "../../domain/AchievementRepository";
 import { Achievement , AchievementsPrimitives } from "../../domain/Achievement";
 
-interface AchievementDocument {
-	__id: string,
-	title: string,
-	description: string,
-	points: number,
-	rarity: string,
-	icon: string,
-	condition: { type: string; value: number | string }
+interface AchievementDocument extends Omit<AchievementsPrimitives, 'id'> {
+	__id: string
 }
 
 export class FireBaseAchievementRepository implements AchievementRepository {
@@ -57,30 +51,56 @@ export class FireBaseAchievementRepository implements AchievementRepository {
 		await firestore().collection(this.collection).doc(id).delete();
 	}
 
+	async findByRarity(rarity: string): Promise<Achievement[]> {
+  const snapshot = await firestore()
+    .collection(this.collection)
+    .where('rarity', '==', rarity)
+    .get();
+
+  return snapshot.docs.map(doc => {
+    const data = doc.data() as Omit<AchievementDocument, '__id'>;
+    return this.toDomainEntity({
+      __id: doc.id,
+      ...data
+    });
+  });
+}
+
 	private toFirestoreDocument(achievement: AchievementsPrimitives): AchievementDocument {
+		const primitives = achievement;
+
+		// Handle rarity - could be string (RarityType) or Rarity object
+		const rarity = typeof primitives.rarity === 'string'
+			? primitives.rarity
+			: (primitives.rarity as any).value;
+
+		// Handle condition - could be string (ConditionType) or Condition object
+		const condition = typeof primitives.condition === 'string'
+			? primitives.condition
+			: (primitives.condition as any).value;
+
 		return {
-			__id: achievement.id,
-			title: achievement.title,
-			description: achievement.description,
-			points: achievement.points,
-			rarity: achievement.rarity,
-			icon: achievement.icon,
-			condition: {
-				type: achievement.condition.type,
-				value: achievement.condition.value,
-			}
+			__id: primitives.id,
+			title: primitives.title,
+			description: primitives.description,
+			points: primitives.points,
+			rarity: rarity,
+			icon: primitives.icon,
+			condition: condition,
+			createdAt: primitives.createdAt
 		};
 	}
 
 	private toDomainEntity(doc: AchievementDocument): Achievement {
-		return new Achievement (
-			doc.__id,
-			doc.title,
-			doc.description,
-			doc.points,
-			doc.rarity,
-			doc.icon,
-			doc.condition
-		);
+		return Achievement.fromPrimitives({
+			id: doc.__id,
+			title: doc.title,
+			description: doc.description,
+			points: doc.points,
+			rarity: doc.rarity,
+			icon: doc.icon,
+			condition: doc.condition,
+			createdAt: doc.createdAt
+		});
 	}
 }
