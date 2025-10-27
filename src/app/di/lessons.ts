@@ -1,5 +1,4 @@
 import { ContainerBuilder, Reference } from 'node-dependency-injection';
-import { LessonRepository } from '../../context/lessons/domain/LessonRepository';
 import { FirebaseLessonRepository } from '../../context/lessons/infrastructure/repository/FirebaseLessonRepository';
 import { FindLessonByIdUseCase } from '../../context/lessons/application/FindLessonByIdUseCase';
 import { FindLessonsBySubtopicUseCase } from '../../context/lessons/application/FindLessonsBySubtopicUseCase';
