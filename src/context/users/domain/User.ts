@@ -1,6 +1,6 @@
 import { uid } from 'uid';
 import { Progress, ProgressPrimitives } from './value-objects/Progress';
-import { AchievementCollection, AchievementPrimitives } from './value-objects/Achievement';
+import { UserAchievementCollection, UserAchievementPrimitives } from './value-objects/Achievement';
 import { StreakData, StreakDataPrimitives } from './value-objects/StreakData';
 import { UserStats, UserStatsPrimitives } from './value-objects/UserStats';
 
@@ -17,7 +17,7 @@ export class User {
     private currentCourse: string | null,
     private profilePicture: string | null,
     private progress: Progress,
-    private achievements: AchievementCollection,
+    private achievements: UserAchievementCollection,
     private streakData: StreakData,
     private stats: UserStats
   ) {}
@@ -34,7 +34,7 @@ export class User {
       data.currentCourse || null,
       data.profilePicture || null,
       Progress.create(data.progress),
-      AchievementCollection.fromArray(data.achievements || []),
+      UserAchievementCollection.fromArray(data.achievements || []),
       StreakData.fromPrimitives(data.streakData || {
         current_streak: 0,
         best_streak: 0,
@@ -60,7 +60,7 @@ export class User {
       data.currentCourse,
       data.profilePicture,
       Progress.create(data.progress),
-      AchievementCollection.fromArray(data.achievements),
+      UserAchievementCollection.fromArray(data.achievements),
       StreakData.fromPrimitives(data.streakData),
       UserStats.fromPrimitives(data.stats)
     );
@@ -96,8 +96,8 @@ export class User {
     if (this.achievements.has(achievementId)) {
       return false; // Ya tiene el logro
     }
-    
-    const achievement = require('./value-objects/Achievement').Achievement.create(achievementId);
+
+    const achievement = require('./value-objects/Achievement').UserAchievement.create(achievementId);
     this.achievements = this.achievements.add(achievement);
     return true;
   }
@@ -161,7 +161,7 @@ export class User {
     return this.progress;
   }
 
-  public getAchievements(): AchievementCollection {
+  public getAchievements(): UserAchievementCollection {
     return this.achievements;
   }
 
@@ -235,7 +235,7 @@ export type UserPrimitives = {
   currentCourse: string | null;
   profilePicture: string | null;
   progress: ProgressPrimitives;
-  achievements: AchievementPrimitives[];
+  achievements: UserAchievementPrimitives[];
   streakData: StreakDataPrimitives;
   stats: UserStatsPrimitives;
 };

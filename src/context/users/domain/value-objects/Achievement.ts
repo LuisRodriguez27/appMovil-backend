@@ -1,57 +1,59 @@
 /**
- * Value Object: Achievement
- * Representa un logro desbloqueado por el usuario
+ * Value Object: UserAchievement
+ * Representa un logro desbloqueado por el usuario (referencia al contexto de achievements)
+ *
+ * Este value object solo almacena la relación entre el usuario y un logro:
+ * - achievementId: Referencia al logro en el contexto de achievements
+ * - unlockedAt: Fecha en que el usuario desbloqueó el logro
+ *
+ * Los detalles del logro (título, descripción, puntos, rareza, etc.)
+ * se obtienen del contexto de achievements
  */
-export class Achievement {
+export class UserAchievement {
   private constructor(
     public readonly achievementId: string,
     public readonly unlockedAt: Date
-  ) {}
+  ) {
+    this.validate();
+  }
 
-  static create(achievementId: string, unlockedAt?: Date): Achievement {
-    return new Achievement(
+  static create(achievementId: string, unlockedAt?: Date): UserAchievement {
+    return new UserAchievement(
       achievementId,
       unlockedAt || new Date()
     );
   }
 
   /**
-   * Crea Achievement desde datos de persistencia
+   * Crea UserAchievement desde datos de persistencia
    */
   static fromPrimitives(data: {
     achievement_id: string;
     unlocked_at: Date | { toDate: () => Date };
-  }): Achievement {
+  }): UserAchievement {
     const unlockedDate = data.unlocked_at instanceof Date
       ? data.unlocked_at
       : data.unlocked_at.toDate();
 
-    return new Achievement(
+    return new UserAchievement(
       data.achievement_id,
       unlockedDate
     );
   }
 
   /**
-   * Verifica si el logro fue desbloqueado en una fecha específica
+   * Valida que el achievementId no esté vacío
    */
-  wasUnlockedOn(date: Date): boolean {
-    return this.unlockedAt.toDateString() === date.toDateString();
-  }
-
-  /**
-   * Obtiene los días transcurridos desde el desbloqueo
-   */
-  getDaysSinceUnlock(): number {
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - this.unlockedAt.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  private validate(): void {
+    if (!this.achievementId || this.achievementId.trim() === '') {
+      throw new Error('Achievement ID no puede estar vacío');
+    }
   }
 
   /**
    * Convierte el value object a primitivos para persistencia
    */
-  toPrimitives(): AchievementPrimitives {
+  toPrimitives(): UserAchievementPrimitives {
     return {
       achievement_id: this.achievementId,
       unlocked_at: this.unlockedAt
@@ -59,24 +61,25 @@ export class Achievement {
   }
 }
 
-export type AchievementPrimitives = {
+export type UserAchievementPrimitives = {
   achievement_id: string;
   unlocked_at: Date;
 };
 
 /**
- * Collection de Achievements
+ * Collection de UserAchievements
+ * Gestiona los logros desbloqueados por el usuario
  */
-export class AchievementCollection {
+export class UserAchievementCollection {
   private constructor(
-    public readonly achievements: Achievement[]
+    public readonly achievements: UserAchievement[]
   ) {}
 
   /**
    * Crea una colección vacía
    */
-  static empty(): AchievementCollection {
-    return new AchievementCollection([]);
+  static empty(): UserAchievementCollection {
+    return new UserAchievementCollection([]);
   }
 
   /**
@@ -85,21 +88,20 @@ export class AchievementCollection {
   static fromArray(data: Array<{
     achievement_id: string;
     unlocked_at: Date | { toDate: () => Date };
-  }>): AchievementCollection {
-    const achievements = data.map(item => Achievement.fromPrimitives(item));
-    return new AchievementCollection(achievements);
+  }>): UserAchievementCollection {
+    const achievements = data.map(item => UserAchievement.fromPrimitives(item));
+    return new UserAchievementCollection(achievements);
   }
 
   /**
-   * Añade un nuevo logro a la colección
+   * Añade un nuevo logro a la colección (evita duplicados)
    */
-  add(achievement: Achievement): AchievementCollection {
-    // Evitar duplicados
+  add(achievement: UserAchievement): UserAchievementCollection {
     if (this.has(achievement.achievementId)) {
       return this;
     }
 
-    return new AchievementCollection([...this.achievements, achievement]);
+    return new UserAchievementCollection([...this.achievements, achievement]);
   }
 
   /**
@@ -110,14 +112,14 @@ export class AchievementCollection {
   }
 
   /**
-   * Obtiene un logro específico
+   * Obtiene un logro específico por su ID
    */
-  get(achievementId: string): Achievement | undefined {
+  get(achievementId: string): UserAchievement | undefined {
     return this.achievements.find(a => a.achievementId === achievementId);
   }
 
   /**
-   * Obtiene el total de logros
+   * Obtiene el total de logros desbloqueados
    */
   count(): number {
     return this.achievements.length;
@@ -126,7 +128,7 @@ export class AchievementCollection {
   /**
    * Obtiene los logros desbloqueados en un rango de fechas
    */
-  getByDateRange(startDate: Date, endDate: Date): Achievement[] {
+  getByDateRange(startDate: Date, endDate: Date): UserAchievement[] {
     return this.achievements.filter(achievement => {
       const unlockedTime = achievement.unlockedAt.getTime();
       return unlockedTime >= startDate.getTime() && unlockedTime <= endDate.getTime();
@@ -134,9 +136,9 @@ export class AchievementCollection {
   }
 
   /**
-   * Obtiene los últimos N logros desbloqueados
+   * Obtiene los últimos N logros desbloqueados (más recientes primero)
    */
-  getRecent(count: number): Achievement[] {
+  getRecent(count: number): UserAchievement[] {
     return [...this.achievements]
       .sort((a, b) => b.unlockedAt.getTime() - a.unlockedAt.getTime())
       .slice(0, count);
@@ -145,7 +147,7 @@ export class AchievementCollection {
   /**
    * Convierte la colección a un array para persistencia
    */
-  toPrimitives(): AchievementPrimitives[] {
+  toPrimitives(): UserAchievementPrimitives[] {
     return this.achievements.map(achievement => achievement.toPrimitives());
   }
 }
