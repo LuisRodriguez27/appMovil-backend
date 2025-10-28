@@ -19,10 +19,11 @@ export class User {
     private progress: Progress,
     private achievements: UserAchievementCollection,
     private streakData: StreakData,
-    private stats: UserStats
+    private stats: UserStats,
+    private readonly createdAt: Date = new Date()
   ) {}
 
-  static create(data: Omit<UserPrimitives, 'id'>): User {
+  static create(data: Omit<UserPrimitives, 'id' | 'createdAt'>): User {
     return new User(
       uid(),
       data.controlNumber,
@@ -62,7 +63,8 @@ export class User {
       Progress.create(data.progress),
       UserAchievementCollection.fromArray(data.achievements),
       StreakData.fromPrimitives(data.streakData),
-      UserStats.fromPrimitives(data.stats)
+      UserStats.fromPrimitives(data.stats),
+      new Date(data.createdAt)
     );
   }
 
@@ -219,7 +221,8 @@ export class User {
       progress: this.progress.toPrimitives(),
       achievements: this.achievements.toPrimitives(),
       streakData: this.streakData.toPrimitives(),
-      stats: this.stats.toPrimitives()
+      stats: this.stats.toPrimitives(),
+      createdAt: this.createdAt.toISOString(),
     };
   }
 }
@@ -238,4 +241,5 @@ export type UserPrimitives = {
   achievements: UserAchievementPrimitives[];
   streakData: StreakDataPrimitives;
   stats: UserStatsPrimitives;
+  createdAt: string;
 };

@@ -2,20 +2,8 @@ import { User, UserPrimitives } from '../../domain/User';
 import { UserRepository } from '../../domain/UserRepository';
 import { firestore } from '../../../../app/config/configureFirebase';
 
-interface UserDocument {
+interface UserDocument extends Omit<UserPrimitives, 'id'> {
   __id: string;
-  control_number: string;
-  name: string;
-  email: string;
-  role: 'student' | 'admin';
-  xp: number;
-  level: number;
-  current_course: string | null;
-  profile_picture: string | null;
-  progress?: any;
-  achievements?: any[];
-  streak_data?: any;
-  stats?: any;
 }
 
 export class FirebaseUserRepository implements UserRepository {
@@ -111,35 +99,36 @@ export class FirebaseUserRepository implements UserRepository {
   private toFirestoreDocument(primitives: UserPrimitives): UserDocument {
     return {
       __id: primitives.id,
-      control_number: primitives.controlNumber,
+      controlNumber: primitives.controlNumber,
       name: primitives.name,
       email: primitives.email,
       role: primitives.role,
       xp: primitives.xp,
       level: primitives.level,
-      current_course: primitives.currentCourse,
-      profile_picture: primitives.profilePicture,
+      currentCourse: primitives.currentCourse,
+      profilePicture: primitives.profilePicture,
       progress: primitives.progress,
       achievements: primitives.achievements,
-      streak_data: primitives.streakData,
+      streakData: primitives.streakData,
       stats: primitives.stats,
+      createdAt: primitives.createdAt,
     };
   }
 
   private toDomainEntity(document: UserDocument): User {
     return User.fromPrimitives({
       id: document.__id,
-      controlNumber: document.control_number,
+      controlNumber: document.controlNumber,
       name: document.name,
       email: document.email,
       role: document.role || 'student',
       xp: document.xp,
       level: document.level,
-      currentCourse: document.current_course,
-      profilePicture: document.profile_picture,
+      currentCourse: document.currentCourse,
+      profilePicture: document.profilePicture,
       progress: document.progress || {},
       achievements: document.achievements || [],
-      streakData: document.streak_data || {
+      streakData: document.streakData || {
         current_streak: 0,
         best_streak: 0,
         last_study_date: '',
@@ -149,6 +138,7 @@ export class FirebaseUserRepository implements UserRepository {
         total_exercises_completed: 0,
         total_courses_completed: 0,
       },
+      createdAt: document.createdAt,
     });
   }
 }
