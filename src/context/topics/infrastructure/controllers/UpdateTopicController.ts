@@ -8,9 +8,9 @@ export class UpdateTopicController {
   async run(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const { title, description, order } = req.body;
+      const { title, description, order, subtopics } = req.body;
 
-      const request = new UpdateTopicRequest(id, title, description, order);
+      const request = new UpdateTopicRequest(id, title, description, order, subtopics);
       const topic = await this.updateTopicUseCase.execute(request);
 
       res.status(200).json({

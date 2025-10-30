@@ -50,7 +50,7 @@ export class Topic {
     this.order = order;
   }
 
-  public addSubtopic(subtopic: Omit<Subtopic, 'id'>): Subtopic {
+  public addSubtopic(subtopic: Omit<Subtopic, 'id' | 'order'> & { order?: number }): Subtopic {
     const newSubtopic: Subtopic = {
       id: `sub_${uid()}`,
       title: subtopic.title,
@@ -83,6 +83,13 @@ export class Topic {
 
   public getSubtopic(subtopicId: string): Subtopic | undefined {
     return this.subtopics.find(s => s.id === subtopicId);
+  }
+
+  public replaceAllSubtopics(subtopics: (Omit<Subtopic, 'id' | 'order'> & { order?: number })[]): void {
+    this.subtopics = [];
+    subtopics.forEach(subtopic => {
+      this.addSubtopic(subtopic);
+    });
   }
 
   // Getters

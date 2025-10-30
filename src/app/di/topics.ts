@@ -2,14 +2,24 @@ import { ContainerBuilder, Reference } from "node-dependency-injection";
 import { FirebaseTopicRepository } from "../../context/topics/infrastructure/repository/FirebaseTopicRepository";
 import { FindTopicByIdUseCase } from "../../context/topics/application/FindTopicByIdUseCase";
 import { FindTopicsByCourseUseCase } from "../../context/topics/application/FindTopicsByCourseUseCase";
+import { FindAllTopicsUseCase } from "../../context/topics/application/FindAllTopicsUseCase";
 import { CreateTopicUseCase } from "../../context/topics/application/CreateTopicUseCase";
 import { UpdateTopicUseCase } from "../../context/topics/application/UpdateTopicUseCase";
 import { DeleteTopicUseCase } from "../../context/topics/application/DeleteTopicUseCase";
+import { AddSubtopicUseCase } from "../../context/topics/application/AddSubtopicUseCase";
+import { UpdateSubtopicUseCase } from "../../context/topics/application/UpdateSubtopicUseCase";
+import { DeleteSubtopicUseCase } from "../../context/topics/application/DeleteSubtopicUseCase";
+import { FindSubtopicByIdUseCase } from "../../context/topics/application/FindSubtopicByIdUseCase";
 import { FindTopicByIdController } from "../../context/topics/infrastructure/controllers/FindTopicByIdController";
 import { FindTopicsByCourseController } from "../../context/topics/infrastructure/controllers/FindTopicsByCourseController";
+import { FindAllTopicsController } from "../../context/topics/infrastructure/controllers/FindAllTopicsController";
 import { CreateTopicController } from "../../context/topics/infrastructure/controllers/CreateTopicController";
 import { UpdateTopicController } from "../../context/topics/infrastructure/controllers/UpdateTopicController";
 import { DeleteTopicController } from "../../context/topics/infrastructure/controllers/DeleteTopicController";
+import { AddSubtopicController } from "../../context/topics/infrastructure/controllers/AddSubtopicController";
+import { UpdateSubtopicController } from "../../context/topics/infrastructure/controllers/UpdateSubtopicController";
+import { DeleteSubtopicController } from "../../context/topics/infrastructure/controllers/DeleteSubtopicController";
+import { FindSubtopicByIdController } from "../../context/topics/infrastructure/controllers/FindSubtopicByIdController";
 
 export default function registerTopicsDependencies(container: ContainerBuilder) {
   container.register("TopicRepository", FirebaseTopicRepository);
@@ -23,12 +33,20 @@ export default function registerTopicsDependencies(container: ContainerBuilder) 
     .addArgument(new Reference("TopicRepository"));
 
   container
+    .register("FindAllTopicsUseCase", FindAllTopicsUseCase)
+    .addArgument(new Reference("TopicRepository"));
+
+  container
     .register("FindTopicByIdController", FindTopicByIdController)
     .addArgument(new Reference("FindTopicByIdUseCase"));
 
   container
     .register("FindTopicsByCourseController", FindTopicsByCourseController)
     .addArgument(new Reference("FindTopicsByCourseUseCase"));
+
+  container
+    .register("FindAllTopicsController", FindAllTopicsController)
+    .addArgument(new Reference("FindAllTopicsUseCase"));
 
   container
     .register("CreateTopicUseCase", CreateTopicUseCase)
@@ -54,6 +72,40 @@ export default function registerTopicsDependencies(container: ContainerBuilder) 
   container
     .register("DeleteTopicController", DeleteTopicController)
     .addArgument(new Reference("DeleteTopicUseCase"));
+
+  // Subtopic Use Cases
+  container
+    .register("AddSubtopicUseCase", AddSubtopicUseCase)
+    .addArgument(new Reference("TopicRepository"));
+
+  container
+    .register("UpdateSubtopicUseCase", UpdateSubtopicUseCase)
+    .addArgument(new Reference("TopicRepository"));
+
+  container
+    .register("DeleteSubtopicUseCase", DeleteSubtopicUseCase)
+    .addArgument(new Reference("TopicRepository"));
+
+  container
+    .register("FindSubtopicByIdUseCase", FindSubtopicByIdUseCase)
+    .addArgument(new Reference("TopicRepository"));
+
+  // Subtopic Controllers
+  container
+    .register("AddSubtopicController", AddSubtopicController)
+    .addArgument(new Reference("AddSubtopicUseCase"));
+
+  container
+    .register("UpdateSubtopicController", UpdateSubtopicController)
+    .addArgument(new Reference("UpdateSubtopicUseCase"));
+
+  container
+    .register("DeleteSubtopicController", DeleteSubtopicController)
+    .addArgument(new Reference("DeleteSubtopicUseCase"));
+
+  container
+    .register("FindSubtopicByIdController", FindSubtopicByIdController)
+    .addArgument(new Reference("FindSubtopicByIdUseCase"));
 
   return container;
 }

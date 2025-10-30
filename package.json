@@ -25,7 +25,8 @@
     "seed:courses": "ts-node src/scripts/seed/seedCourses.ts",
     "seed:topics": "ts-node src/scripts/seed/seedTopics.ts",
     "seed:all": "npm run seed:courses && npm run seed:topics",
-    "seed:verify": "ts-node src/scripts/seed/verifySeed.ts"
+    "seed:verify": "ts-node src/scripts/seed/verifySeed.ts",
+    "show:structure": "ts-node src/scripts/seed/showCourseStructure.ts"
   },
   "keywords": [],
   "author": "",

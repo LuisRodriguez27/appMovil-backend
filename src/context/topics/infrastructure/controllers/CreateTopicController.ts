@@ -7,9 +7,9 @@ export class CreateTopicController {
 
   async run(req: Request, res: Response): Promise<void> {
     try {
-      const { courseId, title, description, order } = req.body;
+      const { courseId, title, description, order, subtopics } = req.body;
 
-      const request = new CreateTopicRequest(courseId, title, description, order);
+      const request = new CreateTopicRequest(courseId, title, description, order, subtopics);
       const topic = await this.createTopicUseCase.execute(request);
 
       res.status(201).json({

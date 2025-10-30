@@ -34,6 +34,16 @@ export class UpdateTopicUseCase {
       order: request.order
     });
 
+    // Reemplazar subtopics si se proporcionaron
+    if (request.subtopics !== undefined) {
+      const trimmedSubtopics = request.subtopics.map(st => ({
+        title: st.title.trim(),
+        description: st.description.trim(),
+        order: st.order
+      }));
+      topic.replaceAllSubtopics(trimmedSubtopics);
+    }
+
     // Persistir
     await this.topicRepository.update(topic);
 

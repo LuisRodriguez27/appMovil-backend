@@ -36,6 +36,17 @@ export class CreateTopicUseCase {
       order: request.order
     });
 
+    // Añadir subtopics si se proporcionaron
+    if (request.subtopics && request.subtopics.length > 0) {
+      request.subtopics.forEach(subtopic => {
+        topic.addSubtopic({
+          title: subtopic.title.trim(),
+          description: subtopic.description.trim(),
+          order: subtopic.order
+        });
+      });
+    }
+
     // Persistir
     await this.topicRepository.create(topic);
 
