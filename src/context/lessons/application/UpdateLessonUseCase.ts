@@ -28,7 +28,7 @@ export class UpdateLessonUseCase {
       description: request.description,
       content: request.content,
       order: request.order,
-      estimated_time: request.estimatedTime,
+      estimatedTime: request.estimatedTime,
       difficulty: request.difficulty,
       exercises: request.exercises
     });

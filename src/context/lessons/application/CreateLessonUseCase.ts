@@ -1,5 +1,5 @@
-import { LessonRepository } from './../domain/LessonRepository';
-import { Lesson } from './../domain/Lesson';
+import { LessonRepository } from '../domain/LessonRepository';
+import { Lesson } from '../domain/Lesson';
 import { CreateLessonRequest } from './requests/CreateLessonRequest';
 
 export class CreateLessonUseCase {
@@ -8,13 +8,13 @@ export class CreateLessonUseCase {
   async execute(request: CreateLessonRequest): Promise<Lesson> {
     // Crear la lección usando el factory method
     const lesson = Lesson.create({
-      topic_id: request.topicId,
-      subtopic_id: request.subtopicId,
+      topicId: request.topicId,
+      subtopicId: request.subtopicId,
       title: request.title,
       description: request.description,
       content: request.content,
       order: request.order,
-      estimated_time: request.estimatedTime,
+      estimatedTime: request.estimatedTime,
       difficulty: request.difficulty,
       exercises: request.exercises
     });

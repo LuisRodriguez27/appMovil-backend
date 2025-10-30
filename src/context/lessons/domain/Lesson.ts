@@ -12,17 +12,17 @@ export interface Exercise {
 
 export interface LessonPrimitives {
   id: string;
-  topic_id: string;
-  subtopic_id: string;
+  topicId: string;
+  subtopicId: string;
   title: string;
   description: string;
   content: string;
   order: number;
-  estimated_time: number; // en minutos
+  estimatedTime: number; // en minutos
   difficulty: 'easy' | 'medium' | 'hard';
   exercises: Exercise[];
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class Lesson {
@@ -41,17 +41,17 @@ export class Lesson {
     private updatedAt: Date
   ) {}
 
-  static create(data: Omit<LessonPrimitives, 'id' | 'created_at' | 'updated_at'>): Lesson {
+  static create(data: Omit<LessonPrimitives, 'id' | 'createdAt' | 'updatedAt'>): Lesson {
     const now = new Date();
     return new Lesson(
       uid(),
-      data.topic_id,
-      data.subtopic_id,
+      data.topicId,
+      data.subtopicId,
       data.title,
       data.description,
       data.content,
       data.order,
-      data.estimated_time,
+      data.estimatedTime,
       data.difficulty,
       data.exercises,
       now,
@@ -62,44 +62,44 @@ export class Lesson {
   static fromPrimitives(data: LessonPrimitives): Lesson {
     return new Lesson(
       data.id,
-      data.topic_id,
-      data.subtopic_id,
+      data.topicId,
+      data.subtopicId,
       data.title,
       data.description,
       data.content,
       data.order,
-      data.estimated_time,
+      data.estimatedTime,
       data.difficulty,
       data.exercises,
-      data.created_at,
-      data.updated_at
+      data.createdAt,
+      data.updatedAt
     );
   }
 
   toPrimitives(): LessonPrimitives {
     return {
       id: this.id,
-      topic_id: this.topicId,
-      subtopic_id: this.subtopicId,
+      topicId: this.topicId,
+      subtopicId: this.subtopicId,
       title: this.title,
       description: this.description,
       content: this.content,
       order: this.order,
-      estimated_time: this.estimatedTime,
+      estimatedTime: this.estimatedTime,
       difficulty: this.difficulty,
       exercises: this.exercises,
-      created_at: this.createdAt,
-      updated_at: this.updatedAt
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt
     };
   }
 
   // Métodos de actualización
-  public update(data: Partial<Omit<LessonPrimitives, 'id' | 'topic_id' | 'subtopic_id' | 'created_at' | 'updated_at'>>): void {
+  public update(data: Partial<Omit<LessonPrimitives, 'id' | 'topicId' | 'subtopicId' | 'createdAt' | 'updatedAt'>>): void {
     if (data.title !== undefined) this.title = data.title;
     if (data.description !== undefined) this.description = data.description;
     if (data.content !== undefined) this.content = data.content;
     if (data.order !== undefined) this.order = data.order;
-    if (data.estimated_time !== undefined) this.estimatedTime = data.estimated_time;
+    if (data.estimatedTime !== undefined) this.estimatedTime = data.estimatedTime;
     if (data.difficulty !== undefined) this.difficulty = data.difficulty;
     if (data.exercises !== undefined) this.exercises = data.exercises;
     

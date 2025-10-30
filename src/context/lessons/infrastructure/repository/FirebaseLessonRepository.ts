@@ -14,8 +14,8 @@ interface LessonDocument {
   estimated_time: number;
   difficulty: 'easy' | 'medium' | 'hard';
   exercises: Exercise[];
-  created_at: FirebaseFirestore.Timestamp;
-  updated_at: FirebaseFirestore.Timestamp;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
 export class FirebaseLessonRepository implements LessonRepository {
@@ -156,34 +156,34 @@ export class FirebaseLessonRepository implements LessonRepository {
   private toFirestoreDocument(primitives: LessonPrimitives): LessonDocument {
     return {
       __id: primitives.id,
-      topic_id: primitives.topic_id,
-      subtopic_id: primitives.subtopic_id,
+      topic_id: primitives.topicId,              // Mapear camelCase → snake_case
+      subtopic_id: primitives.subtopicId,        // Mapear camelCase → snake_case
       title: primitives.title,
       description: primitives.description,
       content: primitives.content,
       order: primitives.order,
-      estimated_time: primitives.estimated_time,
+      estimated_time: primitives.estimatedTime,  // Mapear camelCase → snake_case
       difficulty: primitives.difficulty,
       exercises: primitives.exercises,
-      created_at: Timestamp.fromDate(primitives.created_at),
-      updated_at: Timestamp.fromDate(primitives.updated_at)
+      created_at: Timestamp.fromDate(primitives.createdAt),   // Mapear camelCase → snake_case
+      updated_at: Timestamp.fromDate(primitives.updatedAt)    // Mapear camelCase → snake_case
     };
   }
 
   private toDomainEntity(document: LessonDocument): Lesson {
     return Lesson.fromPrimitives({
       id: document.__id,
-      topic_id: document.topic_id,
-      subtopic_id: document.subtopic_id,
+      topicId: document.topic_id,                    // Mapear snake_case → camelCase
+      subtopicId: document.subtopic_id,              // Mapear snake_case → camelCase
       title: document.title,
       description: document.description,
       content: document.content,
       order: document.order,
-      estimated_time: document.estimated_time,
+      estimatedTime: document.estimated_time,        // Mapear snake_case → camelCase
       difficulty: document.difficulty,
       exercises: document.exercises,
-      created_at: document.created_at.toDate(),
-      updated_at: document.updated_at.toDate()
+      createdAt: document.created_at.toDate(),       // Mapear snake_case → camelCase
+      updatedAt: document.updated_at.toDate()        // Mapear snake_case → camelCase
     });
   }
 }
