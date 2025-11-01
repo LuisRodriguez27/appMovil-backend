@@ -13,20 +13,22 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 ## Índice de Colecciones
 
 1. **users** - Perfiles completos de estudiantes (incluye progreso, logros y rachas)
-2. **courses** - Cursos disponibles
-3. **topics** - Temas principales con subtemas embebidos
-4. **lessons** - Material de estudio con ejercicios embebidos
-5. **achievements** - Logros disponibles (catálogo maestro)
-6. **notifications** - Notificaciones de usuarios
+2. **courses** - Cursos disponibles (3-4 cursos)
+3. **topics** - Temas principales (~6 por curso, ~18-24 totales)
+4. **subtopics** - Subtemas de cada tema (~5 por tema, ~30 totales)
+5. **lessons** - Material de estudio con 1 ejercicio embebido (~48-54 totales: ~30 regulares + ~18-24 finales)
+6. **achievements** - Logros disponibles (catálogo maestro)
+7. **notifications** - Notificaciones genéricas enviadas a usuarios
 
-### Dificultad
+### Prioridad de implementación
 
 1. **users** (+ subcolección **lesson_progress**)
-2. **topics**
-3. **lessons**
-4. **achievements**
-5. **notifications**
-6. **courses**
+2. **courses**
+3. **topics**
+4. **subtopics** ← Colección separada para edición eficiente
+5. **lessons** (con `is_final` para ejercicios finales de tema)
+6. **achievements**
+7. **notifications**
 
 ---
 
@@ -35,8 +37,6 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 ### users
 
 **Propósito**: Almacena el perfil completo de cada usuario (estudiantes y administradores), incluyendo su progreso, logros obtenidos y rachas de estudio.
-
-**Ruta de colección**: `/users`
 
 **Integración con Firebase Authentication**:
 - El campo `__id` **DEBE** ser el mismo `uid` generado por Firebase Authentication
@@ -59,7 +59,7 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
   created_at: Date;                // Fecha de creación del perfil
   updated_at: Date;                // ← NUEVO: Última actualización del perfil
 
-  // PROGRESO POR CURSO (optimizado para 2 cursos: POO y Fundamentos)
+  // PROGRESO POR CURSO (optimizado para 3-4 cursos)
   progress: {
     [course_id: string]: {
       lessons_completed: {              // Mapa de lecciones completadas (O(1) lookup)
@@ -154,14 +154,6 @@ Este archivo documenta la estructura completa de la base de datos Firebase Fires
 - El XP de logros se suma automáticamente al total del usuario
 - Las contraseñas NO se almacenan en Firestore (Firebase Authentication las maneja)
 
-**Ventajas de esta estructura optimizada**:
-- Perfil completo del usuario en una sola lectura
-- Evita múltiples consultas para obtener progreso, logros y rachas
-- Actualización atómica del progreso y logros
-- Búsqueda O(1) de lecciones completadas usando mapa en vez de array
-- Eliminación de datos redundantes (xp_earned se obtiene del catálogo de achievements)
-- Estadísticas pre-calculadas para dashboards sin queries adicionales
-
 ---
 
 **Subcolección de users**: `/users/{userId}/lesson_progress/{lessonId}`
@@ -175,18 +167,30 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
   __id: string;                    // ID de la lección (lessonId)
   userId: string;                  // ID del usuario
   lessonId: string;                // ID de la lección (igual que __id)
-  completedExercises: string[];    // IDs de ejercicios completados en orden
+  exerciseCompleted: boolean;      // true si completó el ejercicio de la lección
   totalPointsEarned: number;       // Puntos XP ganados en esta lección
-  attempts: number;                // Número de intentos realizados
-  isCompleted: boolean;            // true si completó todos los ejercicios
+  attempts: number;                // Número de intentos realizados en el ejercicio
+  isCompleted: boolean;            // true si completó la lección (teoría + ejercicio)
   startedAt: Date;                 // Primera vez que accedió a la lección
   lastAccessed: Date;              // Última vez que trabajó en la lección
   completedAt?: Date;              // Fecha de completitud (solo si isCompleted = true)
 }
 ```
 
+**Campos**:
+- `__id` (string): ID de la lección
+- `userId` (string): ID del usuario (redundante pero útil para queries)
+- `lessonId` (string): ID de la lección (igual que __id)
+- `exerciseCompleted` (boolean): true si completó el ejercicio embebido
+- `totalPointsEarned` (number): Puntos XP obtenidos (max = lesson.exercise.max_points)
+- `attempts` (number): Cantidad de intentos en el ejercicio
+- `isCompleted` (boolean): true si completó teoría + ejercicio
+- `startedAt` (Date): Timestamp de primera visita
+- `lastAccessed` (Date): Timestamp de última visita
+- `completedAt` (Date, optional): Timestamp de completitud
+
 **Por qué es una subcolección**:
-- ✅ Progreso real por ejercicio - Seguimiento granular
+- ✅ Progreso real por lección - Seguimiento granular
 - ✅ Pausa y continuación - El usuario retoma donde quedó
 - ✅ Historial de intentos - Registro completo de intentos
 - ✅ Consultas rápidas - Organización lógica bajo cada usuario
@@ -194,18 +198,19 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
 - ✅ Features tipo Duolingo - Racha, progreso diario, estadísticas
 
 **Casos de uso**:
-1. SaveLessonProgressUseCase - Guardar progreso al completar ejercicios
+1. SaveLessonProgressUseCase - Guardar progreso al completar el ejercicio
 2. GetLessonProgressUseCase - Obtener progreso al entrar a una lección
 3. GetUserLessonProgressListUseCase - Listar todas las lecciones con progreso
 4. ResetLessonProgressUseCase - Reiniciar progreso de una lección
 
 **Reglas de negocio**:
 - Se crea al acceder por primera vez a una lección
-- Se actualiza al completar cada ejercicio
-- `attempts` se incrementa en cada intento
-- `totalPointsEarned` solo suma puntos correctos
-- `isCompleted = true` cuando `completedExercises.length === lessons.exercises.length`
+- Se actualiza al completar el ejercicio
+- `attempts` se incrementa en cada intento del ejercicio
+- `totalPointsEarned` solo suma puntos si el ejercicio es correcto
+- `isCompleted = true` cuando `exerciseCompleted = true` (1 ejercicio por lesson)
 - Al completar, también actualiza `users.progress[course_id].lessons_completed[lesson_id] = true`
+- Para lessons finales (is_final = true), otorga más XP y puede desbloquear achievements
 
 ---
 
@@ -213,10 +218,8 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
 
 **Propósito**: Define los cursos disponibles en la plataforma (ej: Fundamentos de Programación, POO).
 
-**Ruta de colección**: `/courses`
 
 **Esquema del documento**:
-
 ```typescript
 {
   __id: string;                    // ID único del curso
@@ -225,6 +228,7 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
   total_topics: number;            // Total de temas del curso
   total_lessons: number;           // Total de lecciones del curso
   created_at: Date;                // Fecha de creación
+  updated_at: Date;                // Fecha de última actualización
 }
 ```
 
@@ -235,11 +239,12 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
 - `total_topics` (number, required): Cantidad total de temas del curso (actualizado automáticamente)
 - `total_lessons` (number, required): Cantidad total de lecciones del curso (actualizado automáticamente)
 - `created_at` (Date, required): Fecha de creación del curso
+- `updated_at` (Date, required): Fecha de última actualización del curso
 
-**Nota sobre contadores**: Estos campos se actualizan automáticamente al crear/eliminar temas y lecciones. Como solo existen 2 cursos (POO y Fundamentos de Programación) que raramente cambian, mantener estos contadores optimiza el rendimiento al calcular porcentajes de progreso del usuario.
+**Nota sobre contadores**: Estos campos se actualizan automáticamente al crear/eliminar temas y lecciones. Como solo existen 3-4 cursos que raramente cambian, mantener estos contadores optimiza el rendimiento al calcular porcentajes de progreso del usuario.
 
 **Relaciones**:
-- Relacionado con: `topics`, `lessons`, `users.progress`
+- Relacionado con: `topics`, `subtopics`, `lessons`, `users.progress`
 
 **Índices sugeridos**:
 - `title` (para búsquedas)
@@ -248,12 +253,9 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
 
 ### topics
 
-**Propósito**: Unidades o módulos principales que componen cada curso, con sus subtemas embebidos.
-
-**Ruta de colección**: `/topics`
+**Propósito**: Unidades o módulos principales que componen cada curso. Los subtemas están en colección separada.
 
 **Esquema del documento**:
-
 ```typescript
 {
   __id: string;                    // ID único del tema
@@ -261,14 +263,8 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
   title: string;                   // Título del tema
   description: string;             // Descripción del tema
   order: number;                   // Orden dentro del curso
-  
-  // SUBTEMAS EMBEBIDOS 
-  subtopics: {
-    id: string;                    // ID único del subtema
-    title: string;                 // Título del subtema
-    description: string;           // Descripción del subtema
-    order: number;                 // Orden dentro del tema
-  }[];
+  created_at: Date;                // Fecha de creación
+  updated_at: Date;                // Fecha de última actualización
 }
 ```
 
@@ -277,65 +273,85 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
 - `course_id` (string, required): Referencia al curso padre
 - `title` (string, required): Nombre del tema
 - `description` (string, required): Descripción del contenido del tema
-- `order` (number, required): Orden de presentación dentro del curso
-
-**Array subtopics**:
-- Lista de subtemas que pertenecen a este tema
-- `id` (string): Identificador único del subtema (ej: "sub_fp_integers")
-- `title` (string): Nombre del subtema
-- `description` (string): Descripción del subtema
-- `order` (number): Orden de presentación dentro del tema
+- `order` (number, required): Orden de presentación dentro del curso (1-6)
+- `created_at` (Date, required): Fecha de creación del tema
+- `updated_at` (Date, required): Fecha de última actualización del tema
 
 **Relaciones**:
 - `course_id` → `courses.__id`
-- Relacionado con: `lessons`
+- Relacionado con: `subtopics` (1 topic → ~5 subtopics)
+- Relacionado con: `lessons` (incluye 1 lesson final por topic)
 
 **Índices sugeridos**:
 - `course_id` + `order` (compuesto, para listar temas en orden)
 
-**Ventajas de esta estructura**:
-- Un tema con todos sus subtemas en una sola lectura
-- Menos consultas para mostrar el índice completo de un curso
-- Más fácil mantener el orden de subtemas
+**Ventajas de separar subtopics**:
+- ✅ Edición atómica de subtemas individuales (sin reescribir todo el topic)
+- ✅ Sin límite de escalabilidad (~5 subtopics por tema)
+- ✅ Previene race conditions cuando múltiples admins editan subtemas diferentes
+- ✅ Queries eficientes: `subtopics.where('topic_id', '==', topicId).orderBy('order')`
 
-**Ejemplo de documento**:
-```json
+---
+
+### subtopics
+
+**Propósito**: Subtemas que pertenecen a cada tema. Separados en colección propia para edición eficiente.
+
+**Ruta de colección**: `/subtopics`
+
+**Escala**: ~5 subtopics por tema (~30 documentos totales)
+
+**Esquema del documento**:
+
+```typescript
 {
-  "__id": "topic_fp_variables",
-  "course_id": "fp_fundamentos_programacion",
-  "title": "Variables y Tipos de Datos",
-  "description": "Aprende sobre variables, tipos de datos y cómo almacenar información",
-  "order": 1,
-  "subtopics": [
-    {
-      "id": "sub_fp_integers",
-      "title": "Números Enteros",
-      "description": "Trabajo con números enteros (int)",
-      "order": 1
-    },
-    {
-      "id": "sub_fp_floats",
-      "title": "Números Decimales",
-      "description": "Trabajo con números decimales (float)",
-      "order": 2
-    },
-    {
-      "id": "sub_fp_strings",
-      "title": "Cadenas de Texto",
-      "description": "Trabajo con texto (string)",
-      "order": 3
-    }
-  ]
+  __id: string;                    // ID único del subtema
+  topic_id: string;                // Referencia al tema padre
+  title: string;                   // Título del subtema
+  description: string;             // Descripción del subtema
+  order: number;                   // Orden dentro del tema (1-30)
+  created_at: Date;                // Fecha de creación
+  updated_at: Date;                // Fecha de última actualización
 }
 ```
+
+**Campos principales**:
+- `__id` (string, required): Identificador único (ej: "sub_fp_integers")
+- `topic_id` (string, required): Referencia al tema padre
+- `title` (string, required): Nombre del subtema
+- `description` (string, required): Descripción del contenido del subtema
+- `order` (number, required): Orden de presentación dentro del tema (1-5)
+- `created_at` (Date, required): Fecha de creación del subtema
+- `updated_at` (Date, required): Fecha de última actualización del subtema
+
+**Relaciones**:
+- `topic_id` → `topics.__id`
+- Relacionado con: `lessons` (1 subtopic → 1 lesson regular)
+
+**Índices sugeridos**:
+- `topic_id` + `order` (compuesto, para listar subtemas en orden)
+- `topic_id` (para obtener todos los subtemas de un tema)
+
+**Ventajas de colección separada**:
+- ✅ **Edición atómica**: Actualizar 1 subtopic = 1 operación write (no reescribir todo el topic)
+- ✅ **Sin race conditions**: Múltiples admins pueden editar subtopics diferentes simultáneamente
+- ✅ **Escalabilidad**: Cada subtopic es independiente (~5 por tema)
+- ✅ **Queries optimizadas**: Firestore indexa y ordena eficientemente
+- ✅ **Independencia**: Agregar/eliminar subtopics no afecta el documento topic
+
+**Reglas de negocio**:
+- Cada subtopic debe tener exactamente 1 lesson asociada
+- El orden debe ser secuencial (1, 2, 3, 4, 5)
+- Al eliminar un topic, también se eliminan sus subtopics (cascade delete)
+- Al eliminar un subtopic, también se elimina su lesson asociada
 
 ---
 
 ### lessons
 
-**Propósito**: Contiene el material de estudio teórico y ejercicios prácticos embebidos.
+**Propósito**: Contiene el material de estudio teórico con 1 ejercicio embebido por lección. Incluye lecciones regulares (por subtema) y lecciones finales (por tema).
 
-**Ruta de colección**: `/lessons`
+**Escala**: ~48-54 documentos totales (~30 regulares + ~18-24 finales)
 
 **Esquema del documento**:
 
@@ -343,37 +359,46 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
 {
   __id: string;                    // ID único de la lección
   topic_id: string;                // Referencia al tema
-  subtopic_id: string;             // ID del subtema (del array en topics)
+  subtopic_id: string | null;      // ID del subtema (null para lessons finales)
   title: string;                   // Título de la lección
   content: string;                 // Contenido en texto/markdown
-  order: number;                   // Orden dentro del subtema
-  
-  // OBJETOS DE EJERCICIOS EMBEBIDOS
-  exercises: {
+  order: number;                   // Orden dentro del subtema (999 para finales)
+  is_final: boolean;               // true = ejercicio final del tema
+
+  // 1 EJERCICIO EMBEBIDO
+  exercise: {
     id: string;                    // ID único del ejercicio
     question: string;              // Enunciado de la pregunta
     code_template?: string;        // Plantilla de código (opcional)
     max_points: number;            // Puntos XP máximos
     type: string;                  // Tipo de ejercicio
-  }[];
+    options?: string[];            // Opciones para multiple_choice
+  };
+
+  created_at: Date;                // Fecha de creación
+  updated_at: Date;                // Fecha de última actualización
 }
 ```
 
 **Campos principales**:
 - `__id` (string, required): Identificador único (ej: "lesson_fp_int_declaracion")
 - `topic_id` (string, required): Referencia al tema padre
-- `subtopic_id` (string, required): ID del subtema (debe existir en topics.subtopics[])
+- `subtopic_id` (string | null, required): ID del subtema (null si es_final = true)
 - `title` (string, required): Título de la lección
 - `content` (string, required): Contenido educativo en texto/markdown
-- `order` (number, required): Orden de presentación dentro del subtema
+- `order` (number, required): Orden de presentación (1-N para regulares, 999 para finales)
+- `is_final` (boolean, required): Identifica si es ejercicio final del tema (default: false)
+- `created_at` (Date, required): Fecha de creación de la lección
+- `updated_at` (Date, required): Fecha de última actualización de la lección
 
-**Array exercises**:
-- Lista de ejercicios prácticos de esta lección
+**Objeto exercise** (embebido):
+- Solo 1 ejercicio por lección
 - `id` (string): Identificador único del ejercicio (ej: "ex_fp_int_declaracion_01")
 - `question` (string): Texto del enunciado
 - `code_template` (string, optional): Código inicial con espacios a completar
 - `max_points` (number): Puntos XP que se otorgan al completar correctamente
 - `type` (string): Tipo de ejercicio
+- `options` (string[], optional): Opciones de respuesta para `multiple_choice`
 
 **Tipos de ejercicios**:
 - `fill_blank`: Completar espacios en blanco
@@ -384,54 +409,29 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
 
 **Relaciones**:
 - `topic_id` → `topics.__id`
-- `subtopic_id` → `topics.subtopics[].id`
+- `subtopic_id` → `subtopics.__id` (solo si is_final = false)
 - Relacionado con: `users.progress[].lessons_completed[lesson_id]`
 
 **Índices sugeridos**:
-- `topic_id` + `order` (compuesto, para listar lecciones en orden)
-- `subtopic_id` (para obtener lecciones de un subtema)
+- `topic_id` + `is_final` (compuesto, para obtener lesson final de un tema)
+- `subtopic_id` (para obtener lesson de un subtema)
+- `topic_id` + `order` (compuesto, para listar todas las lessons de un tema en orden)
 
-**Formato del contenido**:
-- Markdown con soporte para bloques de código
-- Puede incluir enlaces a videos externos
-- Imágenes embebidas o referenciadas
 
-**Ventajas de esta estructura**:
-- Una lección con todos sus ejercicios en una sola lectura
-- Reduce consultas al obtener material completo para estudiar
-- Facilita la evaluación secuencial de ejercicios
+**Ventajas de 1 ejercicio embebido**:
+- ✅ Lección completa en una sola lectura (teoría + ejercicio)
+- ✅ Documento pequeño (~15-20KB por lesson)
+- ✅ Simple: 1 subtopic = 1 lesson = 1 exercise
+- ✅ No necesitas colección separada de exercises
+- ✅ Facilita la evaluación directa
 
 **Reglas de negocio**:
-- Los ejercicios se evalúan en el orden presentado
-- El porcentaje de completitud lo calcula automáticamente Gemini
-- Se requiere completar la teoría antes de los ejercicios
-
-**Ejemplo de documento**:
-```json
-{
-  "__id": "lesson_fp_int_declaracion",
-  "topic_id": "topic_fp_variables",
-  "subtopic_id": "sub_fp_integers",
-  "title": "Declaración de Variables Enteras",
-  "content": "# Declaración de Variables Enteras\n\nEn Python, puedes declarar...",
-  "order": 1,
-  "exercises": [
-    {
-      "id": "ex_fp_int_declaracion_01",
-      "question": "Declara una variable llamada 'edad' con el valor 25",
-      "code_template": "# Escribe tu código aquí\n",
-      "max_points": 10,
-      "type": "code_completion"
-    },
-    {
-      "id": "ex_fp_int_declaracion_02",
-      "question": "¿Qué tipo de dato es la variable edad = 25?",
-      "max_points": 5,
-      "type": "multiple_choice"
-    }
-  ]
-}
-```
+- **Lecciones regulares**: is_final = false, subtopic_id != null
+- **Lecciones finales**: is_final = true, subtopic_id = null, order = 999
+- Cada subtopic tiene exactamente 1 lesson asociada
+- Cada topic tiene exactamente 1 lesson final
+- El ejercicio se valida antes de marcar la lesson como completada
+- Al completar una lesson final, se verifica si el estudiante completó todo el topic
 
 ---
 
@@ -439,10 +439,7 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
 
 **Propósito**: Define todos los logros o medallas que se pueden desbloquear en la plataforma (catálogo maestro).
 
-**Ruta de colección**: `/achievements`
-
 **Esquema del documento**:
-
 ```typescript
 {
   __id: string;                    // ID único del logro
@@ -491,10 +488,7 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
 
 **Propósito**: Guarda las alertas y mensajes enviados a un usuario dentro de la aplicación.
 
-**Ruta de colección**: `/notifications`
-
 **Esquema del documento**:
-
 ```typescript
 {
   __id: string;                    // ID único de la notificación
@@ -554,82 +548,115 @@ Esta subcolección almacena el progreso detallado por lección. Es una colecció
 
 ## Notas Importantes
 
-### Optimizaciones para 2 cursos (POO y Fundamentos de Programación)
+### Escala de la plataforma
 
-Esta estructura está optimizada considerando que solo existen 2 cursos en la plataforma:
+**Resumen de documentos totales**:
+- 3-4 courses
+- ~18-24 topics (~6 por curso)
+- ~30 subtopics (~5 por topic)
+- ~48-54 lessons (~30 regulares + ~18-24 finales de tema)
+- ~50 achievements (catálogo maestro)
+- N users (estudiantes + admins)
+- ~N×(48-54) lesson_progress docs (progreso individual por usuario)
+- Variable notifications (notificaciones genéricas enviadas a usuarios)
 
-- **Progreso embebido**: Con solo 2 cursos, el objeto `progress` en usuarios se mantiene pequeño y eficiente
-- **Mapa de lecciones completadas**: Uso de mapas (`{[lesson_id]: true}`) en vez de arrays para búsquedas O(1)
-- **Sin datos redundantes**: Eliminación de `xp_earned` en achievements (se obtiene del catálogo)
-- **Estadísticas pre-calculadas**: Campo `stats` para evitar cálculos costosos en dashboards
+### Optimizaciones aplicadas
+
+**1. Subtopics separados (NO embebidos)**:
+- ✅ Edición atómica: 1 write por subtopic (vs reescribir todo el topic)
+- ✅ Sin race conditions: Múltiples admins pueden editar simultáneamente
+- ✅ Escalabilidad: ~5 subtopics por topic, fácil de mantener
+- ✅ Queries eficientes con índices compuestos
+
+**2. Lessons con 1 ejercicio embebido**:
+- ✅ Simple: 1 subtopic = 1 lesson = 1 exercise
+- ✅ Documentos pequeños (~15-20KB cada uno)
+- ✅ Lectura completa en 1 query (teoría + ejercicio)
+- ✅ Lecciones finales de tema con campo `is_final`
+
+**3. Progreso de usuario embebido**:
+- ✅ Con 3-4 cursos, el objeto `progress` se mantiene manejable
+- ✅ Mapa de lecciones completadas: `{[lesson_id]: true}` para búsquedas O(1)
+- ✅ Estadísticas pre-calculadas en campo `stats`
+- ✅ Sin datos redundantes (xp_earned se obtiene del catálogo achievements)
+
+**4. Notificaciones genéricas por usuario**:
+- ✅ Cada notificación tiene un `user_id` destinatario
+- ✅ Notificaciones basadas en comportamiento del usuario
+- ✅ Expiración automática con `expires_at`
+- ✅ Prioridad para ordenar notificaciones importantes
 
 ### Límites de Firestore
 
-- **Límite de documento**: Firebase Firestore tiene un límite de 1MB por documento. Con la estructura actual y 2 cursos, un usuario típico no debería superar este límite.
-- **Arrays**: Los arrays en Firestore tienen un límite de ~20,000 elementos, suficiente para logros y progreso.
-- **Índices**: Crear índices compuestos según sea necesario para queries frecuentes.
-- **Migraciones**: Si ya tienes datos en la estructura anterior, necesitarás scripts de migración.
+- **Límite de documento**: 1MB por documento
+  - Topics: ~2-5KB cada uno ✅
+  - Subtopics: ~1KB cada uno ✅
+  - Lessons: ~15-20KB cada una ✅
+  - Users: ~50-150KB (con progreso de 3-4 cursos) ✅
+- **Arrays**: Límite de ~20,000 elementos
+  - achievements por usuario: ~50 max ✅
+  - lesson_progress: Subcolección separada (no hay límite) ✅
+- **Índices**: Crear índices compuestos para queries frecuentes
+- **Writes**: Evitar reescribir documentos grandes innecesariamente
 
 ### Recomendaciones de implementación
 
-1. **Verificar lección completada**: `if (user.progress[courseId].lessons_completed[lessonId]) { ... }`
-2. **Agregar lección completada**: Usar `set()` con merge para actualizar atómicamente
-3. **Obtener puntos de logro**: Hacer lookup en la colección `achievements` usando el `achievement_id`
-4. **Limpieza de notificaciones**: Implementar Cloud Function scheduled que elimine notificaciones donde `expires_at < now()`
+**Queries comunes**:
+```typescript
+// 1. Verificar lección completada
+if (user.progress[courseId].lessons_completed[lessonId]) { ... }
+
+// 2. Obtener subtopics de un tema ordenados
+const subtopics = await firestore()
+  .collection('subtopics')
+  .where('topic_id', '==', topicId)
+  .orderBy('order', 'asc')
+  .get();
+
+// 3. Obtener lesson de un subtopic
+const lesson = await firestore()
+  .collection('lessons')
+  .where('subtopic_id', '==', subtopicId)
+  .limit(1)
+  .get();
+
+// 4. Obtener lesson final de un tema
+const finalLesson = await firestore()
+  .collection('lessons')
+  .where('topic_id', '==', topicId)
+  .where('is_final', '==', true)
+  .limit(1)
+  .get();
+
+// 5. Marcar lección como completada (atomic update)
+await firestore()
+  .collection('users')
+  .doc(userId)
+  .set({
+    progress: {
+      [courseId]: {
+        lessons_completed: {
+          [lessonId]: true
+        },
+        completed_count: admin.firestore.FieldValue.increment(1)
+      }
+    }
+  }, { merge: true });
+```
+
+**Operaciones importantes**:
+1. **Agregar lección completada**: Usar `set()` con merge para actualizar atómicamente
+2. **Obtener puntos de logro**: Hacer lookup en la colección `achievements` usando el `achievement_id`
+3. **Limpieza de notificaciones**: Implementar Cloud Function scheduled que elimine notificaciones donde `expires_at < now()`
+4. **Cascade deletes**: Al eliminar topic, también eliminar todos sus subtopics y lessons
+5. **Validar is_final**: Las lessons finales deben tener `subtopic_id = null` y `order = 999`
+
+
 
 ---
 
-## 🔐 Sistema de Autenticación y Roles
 
-### Integración Firebase Authentication + Firestore
-
-Este proyecto utiliza **dos servicios de Firebase** trabajando en conjunto:
-
-| Servicio | Responsabilidad |
-|----------|----------------|
-| **Firebase Authentication** | Gestiona emails, contraseñas y tokens JWT |
-| **Firestore** | Almacena roles, progreso, logros y perfiles completos |
-
-
-### Primer Administrador
-
-Para crear el primer administrador del sistema:
-
-**Opción 1: Manualmente en Firestore Console**
-1. Registrar usuario normalmente
-2. Ir a Firestore Console
-3. Buscar documento en `/users/{uid}`
-4. Cambiar campo `role` de `'student'` a `'admin'`
-
-**Opción 2: Script de inicialización**
-```typescript
-// scripts/createFirstAdmin.ts
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
-
-async function createFirstAdmin() {
-  const email = 'admin@example.com';
-  const password = 'secure_password';
-
-  // Crear en Firebase Auth
-  const userRecord = await getAuth().createUser({
-    email,
-    password,
-    displayName: 'Administrador',
-  });
-
-  // Crear en Firestore con role admin
-  await getFirestore().collection('users').doc(userRecord.uid).set({
-    __id: userRecord.uid,
-    control_number: 'ADMIN001',
-    name: 'Administrador',
-    email,
-    role: 'admin', // ← Rol admin
-    xp: 0,
-    level: 1,
-    // ... resto de campos
-  });
-
-  console.log('✅ Primer admin creado:', email);
-}
-```
+  1. ✅ Separar subtopics - Sí, vale la pena por limpieza del código
+  2. ✅ 1 ejercicio embebido - Perfecto para tu caso
+  3. ✅ Campo is_final - Excelente para identificar ejercicios finales
+  4. ✅ Progreso embebido - Eficiente con 3-4 cursos
