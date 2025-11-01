@@ -8,32 +8,7 @@ import { firebaseAuth } from "../config/configureFirebase";
  * Estos endpoints facilitan el manejo de tokens para testing
  */
 export const register = async (app: Express, container: ContainerBuilder) => {
-  console.log('🔐 Registering auth routes...');
-
-  /**
-   * POST /auth/generate-token
-   * Genera un token de autenticación usando el Service Account de Firebase
-   *
-   * Este endpoint NO requiere Firebase API Key, solo las credenciales del Service Account
-   *
-   * Body: {
-   *   userType: 'student' | 'admin',
-   *   uid?: string (opcional, genera uno automático si no se proporciona)
-   * }
-   *
-   * Response: {
-   *   success: true,
-   *   data: {
-   *     idToken: string,
-   *     refreshToken: string,
-   *     expiresIn: number,
-   *     uid: string,
-   *     email: string
-   *   }
-   * }
-   */
   app.post("/auth/generate-token", async (req, res) => {
-    console.log('🔐 POST /auth/generate-token called');
     try {
       const { userType } = req.body;
 
@@ -141,21 +116,6 @@ export const register = async (app: Express, container: ContainerBuilder) => {
     }
   });
 
-  /**
-   * POST /auth/refresh
-   * Renueva un ID token usando un refresh token de Firebase
-   *
-   * Body: { refreshToken: string }
-   *
-   * Response: {
-   *   success: true,
-   *   data: {
-   *     idToken: string,
-   *     refreshToken: string,
-   *     expiresIn: number
-   *   }
-   * }
-   */
   app.post("/auth/refresh", async (req, res) => {
     try {
       const { refreshToken } = req.body;
