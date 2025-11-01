@@ -8,11 +8,7 @@ export class FindAllAchievementController {
 		try {
 			const achievements = await this.findAllAchievementUseCase.execute();
 
-			res.status(200).json({
-				success: true,
-				data: achievements,
-				count: achievements.length,
-			});
+			res.status(200).json(achievements);
 		} catch (error) {
 			if (error instanceof Error) {
 				res.status(400).json({

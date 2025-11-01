@@ -18,12 +18,9 @@ export class CreateAchievementController {
 				condition
 			);
 
-			await this.createAchievementUseCase.execute(request);
+			const achievement = await this.createAchievementUseCase.execute(request);
 
-			res.status(201).json({
-				success: true,
-				message: "Logro creado exitosamente",
-			});
+			res.status(201).json(achievement);
 		} catch (error: any) {
 			if (error instanceof Error) {
 				const statusCode =

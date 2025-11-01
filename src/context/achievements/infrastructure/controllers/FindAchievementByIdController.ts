@@ -17,10 +17,7 @@ export class FindAchievementByIdController {
 				return;
 			}
 
-			res.status(200).json({
-				success: true,
-				data: achievement,
-			});
+			res.status(200).json(achievement);
 		} catch (error) {
 			if (error instanceof Error) {
 				res.status(400).json({

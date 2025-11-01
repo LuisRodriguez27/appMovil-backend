@@ -21,11 +21,7 @@ export class UpdateAchievementController {
 
 			const achievement = await this.updateAchievementUseCase.execute(id, request);
 
-			res.status(200).json({
-				success: true,
-				message: "Logro actualizado exitosamente",
-				data: achievement.toPrimitives(),
-			});
+			res.status(200).json(achievement);
 		} catch (error) {
 			if (error instanceof Error) {
 				const statusCode = error.message === "Logro no encontrado" ? 404 : 400;

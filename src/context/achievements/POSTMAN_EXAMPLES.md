@@ -10,6 +10,16 @@ POST http://localhost:3000/api/achievements
 Content-Type: application/json
 ```
 
+**Tipos de rarezas permitidas:**
+```
+'comun', 'especial', 'epico', 'legendario'
+```
+
+**Tipos de condiciones permitidas:**
+```
+'complete_lessons', 'streak_days', 'xp_total'. 'complete_course', 'perfect_score';
+```
+
 **Body (JSON):**
 ```json
 {
