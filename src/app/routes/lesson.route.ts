@@ -18,33 +18,14 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   const findLessonsBySubtopicController = container.get<FindLessonsBySubtopicController>("FindLessonsBySubtopicController");
   const completeLessonController = container.get<CompleteLessonController>("CompleteLessonController");
 
-  // ========================================
-  // CRUD - Gestión de Lecciones
-  // ========================================
-  // Nota: Estas rutas son para gestión de contenido (scripts/admin)
-  // Los estudiantes solo usan las rutas READ y Complete
-  
   app.post('/lessons', (req, res) => createLessonController.run(req, res));
   app.put('/lessons/:id', (req, res) => updateLessonController.run(req, res));
   app.delete('/lessons/:id', (req, res) => deleteLessonController.run(req, res));
 
-  // ========================================
-  // READ - Consultas de Lecciones
-  // ========================================
-  
-  // Obtener lección por ID
   app.get('/lessons/:id', (req, res) => findLessonByIdController.run(req, res));
-  
-  // Obtener lecciones de un tema (todos los subtemas)
   app.get('/topics/:topicId/lessons', (req, res) => findLessonsByTopicController.run(req, res));
-  
-  // Obtener lecciones de un subtema específico
   app.get('/topics/:topicId/subtopics/:subtopicId/lessons', (req, res) => findLessonsBySubtopicController.run(req, res));
 
-  // ========================================
   // STUDENT INTERACTION - Completar Lección
-  // ========================================
-  
-  // Completar una lección (actualiza XP del usuario)
   app.post('/lessons/:id/complete', (req, res) => completeLessonController.run(req, res));
 };

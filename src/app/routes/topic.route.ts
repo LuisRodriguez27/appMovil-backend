@@ -45,13 +45,10 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   app.delete("/topics/:id", authMiddleware, requireRole(['admin']), (req, res) => deleteTopicController.run(req, res));
 
   // Subtopic endpoints
-  // POST: Añadir uno o varios subtopics (detecta automáticamente si es objeto o array)
   app.post("/topics/:topicId/subtopics", authMiddleware, requireRole(['admin']), (req, res) => addSubtopicsController.run(req, res));
 
-  // GET: Obtener todos los subtopics de un topic
   app.get("/topics/:topicId/subtopics", authMiddleware, requireRole(['student', 'admin']), (req, res) => findSubtopicsByTopicController.run(req, res));
 
-  // GET: Obtener un subtopic específico
   app.get("/topics/:topicId/subtopics/:subtopicId", authMiddleware, requireRole(['student', 'admin']), (req, res) => findSubtopicByIdController.run(req, res));
 
   // PUT: Actualizar un subtopic específico (subtopicId en URL)
@@ -60,6 +57,5 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   // PATCH: Actualizar uno o varios subtopics (detecta automáticamente si es objeto o array)
   app.patch("/topics/:topicId/subtopics", authMiddleware, requireRole(['admin']), (req, res) => updateSubtopicsController.run(req, res));
 
-  // DELETE: Eliminar un subtopic específico
   app.delete("/topics/:topicId/subtopics/:subtopicId", authMiddleware, requireRole(['admin']), (req, res) => deleteSubtopicController.run(req, res));
 };

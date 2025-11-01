@@ -18,15 +18,11 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   const updateUserXPController = container.get<UpdateUserXPController>("UpdateUserXPController");
   const userRepository = container.get<UserRepository>("UserRepository");
   const authMiddleware = verifyFirebaseToken(userRepository);
+
   app.post('/users', createUserController.run.bind(createUserController));
-
   app.get('/users', authMiddleware, requireRole(['admin']), findAllUsersController.run.bind(findAllUsersController));
-
   app.get('/users/:id', authMiddleware, requireOwnershipOrAdmin, findUserByIdController.run.bind(findUserByIdController));
-
   app.put('/users/:id', authMiddleware, requireOwnershipOrAdmin, updateUserController.run.bind(updateUserController));
-
   app.delete('/users/:id', authMiddleware, requireRole(['admin']), deleteUserController.run.bind(deleteUserController));
-
   app.patch('/users/:id/xp', authMiddleware, requireOwnershipOrAdmin, updateUserXPController.run.bind(updateUserXPController));
 };
