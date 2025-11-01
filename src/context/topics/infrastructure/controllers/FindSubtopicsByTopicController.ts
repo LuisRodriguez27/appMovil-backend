@@ -1,22 +1,21 @@
 import { Request, Response } from 'express';
-import { AddSubtopicUseCase } from '../../application/AddSubtopicUseCase';
-import { AddSubtopicRequest } from '../../application/requests/AddSubtopicRequest';
+import { FindSubtopicsByTopicUseCase } from '../../application/FindSubtopicsByTopicUseCase';
+import { FindSubtopicsByTopicRequest } from '../../application/requests/FindSubtopicsByTopicRequest';
 
-export class AddSubtopicController {
-  constructor(private readonly addSubtopicUseCase: AddSubtopicUseCase) {}
+export class FindSubtopicsByTopicController {
+  constructor(private readonly findSubtopicsByTopicUseCase: FindSubtopicsByTopicUseCase) {}
 
   async run(req: Request, res: Response): Promise<void> {
     try {
       const { topicId } = req.params;
-      const { title, description, order } = req.body;
 
-      const request = new AddSubtopicRequest(topicId, title, description, order);
-      const subtopic = await this.addSubtopicUseCase.execute(request);
+      const request = new FindSubtopicsByTopicRequest(topicId);
+      const subtopics = await this.findSubtopicsByTopicUseCase.execute(request);
 
-      res.status(201).json({
+      res.status(200).json({
         success: true,
-        message: 'Subtema añadido exitosamente',
-        data: subtopic,
+        message: 'Subtemas obtenidos exitosamente',
+        data: subtopics,
       });
     } catch (error) {
       if (error instanceof Error) {

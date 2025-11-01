@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "generate:token": "ts-node src/scripts/auth/generateAuthToken.ts",
     "get:token": "ts-node src/scripts/auth/getIdToken.ts",
+    "get:long:token": "ts-node src/scripts/auth/getLongLivedToken.ts",
     "test:create:course": "ts-node src/scripts/courses/testCreateCourse.ts",
     "test:update:course": "ts-node src/scripts/courses/testUpdateCourse.ts",
     "test:delete:course": "ts-node src/scripts/courses/testDeleteCourse.ts",
@@ -26,7 +27,8 @@
     "seed:topics": "ts-node src/scripts/seed/seedTopics.ts",
     "seed:all": "npm run seed:courses && npm run seed:topics",
     "seed:verify": "ts-node src/scripts/seed/verifySeed.ts",
-    "show:structure": "ts-node src/scripts/seed/showCourseStructure.ts"
+    "show:structure": "ts-node src/scripts/seed/showCourseStructure.ts",
+    "test:api:topics": "./scripts/tests/test-topics-subtopics.sh"
   },
   "keywords": [],
   "author": "",
