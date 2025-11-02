@@ -24,7 +24,7 @@ export class FindCourseByIdController {
         });
       } else {
         res.status(500).json({
-          succes: false,
+          success: false,
           message: 'Error interno del servidor',
         });
       }
