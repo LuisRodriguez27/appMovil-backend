@@ -1,7 +1,7 @@
 export class CreateCourseRequest {
   constructor(
     public readonly title: string,
-    public readonly description: string
+    public readonly description?: string
   ) {
     this.validate();
   }
@@ -19,15 +19,11 @@ export class CreateCourseRequest {
       throw new Error('El título del curso no puede exceder 200 caracteres');
     }
 
-    if (!this.description || this.description.trim().length === 0) {
-      throw new Error('Descripción del curso es requerida');
-    }
-
-    if (this.description.trim().length < 10) {
+    if (this.description && this.description.trim().length < 10) {
       throw new Error('La descripción del curso debe tener al menos 10 caracteres');
     }
 
-    if (this.description.trim().length > 1000) {
+    if (this.description && this.description.trim().length > 1000) {
       throw new Error('La descripción del curso no puede exceder 1000 caracteres');
     }
   }

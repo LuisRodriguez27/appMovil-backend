@@ -7,8 +7,7 @@ export class CourseProgress {
     public readonly lessonsCompleted: Map<string, boolean>,
     public readonly completedCount: number,
     public readonly percentage: number,
-    public readonly lastViewedLesson: string | null,
-    public readonly updatedAt: Date
+    public readonly lastViewedLesson: string | null
   ) {}
 
   /**
@@ -19,7 +18,6 @@ export class CourseProgress {
     completedCount?: number;
     percentage?: number;
     lastViewedLesson?: string | null;
-    updatedAt?: Date;
   }): CourseProgress {
     const lessonsMap = new Map(
       Object.entries(data?.lessonsCompleted || {})
@@ -29,8 +27,7 @@ export class CourseProgress {
       lessonsMap,
       data?.completedCount || 0,
       data?.percentage || 0,
-      data?.lastViewedLesson || null,
-      data?.updatedAt || new Date()
+      data?.lastViewedLesson || null
     );
   }
 
@@ -55,8 +52,7 @@ export class CourseProgress {
       newLessons,
       newCompletedCount,
       newPercentage,
-      lessonId,
-      new Date()
+      lessonId
     );
   }
 
@@ -75,8 +71,7 @@ export class CourseProgress {
       this.lessonsCompleted,
       this.completedCount,
       this.percentage,
-      lessonId,
-      new Date()
+      lessonId
     );
   }
 
@@ -92,8 +87,7 @@ export class CourseProgress {
       this.lessonsCompleted,
       this.completedCount,
       newPercentage,
-      this.lastViewedLesson,
-      this.updatedAt
+      this.lastViewedLesson
     );
   }
 
@@ -105,8 +99,7 @@ export class CourseProgress {
       lessons_completed: Object.fromEntries(this.lessonsCompleted),
       completed_count: this.completedCount,
       percentage: this.percentage,
-      last_viewed_lesson: this.lastViewedLesson,
-      updated_at: this.updatedAt
+      last_viewed_lesson: this.lastViewedLesson
     };
   }
 }
@@ -116,5 +109,4 @@ export type CourseProgressPrimitives = {
   completed_count: number;
   percentage: number;
   last_viewed_lesson: string | null;
-  updated_at: Date;
 };

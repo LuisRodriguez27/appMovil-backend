@@ -1,15 +1,9 @@
 import { firestore } from "../../../../app/config/configureFirebase";
 import { Course, CoursePrimitives } from "../../domain/Course";
 import { CourseRepository } from "../../domain/CourseRepository";
-import { Timestamp } from "firebase-admin/firestore";
 
-interface CourseDocument {
-  __id: string,
-  title: string,
-  description: string,
-  total_topics: number,
-  total_lessons: number,
-  created_at: Timestamp
+interface CourseDocument extends Omit<CoursePrimitives, 'id' > {
+  __id: string
 }
 
 export class FirebaseCourseRepository implements CourseRepository {
@@ -29,11 +23,8 @@ export class FirebaseCourseRepository implements CourseRepository {
       return null;
     }
 
-    const data = doc.data() as Omit<CourseDocument, '__id'>;
-    return this.toDomainEntity({
-      __id: doc.id,  // Usar el ID del documento de Firestore
-      ...data
-    });
+    const data = doc.data() as CourseDocument;
+    return this.toDomainEntity(data);
   }
 
   async findByTitle(title: string): Promise<Course | null> {
@@ -56,9 +47,9 @@ export class FirebaseCourseRepository implements CourseRepository {
   }
 
   async findAll(): Promise<Course[]> {
-    const snapshot = await firestore().collection(this.collection).get();
+    const doc = await firestore().collection(this.collection).get();
 
-    return snapshot.docs.map((doc) => {
+    return doc.docs.map((doc) => {
       const data = doc.data() as Omit<CourseDocument, '__id'>;
       return this.toDomainEntity({
         __id: doc.id,  // Usar el ID del documento de Firestore
@@ -99,10 +90,10 @@ export class FirebaseCourseRepository implements CourseRepository {
     return {
       __id: primitives.id,
       title: primitives.title,
+      totalTopics: primitives.totalTopics,
+      totalLessons: primitives.totalLessons,
       description: primitives.description,
-      total_topics: primitives.totalTopics,
-      total_lessons: primitives.totalLessons,
-      created_at: Timestamp.fromDate(primitives.createdAt)
+      createdAt: primitives.createdAt
     }
   }
 
@@ -111,9 +102,9 @@ export class FirebaseCourseRepository implements CourseRepository {
       id: document.__id,
       title: document.title,
       description: document.description,
-      totalTopics: document.total_topics,
-      totalLessons: document.total_lessons,
-      createdAt: document.created_at.toDate()
+      totalTopics: document.totalTopics,
+      totalLessons: document.totalLessons,
+      createdAt: document.createdAt
     })
   }
 }

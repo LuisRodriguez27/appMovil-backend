@@ -88,9 +88,9 @@ export class GetCourseStructureUseCase {
       course: {
         id: coursePrimitives.id,
         title: coursePrimitives.title,
-        description: coursePrimitives.description,
         totalTopics: coursePrimitives.totalTopics,
-        totalLessons: coursePrimitives.totalLessons
+        totalLessons: coursePrimitives.totalLessons,
+        description: coursePrimitives.description ?? '',
       },
       topics: topicsWithCounts
     };
