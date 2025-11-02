@@ -22,7 +22,6 @@ export interface LessonPrimitives {
   difficulty: 'easy' | 'medium' | 'hard';
   exercises: Exercise[];
   createdAt: Date;
-  updatedAt: Date;
 }
 
 export class Lesson {
@@ -37,11 +36,10 @@ export class Lesson {
     private estimatedTime: number,
     private difficulty: 'easy' | 'medium' | 'hard',
     private exercises: Exercise[],
-    public readonly createdAt: Date,
-    private updatedAt: Date
+    public readonly createdAt: Date
   ) {}
 
-  static create(data: Omit<LessonPrimitives, 'id' | 'createdAt' | 'updatedAt'>): Lesson {
+  static create(data: Omit<LessonPrimitives, 'id' | 'createdAt'>): Lesson {
     const now = new Date();
     return new Lesson(
       uid(),
@@ -54,7 +52,6 @@ export class Lesson {
       data.estimatedTime,
       data.difficulty,
       data.exercises,
-      now,
       now
     );
   }
@@ -71,8 +68,7 @@ export class Lesson {
       data.estimatedTime,
       data.difficulty,
       data.exercises,
-      data.createdAt,
-      data.updatedAt
+      data.createdAt
     );
   }
 
@@ -88,13 +84,12 @@ export class Lesson {
       estimatedTime: this.estimatedTime,
       difficulty: this.difficulty,
       exercises: this.exercises,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt
+      createdAt: this.createdAt
     };
   }
 
   // Métodos de actualización
-  public update(data: Partial<Omit<LessonPrimitives, 'id' | 'topicId' | 'subtopicId' | 'createdAt' | 'updatedAt'>>): void {
+  public update(data: Partial<Omit<LessonPrimitives, 'id' | 'topicId' | 'subtopicId' | 'createdAt'>>): void {
     if (data.title !== undefined) this.title = data.title;
     if (data.description !== undefined) this.description = data.description;
     if (data.content !== undefined) this.content = data.content;
@@ -103,42 +98,34 @@ export class Lesson {
     if (data.difficulty !== undefined) this.difficulty = data.difficulty;
     if (data.exercises !== undefined) this.exercises = data.exercises;
     
-    this.updatedAt = new Date();
   }
 
   public updateTitle(title: string): void {
     this.title = title;
-    this.updatedAt = new Date();
   }
 
   public updateDescription(description: string): void {
     this.description = description;
-    this.updatedAt = new Date();
   }
 
   public updateContent(content: string): void {
     this.content = content;
-    this.updatedAt = new Date();
   }
 
   public updateOrder(order: number): void {
     this.order = order;
-    this.updatedAt = new Date();
   }
 
   public updateEstimatedTime(estimatedTime: number): void {
     this.estimatedTime = estimatedTime;
-    this.updatedAt = new Date();
   }
 
   public updateDifficulty(difficulty: 'easy' | 'medium' | 'hard'): void {
     this.difficulty = difficulty;
-    this.updatedAt = new Date();
   }
 
   public updateExercises(exercises: Exercise[]): void {
     this.exercises = exercises;
-    this.updatedAt = new Date();
   }
 
   // Getters
@@ -168,10 +155,6 @@ export class Lesson {
 
   public getExercises(): Exercise[] {
     return [...this.exercises];
-  }
-
-  public getUpdatedAt(): Date {
-    return this.updatedAt;
   }
 
   // Métodos de negocio

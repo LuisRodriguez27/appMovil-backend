@@ -15,7 +15,6 @@ interface LessonDocument {
   difficulty: 'easy' | 'medium' | 'hard';
   exercises: Exercise[];
   created_at: Timestamp;
-  updated_at: Timestamp;
 }
 
 export class FirebaseLessonRepository implements LessonRepository {
@@ -166,7 +165,6 @@ export class FirebaseLessonRepository implements LessonRepository {
       difficulty: primitives.difficulty,
       exercises: primitives.exercises,
       created_at: Timestamp.fromDate(primitives.createdAt),   // Mapear camelCase → snake_case
-      updated_at: Timestamp.fromDate(primitives.updatedAt)    // Mapear camelCase → snake_case
     };
   }
 
@@ -183,7 +181,6 @@ export class FirebaseLessonRepository implements LessonRepository {
       difficulty: document.difficulty,
       exercises: document.exercises,
       createdAt: document.created_at.toDate(),       // Mapear snake_case → camelCase
-      updatedAt: document.updated_at.toDate()        // Mapear snake_case → camelCase
     });
   }
 }
