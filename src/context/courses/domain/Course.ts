@@ -27,7 +27,7 @@ export class Course {
       data.totalTopics,
       data.totalLessons,
       data.description,
-      data.createdAt
+      new Date(data.createdAt)
     );
   }
 
@@ -91,7 +91,7 @@ export class Course {
       totalTopics: this.totalTopics,
       totalLessons: this.totalLessons,
       description: this.description,
-      createdAt: this.createdAt
+      createdAt: this.createdAt.toISOString()
     }
   }
 }
@@ -102,5 +102,5 @@ export type CoursePrimitives = {
   totalTopics: number,
   totalLessons: number,
   description?: string,
-  createdAt: Date
+  createdAt: string
 }

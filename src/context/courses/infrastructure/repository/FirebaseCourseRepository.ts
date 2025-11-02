@@ -87,24 +87,26 @@ export class FirebaseCourseRepository implements CourseRepository {
   }
 
   private toFirestoreDocument(primitives: CoursePrimitives): CourseDocument {
-    return {
+    const document: any = {
       __id: primitives.id,
       title: primitives.title,
       totalTopics: primitives.totalTopics,
       totalLessons: primitives.totalLessons,
-      description: primitives.description,
-      createdAt: primitives.createdAt
-    }
+      createdAt: primitives.createdAt,
+      ...(primitives.description !== undefined ? { description: primitives.description } : {})
+    };
+
+    return document;
   }
 
   private toDomainEntity(document: CourseDocument): Course {
     return Course.fromPrimitives({
       id: document.__id,
       title: document.title,
-      description: document.description,
       totalTopics: document.totalTopics,
       totalLessons: document.totalLessons,
+      description: document.description,
       createdAt: document.createdAt
-    })
+    });
   }
 }
