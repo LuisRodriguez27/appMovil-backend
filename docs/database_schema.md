@@ -39,31 +39,16 @@
 
   progress: {
     [course_id: string]: {
-      lessons: {
-        [lesson_id: string]: {
-          exerciseCompleted: boolean;
-          totalPointsEarned: number;
-          attempts: number;
-          isCompleted: boolean;
-          startedAt: Date;
-          lastAccessed: Date;
-          completedAt?: Date;
-        }
-      };
-      completed_count: number;
-      percentage: number;
-      last_viewed_lesson: string | null;
+      last_lesson_id: string;      // Última lección accedida en este curso
+      completed_count: number;      // Lecciones completadas del curso
+      percentage: number;           // % del curso completado
+      completedAt?: Date;           // Cuándo completó todo el curso
     }
   };
 
   achievements: {
     achievement_id: string;
-    title: string;
-    description: string;
-    points: number;
-    rarity: 'comun' | 'especial' | 'epico' | 'legendario';
-    icon?: string;
-    unlocked_at: Date;
+    quantity: number
   }[];
 
   streak_data: {
@@ -82,7 +67,7 @@
 
 **Relaciones**:
 - `current_course` → `courses.__id`
-- `progress[course_id].lessons[lesson_id]` → `lessons.__id`
+- `progress[course_id].last_lesson_id` → `lessons.__id`
 - `achievements[].achievement_id` → `achievements.__id`
 
 **Índices**: email (único), control_number (único), role, xp (desc), streak_data.current_streak (desc)
@@ -192,9 +177,9 @@
 {
   __id: string;
   title: string;
-  description: string;
-  points: number;
-  rarity: 'comun' | 'especial' | 'epico' | 'legendario';
+  description?: string;
+  points: number;   //Los puntos dependeran de la rareza
+  rarity: 'common' | 'special' | 'epic' | 'legendary';
   icon?: string;
   condition: {
     type: 'complete_lessons' | 'streak_days' | 'xp_total' | 'complete_course' | 'perfect_lesson' | 'level_reached';
@@ -206,7 +191,7 @@
 
 **Índices**: rarity
 
-**Nota**: Al desbloquear, se copian datos completos a `users.achievements[]`
+**Nota**: Al desbloquear, se copian datos completos a `users.achievements[]`. Los logros de rareza comun otrorgaran 10 xp, especial 25, epico 50 y legendario 100
 
 ---
 
@@ -248,16 +233,9 @@ firestore().collection('lessons').where('topic_id', '==', topicId).where('is_fin
 firestore().collection('users').doc(userId).set({
   progress: {
     [courseId]: {
-      lessons: {
-        [lessonId]: {
-          exerciseCompleted: false,
-          totalPointsEarned: 0,
-          attempts: 0,
-          isCompleted: false,
-          startedAt: FieldValue.serverTimestamp(),
-          lastAccessed: FieldValue.serverTimestamp()
-        }
-      }
+      last_lesson_id: lessonId,
+      completed_count: 0,
+      percentage: 0
     }
   }
 }, { merge: true });
@@ -266,15 +244,10 @@ firestore().collection('users').doc(userId).set({
 firestore().collection('users').doc(userId).set({
   progress: {
     [courseId]: {
-      lessons: {
-        [lessonId]: {
-          exerciseCompleted: true,
-          isCompleted: true,
-          totalPointsEarned: points,
-          completedAt: FieldValue.serverTimestamp()
-        }
-      },
-      completed_count: FieldValue.increment(1)
+      last_lesson_id: lessonId,
+      completed_count: FieldValue.increment(1),
+      percentage: newPercentage,
+      completedAt: isCourseComplete ? FieldValue.serverTimestamp() : undefined
     }
   },
   stats: {
