@@ -36,7 +36,6 @@
   current_course: string | null;
   profile_picture: string | null;
   created_at: Date;
-  updated_at: Date;
 
   progress: {
     [course_id: string]: {
@@ -107,7 +106,6 @@
   total_topics: number;     // Actualizado con FieldValue.increment()
   total_lessons: number;    // Actualizado con FieldValue.increment()
   created_at: Date;
-  updated_at: Date;
 }
 ```
 
@@ -125,7 +123,6 @@
   description: string;
   order: number;
   created_at: Date;
-  updated_at: Date;
 }
 ```
 
@@ -180,7 +177,6 @@
   };
 
   created_at: Date;
-  updated_at: Date;
 }
 ```
 
@@ -206,6 +202,7 @@
     type: 'complete_lessons' | 'streak_days' | 'xp_total' | 'complete_course' | 'perfect_lesson' | 'level_reached';
     value: number | string;
   };
+  created_At: Date
 }
 ```
 
