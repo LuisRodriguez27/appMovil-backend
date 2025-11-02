@@ -53,7 +53,6 @@
       completed_count: number;
       percentage: number;
       last_viewed_lesson: string | null;
-      updated_at: Date;
     }
   };
 
@@ -102,10 +101,10 @@
 {
   __id: string;
   title: string;
-  description: string;
-  total_topics: number;     // Actualizado con FieldValue.increment()
-  total_lessons: number;    // Actualizado con FieldValue.increment()
-  created_at: Date;
+  totalTopics: number;     // Actualizado con FieldValue.increment()
+  totalLessons: number;    // Actualizado con FieldValue.increment()
+  description?: string;
+  createdAt: Date;
 }
 ```
 
@@ -140,7 +139,6 @@
   description: string;
   order: number;
   created_at: Date;
-  updated_at: Date;
 }
 ```
 
