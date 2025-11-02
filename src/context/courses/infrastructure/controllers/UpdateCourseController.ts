@@ -18,11 +18,8 @@ export class UpdateCourseController {
 
       const course = await this.updateCourseUseCase.execute(request);
 
-      res.status(200).json({
-        success: true,
-        message: 'Curso actualizado exitosamente',
-        data: course.toPrimitives(),
-      });
+      res.status(200).json(course);
+      
     } catch (error) {
       if (error instanceof Error) {
         let statusCode = 400;

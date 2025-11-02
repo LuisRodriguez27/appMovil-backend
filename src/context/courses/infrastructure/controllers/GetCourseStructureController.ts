@@ -10,10 +10,8 @@ export class GetCourseStructureController {
 
       const courseStructure = await this.getCourseStructureUseCase.execute(id);
 
-      res.status(200).json({
-        success: true,
-        data: courseStructure,
-      });
+      res.status(200).json(courseStructure);
+      
     } catch (error) {
       if (error instanceof Error) {
         const statusCode = error.message === 'Curso no encontrado' ? 404 : 400;

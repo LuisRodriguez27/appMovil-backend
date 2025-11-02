@@ -8,11 +8,8 @@ export class FindAllCoursesController {
     try {
       const courses = await this.findAllCoursesUseCase.execute();
 
-      res.status(200).json({
-        success: true,
-        data: courses.map((course) => course.toPrimitives()),
-        count: courses.length,
-      });
+      res.status(200).json(courses);
+      
     } catch (error) {
       if (error instanceof Error) {
         res.status(400).json({

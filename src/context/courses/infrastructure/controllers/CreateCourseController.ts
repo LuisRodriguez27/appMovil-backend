@@ -16,11 +16,8 @@ export class CreateCourseController {
 
       const course = await this.createCourseUseCase.execute(request);
 
-      res.status(201).json({
-        success: true,
-        message: 'Curso creado exitosamente',
-        data: course.toPrimitives(),
-      });
+      res.status(201).json(course);
+      
     } catch (error) {
       if (error instanceof Error) {
         const statusCode = error.message.includes('Ya existe') ? 409 : 400;

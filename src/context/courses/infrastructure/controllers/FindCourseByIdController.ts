@@ -7,18 +7,21 @@ export class FindCourseByIdController {
   async run(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-
       const course = await this.findCourseByIdUseCase.execute(id);
 
-      res.status(200).json({
-        success: true,
-        data: course.toPrimitives(),
-      });
+      if (!course) {
+				res.status(404).json({
+					success: false,
+					message: "Curso no encontrado",
+				});
+				return;
+			}
+
+      res.status(200).json(course.toPrimitives());
+
     } catch (error) {
       if (error instanceof Error) {
-        const statusCode = error.message === 'Curso no encontrado' ? 404 : 400;
-
-        res.status(statusCode).json({
+        res.status(400).json({
           success: false,
           message: error.message,
         });
