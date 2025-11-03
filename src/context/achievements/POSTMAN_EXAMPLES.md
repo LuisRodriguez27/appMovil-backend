@@ -5,46 +5,74 @@
 POST http://localhost:3000/api/achievements
 ```
 
-**Headers:**
+**Tipos de rarezas permitidas (los puntos se asignan automáticamente):**
 ```
-Content-Type: application/json
-```
-
-**Tipos de rarezas permitidas:**
-```
-'comun', 'especial', 'epico', 'legendario'
+'common' → 10 XP
+'special' → 25 XP
+'epic' → 50 XP
+'legendary' → 100 XP
 ```
 
 **Tipos de condiciones permitidas:**
-```
-'complete_lessons', 'streak_days', 'xp_total'. 'complete_course', 'perfect_score';
+```json
+{
+  "type": "complete_lessons",
+  "value": 10  // número de lecciones
+}
+{
+  "type": "streak_days",
+  "value": 7  // días de racha
+}
+{
+  "type": "xp_total",
+  "value": 1000  // XP total acumulado
+}
+{
+  "type": "complete_course",
+  "value": "course_id_123"  // ID del curso
+}
+{
+  "type": "perfect_lesson",
+  "value": 5  // número de lecciones perfectas
+}
+{
+  "type": "level_reached",
+  "value": 10  // nivel alcanzado
+}
 ```
 
 **Body (JSON):**
 ```json
 {
   "title": "Primera Victoria",
-  "description": "Completa tu primera lección",
-  "points": 25,
   "rarity": "comun",
+  "condition": {
+    "type": "complete_lessons",
+    "value": 1
+  },
+  "description": "Completa tu primera lección",
   "icon": "🏆",
-  "condition": "complete_lessons"
 }
 ```
 
-**Response (200):**
+**Response (201):**
 ```json
 {
   "id": "abc123",
   "title": "Primera Victoria",
-  "description": "Completa tu primera lección",
-  "points": 25,
   "rarity": "comun",
+  "condition": {
+    "type": "complete_lessons",
+    "value": 1
+  },
+  "points": 10,
+  "description": "Completa tu primera lección",
   "icon": "🏆",
-  "condition": "complete_lessons",
   "createdAt": "2025-01-26T10:30:00.000Z"
 }
 ```
+
+**Nota:** El campo `points` NO se envía en el request, se asigna automáticamente según la rareza.
 
 ---
 
@@ -55,33 +83,17 @@ Content-Type: application/json
 PUT http://localhost:3000/api/achievements/{id}
 ```
 
-**Example:**
-```
-PUT http://localhost:3000/api/achievements/abc123
-```
-
-**Headers:**
-```
-Content-Type: application/json
-```
-
 **Body (JSON) - Update all fields:**
 ```json
 {
   "title": "Primera Victoria Actualizada",
   "description": "Completa tu primera lección con éxito",
-  "points": 30,
-  "rarity": "comun",
+  "rarity": "especial",
   "icon": "🎯",
-  "condition": "complete_lessons"
-}
-```
-
-**Body (JSON) - Update only some fields:**
-```json
-{
-  "title": "Nuevo Título",
-  "points": 35
+  "condition": {
+    "type": "complete_lessons",
+    "value": 5
+  }
 }
 ```
 
@@ -89,12 +101,20 @@ Content-Type: application/json
 ```json
 {
   "id": "abc123",
-  "title": "Nueva Título",
+  "title": "Nuevo Título",
   "description": "Completa tu primera lección con éxito",
-  "points": 35,
-  "rarity": "comun",
-  "icon": "🎯",
-  "condition": "complete_lessons",
+  "points": 50,
+  "rarity": "epico",
+  "icon": "�",
+  "condition": {
+    "type": "complete_lessons",
+    "value": 5
+  },
   "createdAt": "2025-01-26T10:30:00.000Z"
 }
 ```
+
+**Nota:** 
+- El campo `points` NO se puede actualizar directamente
+- Si cambias la `rarity`, los `points` se actualizan automáticamente
+- Al cambiar rareza a `epico`, los puntos pasan automáticamente a 50 XP

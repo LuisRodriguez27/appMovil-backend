@@ -176,22 +176,28 @@
 ```typescript
 {
   __id: string;
-  title: string;
-  description?: string;
-  points: number;   //Los puntos dependeran de la rareza
+  title: string;  // Se asignan automáticamente según la rareza
   rarity: 'common' | 'special' | 'epic' | 'legendary';
-  icon?: string;
   condition: {
     type: 'complete_lessons' | 'streak_days' | 'xp_total' | 'complete_course' | 'perfect_lesson' | 'level_reached';
-    value: number | string;
+    value: number | string;  // number para contadores, string para complete_course (course_id)
   };
-  created_At: Date
+  points: number; 
+  description?: string;
+  icon?: string;
+  createdAt: Date
 }
 ```
 
 **Índices**: rarity
 
-**Nota**: Al desbloquear, se copian datos completos a `users.achievements[]`. Los logros de rareza comun otrorgaran 10 xp, especial 25, epico 50 y legendario 100
+**Puntos por rareza (asignación automática)**:
+- `common`: 10 XP
+- `special`: 25 XP
+- `epic`: 50 XP
+- `legendary`: 100 XP
+
+**Nota**: Al desbloquear, se copian datos completos a `users.achievements[]`. Los puntos se asignan automáticamente al crear o actualizar según la rareza.
 
 ---
 

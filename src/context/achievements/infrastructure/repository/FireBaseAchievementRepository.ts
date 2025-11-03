@@ -74,21 +74,23 @@ export class FireBaseAchievementRepository implements AchievementRepository {
 			? primitives.rarity
 			: (primitives.rarity as any).value;
 
-		// Handle condition - could be string (ConditionType) or Condition object
-		const condition = typeof primitives.condition === 'string'
-			? primitives.condition
-			: (primitives.condition as any).value;
+		// Handle condition - could be ConditionProps object or Condition instance
+		const condition = 'toPrimitives' in primitives.condition
+			? primitives.condition.toPrimitives()
+			: primitives.condition;
 
-		return {
+		const document: any = {
 			__id: primitives.id,
 			title: primitives.title,
-			description: primitives.description,
-			points: primitives.points,
 			rarity: rarity,
-			icon: primitives.icon,
 			condition: condition,
-			createdAt: primitives.createdAt
+			points: primitives.points,
+			createdAt: primitives.createdAt,
+			...(primitives.description !== undefined ? { description: primitives.description } : {}),
+			...(primitives.icon !== undefined ? { icon: primitives.icon } : {})
 		};
+
+		return document;
 	}
 
 	private toDomainEntity(doc: AchievementDocument): Achievement {

@@ -7,15 +7,14 @@ export class CreateAchievementController {
 
 	async run(req: Request, res: Response): Promise<void> {
 		try {
-			const {title, description, points, rarity, icon, condition} = req.body;
+			const { title, rarity, condition, description, icon } = req.body;
 
 			const request = new CreateAchievementRequest(
 				title,
-				description,
-				points,
 				rarity,
+				condition,
+				description,
 				icon,
-				condition
 			);
 
 			const achievement = await this.createAchievementUseCase.execute(request);

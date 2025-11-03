@@ -9,7 +9,6 @@ export class CreateAchievementUseCase {
     const achievement = Achievement.create({
       title: request.title,
       description: request.description,
-      points: request.points,
       rarity: request.rarity,
       icon: request.icon,
       condition: request.condition

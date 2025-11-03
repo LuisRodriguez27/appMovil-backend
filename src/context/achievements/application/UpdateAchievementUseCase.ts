@@ -19,7 +19,6 @@ export class UpdateAchievementUseCase {
     achievement.update({
       title: request.title,
       description: request.description,
-      points: request.points,
       rarity: request.rarity,
       icon: request.icon,
       condition: request.condition

@@ -8,7 +8,7 @@ export class FindAchievementByIdUseCase {
     const achievement = await this.achievementRepository.findById(id);
 
     if (!achievement) {
-      throw new Error(`Achievement con el ${id} no encontrado.`);
+      throw new Error(`Achievement con el id ${id} no encontrado.`);
     }
     return achievement.toPrimitives();
   }
