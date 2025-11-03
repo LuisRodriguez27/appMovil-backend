@@ -3,7 +3,7 @@ import { Topic } from "../domain/Topic";
 import { UpdateTopicRequest } from "./requests/UpdateTopicRequest";
 
 export class UpdateTopicUseCase {
-  constructor(private readonly topicRepository: TopicRepository) {}
+  constructor(private readonly topicRepository: TopicRepository) { }
 
   async execute(request: UpdateTopicRequest): Promise<Topic> {
     // Verificar que el topic existe
@@ -19,7 +19,7 @@ export class UpdateTopicUseCase {
       const topicsInCourse = await this.topicRepository.findByCourseId(topic.getCourseId());
       const existingTopicByTitle = topicsInCourse.find(
         t => t.getId() !== request.id &&
-             t.getTitle().toLowerCase() === request.title!.trim().toLowerCase()
+          t.getTitle().toLowerCase() === request.title!.trim().toLowerCase()
       );
 
       if (existingTopicByTitle) {
@@ -27,24 +27,12 @@ export class UpdateTopicUseCase {
       }
     }
 
-    // Actualizar el topic
     topic.update({
       title: request.title?.trim(),
+      order: request.order,
       description: request.description?.trim(),
-      order: request.order
     });
 
-    // Reemplazar subtopics si se proporcionaron
-    if (request.subtopics !== undefined) {
-      const trimmedSubtopics = request.subtopics.map(st => ({
-        title: st.title.trim(),
-        description: st.description.trim(),
-        order: st.order
-      }));
-      topic.replaceAllSubtopics(trimmedSubtopics);
-    }
-
-    // Persistir
     await this.topicRepository.update(topic);
 
     return topic;

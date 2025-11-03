@@ -8,16 +8,13 @@ export class UpdateTopicController {
   async run(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const { title, description, order, subtopics } = req.body;
+      const { title, order, description } = req.body;
 
-      const request = new UpdateTopicRequest(id, title, description, order, subtopics);
+      const request = new UpdateTopicRequest( id, title, order, description );
       const topic = await this.updateTopicUseCase.execute(request);
 
-      res.status(200).json({
-        success: true,
-        message: 'Tema actualizado exitosamente',
-        data: topic.toPrimitives(),
-      });
+      res.status(200).json(topic);
+      
     } catch (error) {
       if (error instanceof Error) {
         let statusCode = 400;
