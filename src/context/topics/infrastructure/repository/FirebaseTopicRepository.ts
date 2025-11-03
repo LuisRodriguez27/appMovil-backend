@@ -1,14 +1,9 @@
 import { firestore } from "../../../../app/config/configureFirebase";
-import { Topic, TopicPrimitives, Subtopic } from "../../domain/Topic";
+import { Topic, TopicPrimitives } from "../../domain/Topic";
 import { TopicRepository } from "../../domain/TopicRepository";
 
-interface TopicDocument {
+interface TopicDocument extends Omit<TopicPrimitives, 'id' > {
   __id: string;
-  course_id: string;
-  title: string;
-  description: string;
-  order: number;
-  subtopics: Subtopic[];
 }
 
 export class FirebaseTopicRepository implements TopicRepository {
@@ -66,17 +61,6 @@ export class FirebaseTopicRepository implements TopicRepository {
     await firestore().collection(this.collection).doc(id).delete();
   }
 
-  private toFirestoreDocument(primitives: TopicPrimitives): TopicDocument {
-    return {
-      __id: primitives.id,
-      course_id: primitives.courseId,
-      title: primitives.title,
-      description: primitives.description,
-      order: primitives.order,
-      subtopics: primitives.subtopics
-    };
-  }
-
   async deleteAllByCourseId(courseId: string): Promise<void> {
     const snapshot = await firestore()
       .collection(this.collection)
@@ -92,14 +76,25 @@ export class FirebaseTopicRepository implements TopicRepository {
     await batch.commit();
   }
 
+  private toFirestoreDocument(primitives: TopicPrimitives): TopicDocument {
+    return {
+      __id: primitives.id,
+      courseId: primitives.courseId,
+      title: primitives.title,
+      order: primitives.order,
+      createdAt: primitives.createdAt,
+      ...(primitives.description !== undefined ? { description: primitives.description } : {})
+    };
+  }
+
   private toDomainEntity(document: TopicDocument): Topic {
     return Topic.fromPrimitives({
       id: document.__id,
-      courseId: document.course_id,
+      courseId: document.courseId,
       title: document.title,
-      description: document.description,
       order: document.order,
-      subtopics: document.subtopics
+      description: document.description,
+      createdAt: document.createdAt
     });
   }
 }

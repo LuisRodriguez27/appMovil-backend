@@ -7,16 +7,14 @@ export class CreateTopicController {
 
   async run(req: Request, res: Response): Promise<void> {
     try {
-      const { courseId, title, description, order, subtopics } = req.body;
+      const { courseId, title, order, description } = req.body;
 
-      const request = new CreateTopicRequest(courseId, title, description, order, subtopics);
+      const request = new CreateTopicRequest(courseId, title, order, description);
+      
       const topic = await this.createTopicUseCase.execute(request);
 
-      res.status(201).json({
-        success: true,
-        message: 'Tema creado exitosamente',
-        data: topic.toPrimitives(),
-      });
+      res.status(201).json(topic);
+
     } catch (error) {
       if (error instanceof Error) {
         let statusCode = 400;
