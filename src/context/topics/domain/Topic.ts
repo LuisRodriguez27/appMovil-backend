@@ -31,7 +31,7 @@ export class Topic {
     );
   }
 
-  public update(data: Partial<Omit<TopicPrimitives, 'id' | 'courseId' | 'subtopics'>>): void {
+  public update(data: Partial<Omit<TopicPrimitives, 'id' | 'courseId' >>): void {
     if (data.title !== undefined) this.title = data.title;
     if (data.order !== undefined) this.order = data.order;
     if (data.description !== undefined) this.description = data.description;
