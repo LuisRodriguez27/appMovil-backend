@@ -8,10 +8,8 @@ export class FindAllTopicsController {
     try {
       const topics = await this.findAllTopicsUseCase.execute();
 
-      res.status(200).json({
-        success: true,
-        data: topics.map(topic => topic.toPrimitives()),
-      });
+      res.status(200).json(topics);
+      
     } catch (error) {
       if (error instanceof Error) {
         res.status(400).json({

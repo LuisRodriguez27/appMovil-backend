@@ -30,7 +30,7 @@ export class FirebaseTopicRepository implements TopicRepository {
   async findByCourseId(courseId: string): Promise<Topic[]> {
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('course_id', '==', courseId)
+      .where('courseId', '==', courseId)
       .orderBy('order', 'asc')
       .get();
 
@@ -64,7 +64,7 @@ export class FirebaseTopicRepository implements TopicRepository {
   async deleteAllByCourseId(courseId: string): Promise<void> {
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('course_id', '==', courseId)
+      .where('courseId', '==', courseId)
       .get();
 
     // Eliminar todos los topics del curso en batch

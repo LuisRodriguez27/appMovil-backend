@@ -10,10 +10,8 @@ export class FindTopicByIdController {
 
       const topic = await this.findTopicByIdUseCase.execute(id);
 
-      res.status(200).json({
-        success: true,
-        data: topic.toPrimitives(),
-      });
+      res.status(200).json(topic);
+      
     } catch (error) {
       if (error instanceof Error) {
         const statusCode = error.message === 'Tema no encontrado' ? 404 : 400;
