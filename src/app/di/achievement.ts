@@ -10,6 +10,8 @@ import { FindAllAchievementController } from "../../context/achievements/infrast
 import { FindAchievementByIdController } from "../../context/achievements/infrastructure/controllers/FindAchievementByIdController";
 import { UpdateAchievementController } from "../../context/achievements/infrastructure/controllers/UpdateAchievementController";
 import { DeleteAchievementController } from "../../context/achievements/infrastructure/controllers/DeleteAchievementController";
+import { FindAchievementsByRarityUseCase } from "../../context/achievements/application/FindAchievementsByRarityUseCase";
+import { FindAchievementsByRarityController } from "../../context/achievements/infrastructure/controllers/FindAchievementsByRarityController";
 
 export default function registerAchievementDependencies(container: ContainerBuilder) {
 	// REPOSITORY
@@ -36,6 +38,9 @@ export default function registerAchievementDependencies(container: ContainerBuil
 		.register("DeleteAchievementUseCase", DeleteAchievementUseCase)
 		.addArgument(new Reference("AchievementRepository"));
 
+	container
+		.register("FindAchievementsByRarityUseCase", FindAchievementsByRarityUseCase)
+		.addArgument(new Reference("AchievementRepository"));
 
 	// Controllers
 	container
@@ -57,6 +62,10 @@ export default function registerAchievementDependencies(container: ContainerBuil
 	container
 		.register("DeleteAchievementController", DeleteAchievementController)
 		.addArgument(new Reference("DeleteAchievementUseCase"));
+
+	container
+		.register("FindAchievementsByRarityController", FindAchievementsByRarityController)
+		.addArgument(new Reference("FindAchievementsByRarityUseCase"));
 
 	return container;
 }

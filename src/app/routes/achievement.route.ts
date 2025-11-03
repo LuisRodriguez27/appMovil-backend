@@ -7,6 +7,7 @@ import { UpdateAchievementController } from "../../context/achievements/infrastr
 import { DeleteAchievementController } from "../../context/achievements/infrastructure/controllers/DeleteAchievementController";
 import { UserRepository } from "../../context/users/domain/UserRepository";
 import { verifyFirebaseToken, requireRole } from "../middleware/auth.middleware";
+import { FindAchievementsByRarityController } from "../../context/achievements/infrastructure/controllers/FindAchievementsByRarityController";
 
 export const register = async (app: Express, container: ContainerBuilder) => {
 	const findAllAchievementController = container.get<FindAllAchievementController>("FindAllAchievementController");
@@ -14,6 +15,7 @@ export const register = async (app: Express, container: ContainerBuilder) => {
 	const createAchievementController = container.get<CreateAchievementController>("CreateAchievementController");
 	const updateAchievementController = container.get<UpdateAchievementController>("UpdateAchievementController");
 	const deleteAchievementController = container.get<DeleteAchievementController>("DeleteAchievementController");
+	const findAchievementsByRarityController = container.get<FindAchievementsByRarityController>("FindAchievementsByRarityController");
 
 	const userRepository = container.get<UserRepository>("UserRepository");
   const authMiddleware = verifyFirebaseToken(userRepository);
@@ -26,5 +28,6 @@ export const register = async (app: Express, container: ContainerBuilder) => {
 	// STUDENT & ADMIN
 	app.get("/achievements", authMiddleware, requireRole(['student', 'admin']), (req, res) => findAllAchievementController.run(req, res));
 	app.get("/achievements/:id", authMiddleware, requireRole(['student', 'admin']), (req, res) => findAchievementByIdController.run(req, res));
+	app.get("/achievements/rarity/:rarity", authMiddleware, requireRole(['student', 'admin']), (req, res) => findAchievementsByRarityController.run(req, res));
 
 };
