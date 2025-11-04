@@ -10,6 +10,8 @@ import { FindSubtopicByTopicIdUseCase } from "../../context/subtopics/applicatio
 import { FindSubtopicByTopicIdController } from "../../context/subtopics/infrastructure/controllers/FindSubtopicByTopicIdController";
 import { DeleteSubtopicUseCase } from "../../context/subtopics/application/DeleteSubtopicUseCase";
 import { DeleteSubtopicController } from "../../context/subtopics/infrastructure/controllers/DeleteSubtopicController";
+import { UpdateSubtopicUseCase } from "../../context/subtopics/application/UpdateSubtopicUseCase";
+import { UpdateSubtopicController } from "../../context/subtopics/infrastructure/controllers/UpdateSubtopicController";
 
 export default function registerSubtopicsDependencies(container: ContainerBuilder) {
 	container.register("SubtopicRepository", FireBaseSubtopicRepository);
@@ -36,6 +38,9 @@ export default function registerSubtopicsDependencies(container: ContainerBuilde
 		.register("DeleteSubtopicUseCase", DeleteSubtopicUseCase)
 		.addArgument(new Reference("SubtopicRepository"));
 
+	container
+		.register("UpdateSubtopicUseCase", UpdateSubtopicUseCase)
+		.addArgument(new Reference("SubtopicRepository"));
 
 	// Controllers
 	container
@@ -58,5 +63,9 @@ export default function registerSubtopicsDependencies(container: ContainerBuilde
 		.register("DeleteSubtopicController", DeleteSubtopicController)
 		.addArgument(new Reference("DeleteSubtopicUseCase"));	
 
-	return container;	
-}	
+	container
+		.register("UpdateSubtopicController", UpdateSubtopicController)
+		.addArgument(new Reference("UpdateSubtopicUseCase"));
+
+	return container;
+}

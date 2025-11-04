@@ -52,8 +52,12 @@ export class FireBaseSubtopicRepository implements SubtopicRepository {
 		});
 	}
 
-	update(subtopic: Subtopic): Promise<void> {
-		throw new Error("Method not implemented.");
+	async update(subtopic: Subtopic): Promise<void> {
+		const primitives = subtopic.toPrimitives();
+    const document = this.toFirestoreDocument(primitives);
+    const { __id, ...data } = document;
+
+    await firestore().collection(this.collection).doc(__id).update(data);
 	}
 
 	async delete(id: string): Promise<void> {
