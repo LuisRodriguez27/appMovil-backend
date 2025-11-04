@@ -27,8 +27,13 @@ export class FireBaseSubtopicRepository implements SubtopicRepository {
 		return this.toDomainEntity(data);
 	}
 	
-	findAll(): Promise<Subtopic[]> {
-		throw new Error("Method not implemented.");
+	async findAll(): Promise<Subtopic[]> {
+		const doc = await firestore().collection(this.collection).get();
+
+		return doc.docs.map((doc) => {
+			const data = doc.data() as SubtopicDocument;
+			return this.toDomainEntity(data);
+		});
 	}
 
 	async findByTopicId(topicId: string): Promise<Subtopic[]> {
