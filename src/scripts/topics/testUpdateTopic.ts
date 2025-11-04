@@ -43,8 +43,8 @@ async function testUpdateTopic() {
     const request2 = new UpdateTopicRequest(
       topic.getId(),
       undefined,
-      'Nueva descripción actualizada con más detalles para el tema',
-      10
+      10,
+      'Nueva descripción actualizada con más detalles para el tema'
     );
     const updatedTopic2 = await updateTopicUseCase.execute(request2);
     console.log('✅ Descripción actualizada:', updatedTopic2.getDescription());
@@ -57,8 +57,8 @@ async function testUpdateTopic() {
     const request3 = new UpdateTopicRequest(
       topic.getId(),
       'Título Completo Actualizado',
-      'Descripción completamente actualizada con toda la información necesaria',
-      5
+      5,
+      'Descripción completamente actualizada con toda la información necesaria'
     );
     const updatedTopic3 = await updateTopicUseCase.execute(request3);
     console.log('✅ Topic completamente actualizado:', JSON.stringify(updatedTopic3.toPrimitives(), null, 2));

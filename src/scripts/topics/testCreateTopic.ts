@@ -34,8 +34,8 @@ async function testCreateTopic() {
     const request1 = new CreateTopicRequest(
       course.getId(),
       'Introducción al Curso',
+      1,
       'Este tema cubre los conceptos básicos y la introducción al curso',
-      1
     );
     const topic1 = await createTopicUseCase.execute(request1);
     console.log('✅ Topic creado:', JSON.stringify(topic1.toPrimitives(), null, 2));
@@ -47,8 +47,8 @@ async function testCreateTopic() {
     const request2 = new CreateTopicRequest(
       course.getId(),
       'Fundamentos Básicos',
+      2,
       'Este tema explica los fundamentos básicos del curso',
-      2
     );
     const topic2 = await createTopicUseCase.execute(request2);
     console.log('✅ Segundo topic creado:', topic2.getTitle());
@@ -61,8 +61,8 @@ async function testCreateTopic() {
       const requestDuplicate = new CreateTopicRequest(
         course.getId(),
         'Introducción al Curso', // Mismo título que topic1
+        3,
         'Descripción diferente',
-        3
       );
       await createTopicUseCase.execute(requestDuplicate);
       console.log('❌ ERROR: Debería haber fallado con título duplicado');
@@ -78,8 +78,8 @@ async function testCreateTopic() {
       const request3 = new CreateTopicRequest(
         'curso_inexistente_123',
         'Tema válido',
+        1,
         'Descripción válida',
-        1
       );
       await createTopicUseCase.execute(request3);
       console.log('❌ ERROR: Debería haber fallado con curso no encontrado');
@@ -95,8 +95,8 @@ async function testCreateTopic() {
       new CreateTopicRequest(
         course.getId(),
         '',
+        1,
         'Descripción válida',
-        1
       );
       console.log('❌ ERROR: Debería haber fallado en la validación');
     } catch (error: any) {
@@ -111,8 +111,8 @@ async function testCreateTopic() {
       new CreateTopicRequest(
         course.getId(),
         'Tema válido',
+        1,
         'Corta',
-        1
       );
       console.log('❌ ERROR: Debería haber fallado en la validación');
     } catch (error: any) {
@@ -127,8 +127,8 @@ async function testCreateTopic() {
       new CreateTopicRequest(
         course.getId(),
         'Tema válido',
+        0,
         'Descripción válida para el tema',
-        0
       );
       console.log('❌ ERROR: Debería haber fallado en la validación');
     } catch (error: any) {
