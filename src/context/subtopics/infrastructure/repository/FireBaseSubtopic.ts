@@ -56,8 +56,8 @@ export class FireBaseSubtopicRepository implements SubtopicRepository {
 		throw new Error("Method not implemented.");
 	}
 
-	delete(id: string): Promise<void> {
-		throw new Error("Method not implemented.");
+	async delete(id: string): Promise<void> {
+		await firestore().collection(this.collection).doc(id).delete();
 	}
 
 	private toFirestoreDocument(primitives: SubtopicPrimitives): SubtopicDocument {
