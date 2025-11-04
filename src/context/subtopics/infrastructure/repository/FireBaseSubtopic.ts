@@ -15,6 +15,15 @@ export class FireBaseSubtopicRepository implements SubtopicRepository {
 
 		await firestore().collection(this.collection).doc(document.__id).set(document);
 	}
+	
+	async findAll(): Promise<Subtopic[]> {
+		const doc = await firestore().collection(this.collection).get();
+
+		return doc.docs.map((doc) => {
+			const data = doc.data() as SubtopicDocument;
+			return this.toDomainEntity(data);
+		});
+	}
 
 	async findById(id: string): Promise<Subtopic | null> {
 		const doc = await firestore().collection(this.collection).doc(id).get();
@@ -25,15 +34,6 @@ export class FireBaseSubtopicRepository implements SubtopicRepository {
 
 		const data = doc.data() as SubtopicDocument;
 		return this.toDomainEntity(data);
-	}
-	
-	async findAll(): Promise<Subtopic[]> {
-		const doc = await firestore().collection(this.collection).get();
-
-		return doc.docs.map((doc) => {
-			const data = doc.data() as SubtopicDocument;
-			return this.toDomainEntity(data);
-		});
 	}
 
 	async findByTopicId(topicId: string): Promise<Subtopic[]> {

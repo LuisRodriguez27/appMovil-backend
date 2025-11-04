@@ -4,6 +4,8 @@ import { CreateSubtopicUseCase } from "../../context/subtopics/application/Creat
 import { CreateSubtopicController } from "../../context/subtopics/infrastructure/controllers/CreateSubtopicController";
 import { FindAllSubtopicsUseCase } from "../../context/subtopics/application/FindAllSubtopicsUseCase";
 import { FindAllSubtopicsController } from "../../context/subtopics/infrastructure/controllers/FindAllSubtopicsController";
+import { FindSubtopicByIdUseCase } from "../../context/subtopics/application/FindSubtopicByIdUseCase";
+import { FindSubtopicByIdController } from "../../context/subtopics/infrastructure/controllers/FindSubtopicByIdController";
 
 export default function registerSubtopicsDependencies(container: ContainerBuilder) {
 	container.register("SubtopicRepository", FireBaseSubtopicRepository);
@@ -18,6 +20,10 @@ export default function registerSubtopicsDependencies(container: ContainerBuilde
 		.register("FindAllSubtopicsUseCase", FindAllSubtopicsUseCase)
 		.addArgument(new Reference("SubtopicRepository"));
 
+	container
+		.register("FindSubtopicByIdUseCase", FindSubtopicByIdUseCase)
+		.addArgument(new Reference("SubtopicRepository"));
+
 	// Controllers
 	container
 		.register("CreateSubtopicController", CreateSubtopicController)
@@ -26,6 +32,10 @@ export default function registerSubtopicsDependencies(container: ContainerBuilde
 	container
 		.register("FindAllSubtopicsController", FindAllSubtopicsController)
 		.addArgument(new Reference("FindAllSubtopicsUseCase"));
+
+	container
+		.register("FindSubtopicByIdController", FindSubtopicByIdController)
+		.addArgument(new Reference("FindSubtopicByIdUseCase"));
 
 	return container;	
 }	
