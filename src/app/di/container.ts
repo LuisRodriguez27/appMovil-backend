@@ -5,6 +5,7 @@ import registerTopicsDependencies from "./topics";
 import registerAchievementDependencies from "./achievement";
 import registerLessonsDependencies from "./lessons";
 import registerAuthDependencies from "./auth";
+import registerSubtopicsDependencies from "./subtopics";
 
 function getContainer(): ContainerBuilder {
   const container = new ContainerBuilder(true, __dirname);
@@ -16,6 +17,7 @@ function getContainer(): ContainerBuilder {
   registerLessonsDependencies(container);
   registerAchievementDependencies(container);
   registerAuthDependencies(container);
+  registerSubtopicsDependencies(container);
 
   return container;
 }
