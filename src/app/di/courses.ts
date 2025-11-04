@@ -2,13 +2,11 @@ import { ContainerBuilder, Reference } from "node-dependency-injection";
 import { FirebaseCourseRepository } from "../../context/courses/infrastructure/repository/FirebaseCourseRepository";
 import { FindCourseByIdUseCase } from "../../context/courses/application/FindCourseByIdUseCase";
 import { FindAllCoursesUseCase } from "../../context/courses/application/FindAllCoursesUseCase";
-import { GetCourseStructureUseCase } from "../../context/courses/application/GetCourseStructureUseCase";
 import { CreateCourseUseCase } from "../../context/courses/application/CreateCourseUseCase";
 import { UpdateCourseUseCase } from "../../context/courses/application/UpdateCourseUseCase";
 import { DeleteCourseUseCase } from "../../context/courses/application/DeleteCourseUseCase";
 import { FindAllCoursesController } from "../../context/courses/infrastructure/controllers/FindAllCoursesController";
 import { FindCourseByIdController } from "../../context/courses/infrastructure/controllers/FindCourseByIdController";
-import { GetCourseStructureController } from "../../context/courses/infrastructure/controllers/GetCourseStructureController";
 import { CreateCourseController } from "../../context/courses/infrastructure/controllers/CreateCourseController";
 import { UpdateCourseController } from "../../context/courses/infrastructure/controllers/UpdateCourseController";
 import { DeleteCourseController } from "../../context/courses/infrastructure/controllers/DeleteCourseController";
@@ -25,22 +23,12 @@ export default function registerCoursesDependencies(container: ContainerBuilder)
     .addArgument(new Reference("CourseRepository"));
 
   container
-    .register("GetCourseStructureUseCase", GetCourseStructureUseCase)
-    .addArgument(new Reference("CourseRepository"))
-    .addArgument(new Reference("TopicRepository"))
-    .addArgument(new Reference("LessonRepository"));
-
-  container
     .register("FindCourseByIdController", FindCourseByIdController)
     .addArgument(new Reference("FindCourseByIdUseCase"));
 
   container
     .register("FindAllCoursesController", FindAllCoursesController)
     .addArgument(new Reference("FindAllCoursesUseCase"));
-
-  container
-    .register("GetCourseStructureController", GetCourseStructureController)
-    .addArgument(new Reference("GetCourseStructureUseCase"));
 
   container
     .register("CreateCourseUseCase", CreateCourseUseCase)
