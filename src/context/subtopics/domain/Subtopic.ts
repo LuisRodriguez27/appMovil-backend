@@ -46,7 +46,7 @@ export class Subtopic {
     return this.description;
   }
 
-  public fromPrimitives(data: SubtopicPrimitives): Subtopic {
+  static fromPrimitives(data: SubtopicPrimitives): Subtopic {
     return new Subtopic(
       data.id,
       data.topicId,
