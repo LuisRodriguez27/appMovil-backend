@@ -8,16 +8,16 @@ export class Lesson {
     public readonly subtopicId: string | null,
     private title: string,
     private content: string,
-    private exerciseConfig: ExerciseConfig | null,
-    private description: string | null,
-    public readonly createdAt: Date
+    private exerciseConfig?: ExerciseConfig,
+    private description?: string,
+    public readonly createdAt: Date = new Date(),
   ) {}
 
-  static create(data: Omit<LessonPrimitives, 'id' | 'createdAt' | 'updatedAt'>): Lesson {
+  static create(data: Omit<LessonPrimitives, 'id' | 'createdAt'>): Lesson {
     const now = new Date();
 
     // Convertir exerciseConfig si viene como objeto plano
-    let exerciseConfig: ExerciseConfig | null = null;
+    let exerciseConfig: ExerciseConfig | undefined = undefined;
     if (data.exerciseConfig) {
       exerciseConfig = data.exerciseConfig instanceof ExerciseConfig
         ? data.exerciseConfig
@@ -31,14 +31,14 @@ export class Lesson {
       data.title,
       data.content,
       exerciseConfig,
-      data.description || null,
+      data.description,
       now
     );
   }
 
   static fromPrimitives(data: LessonPrimitives): Lesson {
     // Convertir exerciseConfig si existe
-    let exerciseConfig: ExerciseConfig | null = null;
+    let exerciseConfig: ExerciseConfig | undefined = undefined;
     if (data.exerciseConfig) {
       exerciseConfig = data.exerciseConfig instanceof ExerciseConfig
         ? data.exerciseConfig
@@ -52,7 +52,7 @@ export class Lesson {
       data.title,
       data.content,
       exerciseConfig,
-      data.description || null,
+      data.description,
       data.createdAt
     );
   }
@@ -64,7 +64,7 @@ export class Lesson {
       subtopicId: this.subtopicId,
       title: this.title,
       content: this.content,
-      exerciseConfig: this.exerciseConfig?.toPrimitives() || null,
+      exerciseConfig: this.exerciseConfig?.toPrimitives(),
       description: this.description,
       createdAt: this.createdAt,
     };
@@ -78,71 +78,13 @@ export class Lesson {
 
     if (data.exerciseConfig !== undefined) {
       if (data.exerciseConfig === null) {
-        this.exerciseConfig = null;
+        this.exerciseConfig = undefined;
       } else {
         this.exerciseConfig = data.exerciseConfig instanceof ExerciseConfig
           ? data.exerciseConfig
           : ExerciseConfig.fromPrimitives(data.exerciseConfig);
       }
     }
-  }
-
-  public updateTitle(title: string): void {
-    this.title = title;
-  }
-
-  public updateContent(content: string): void {
-    this.content = content;
-  }
-
-  public updateDescription(description: string | null): void {
-    this.description = description;
-  }
-
-  public updateExerciseConfig(exerciseConfig: ExerciseConfig | null): void {
-    this.exerciseConfig = exerciseConfig;
-  }
-
-  // Getters
-  public getTitle(): string {
-    return this.title;
-  }
-
-  public getContent(): string {
-    return this.content;
-  }
-
-  public getDescription(): string | null {
-    return this.description;
-  }
-
-  public getExerciseConfig(): ExerciseConfig | null {
-    return this.exerciseConfig;
-  }
-
-  // Métodos de negocio
-  public isFinalLesson(): boolean {
-    return this.subtopicId === null;
-  }
-
-  public isRegularLesson(): boolean {
-    return this.subtopicId !== null;
-  }
-
-  public hasExercise(): boolean {
-    return this.exerciseConfig !== null;
-  }
-
-  public getMaxPoints(): number {
-    return this.exerciseConfig?.maxPoints || 0;
-  }
-
-  public getExerciseType(): string | null {
-    return this.exerciseConfig?.type || null;
-  }
-
-  public getExerciseInstructions(): string | null {
-    return this.exerciseConfig?.instructions || null;
   }
 
   // Método para generar prompt de IA (si tiene ejercicio)
@@ -160,7 +102,7 @@ export interface LessonPrimitives {
   subtopicId: string | null;  // null = lección final
   title: string;
   content: string;  // Markdown
-  exerciseConfig: ExerciseConfigProps | ExerciseConfig | null;
-  description: string | null;
+  exerciseConfig?: ExerciseConfigProps | ExerciseConfig;
+  description?: string;
   createdAt: Date;
 }

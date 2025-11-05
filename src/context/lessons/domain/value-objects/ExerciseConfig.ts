@@ -16,12 +16,11 @@ export interface ExerciseConfigProps {
 
 export class ExerciseConfig {
   private static readonly VALID_TYPES = VALID_EXERCISE_TYPES;
-  private static readonly DEFAULT_MAX_POINTS = 50;
 
   constructor(
     public readonly instructions: string,
     public readonly type: ExerciseType,
-    public readonly maxPoints: number = ExerciseConfig.DEFAULT_MAX_POINTS
+    public readonly maxPoints: number = 50
   ) {
     this.validate();
   }
@@ -46,7 +45,7 @@ export class ExerciseConfig {
     }
   }
 
-  static isValidType(type: string): boolean {
+  static isValid(type: string): boolean {
     return this.VALID_TYPES.includes(type as ExerciseType);
   }
 
