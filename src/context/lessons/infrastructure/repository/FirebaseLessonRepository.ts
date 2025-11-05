@@ -1,24 +1,38 @@
 import { firestore } from "../../../../app/config/configureFirebase";
-import { Lesson, LessonPrimitives, Exercise } from "../../domain/Lesson";
+import { Lesson, LessonPrimitives} from "../../domain/Lesson";
 import { LessonRepository } from "../../domain/LessonRepository";
 import { Timestamp } from "firebase-admin/firestore";
 
-interface LessonDocument {
+interface LessonDocument extends Omit<LessonPrimitives, 'id'> {
   __id: string;
-  topic_id: string;
-  subtopic_id: string;
-  title: string;
-  description: string;
-  content: string;
-  order: number;
-  estimated_time: number;
-  difficulty: 'easy' | 'medium' | 'hard';
-  exercises: Exercise[];
-  created_at: Timestamp;
 }
 
 export class FirebaseLessonRepository implements LessonRepository {
   private readonly collection = 'lessons';
+
+  async create(lesson: Lesson): Promise<void> {
+    const primitives = lesson.toPrimitives();
+    const document = this.toFirestoreDocument(primitives);
+
+    await firestore().collection(this.collection).doc(document.__id).set(document);
+  }
+  
+  async update(lesson: Lesson): Promise<void> {
+    const primitives = lesson.toPrimitives();
+    const document = this.toFirestoreDocument(primitives);
+    const { __id, ...data } = document;
+
+    await firestore().collection(this.collection).doc(__id).update(data);
+  }
+
+  async findAll(): Promise<Lesson[]> {
+    const snapshot = await firestore().collection(this.collection).get();
+
+    return snapshot.docs.map((doc) => {
+      const data = doc.data() as LessonDocument;
+      return this.toDomainEntity(data);
+    });
+  }
 
   async findById(id: string): Promise<Lesson | null> {
     const doc = await firestore().collection(this.collection).doc(id).get();
@@ -29,29 +43,6 @@ export class FirebaseLessonRepository implements LessonRepository {
 
     const data = doc.data() as LessonDocument;
     return this.toDomainEntity(data);
-  }
-
-  async findBySubtopicId(topicId: string, subtopicId: string): Promise<Lesson[]> {
-    const snapshot = await firestore()
-      .collection(this.collection)
-      .where('topic_id', '==', topicId)
-      .where('subtopic_id', '==', subtopicId)
-      .orderBy('order', 'asc')
-      .get();
-
-    return snapshot.docs.map((doc) => {
-      const data = doc.data() as LessonDocument;
-      return this.toDomainEntity(data);
-    });
-  }
-
-  async countBySubtopicId(subtopicId: string): Promise<number> {
-    const snapshot = await firestore()
-      .collection(this.collection)
-      .where('subtopic_id', '==', subtopicId)
-      .get();
-
-    return snapshot.size;
   }
 
   async findByTopicId(topicId: string): Promise<Lesson[]> {
@@ -67,17 +58,13 @@ export class FirebaseLessonRepository implements LessonRepository {
     });
   }
 
-  async countByTopicId(topicId: string): Promise<number> {
+  async findBySubtopicId(topicId: string, subtopicId: string): Promise<Lesson[]> {
     const snapshot = await firestore()
       .collection(this.collection)
       .where('topic_id', '==', topicId)
+      .where('subtopic_id', '==', subtopicId)
+      .orderBy('order', 'asc')
       .get();
-
-    return snapshot.size;
-  }
-
-  async findAll(): Promise<Lesson[]> {
-    const snapshot = await firestore().collection(this.collection).get();
 
     return snapshot.docs.map((doc) => {
       const data = doc.data() as LessonDocument;
@@ -122,65 +109,46 @@ export class FirebaseLessonRepository implements LessonRepository {
     return lessons;
   }
 
-  async findPublishedByCourseId(courseId: string): Promise<Lesson[]> {
-    // Por ahora, todas las lecciones se consideran publicadas
-    // Si en el futuro se agrega un campo 'published', modificar aquí
-    return this.findByCourseId(courseId);
-  }
-
-  async save(lesson: Lesson): Promise<void> {
-    const primitives = lesson.toPrimitives();
-    const document = this.toFirestoreDocument(primitives);
-
-    await firestore().collection(this.collection).doc(document.__id).set(document);
-  }
-
-  async update(lesson: Lesson): Promise<void> {
-    const primitives = lesson.toPrimitives();
-    const document = this.toFirestoreDocument(primitives);
-    const { __id, ...data } = document;
-
-    await firestore().collection(this.collection).doc(__id).update(data);
+  async findFinalLessonByTopicId(topicId: string): Promise<Lesson | null> {
+    throw new Error("Method not implemented.");
   }
 
   async delete(id: string): Promise<void> {
     await firestore().collection(this.collection).doc(id).delete();
   }
 
-  async existsById(id: string): Promise<boolean> {
-    const doc = await firestore().collection(this.collection).doc(id).get();
-    return doc.exists;
-  }
+  private toFirestoreDocument(lesson: LessonPrimitives): LessonDocument {
+    const primitives = lesson;
 
-  private toFirestoreDocument(primitives: LessonPrimitives): LessonDocument {
-    return {
+    const exerciseConfig = primitives.exerciseConfig !== undefined && 'toPrimitives' in primitives.exerciseConfig
+      ? primitives.exerciseConfig.toPrimitives()
+      : primitives.exerciseConfig;
+
+    const document: any = {
       __id: primitives.id,
-      topic_id: primitives.topicId,              // Mapear camelCase → snake_case
-      subtopic_id: primitives.subtopicId,        // Mapear camelCase → snake_case
+      topic_id: primitives.topicId,              
+      subtopic_id: primitives.subtopicId,       
       title: primitives.title,
       description: primitives.description,
       content: primitives.content,
-      order: primitives.order,
-      estimated_time: primitives.estimatedTime,  // Mapear camelCase → snake_case
-      difficulty: primitives.difficulty,
-      exercises: primitives.exercises,
-      created_at: Timestamp.fromDate(primitives.createdAt),   // Mapear camelCase → snake_case
+      created_at: Timestamp.fromDate(primitives.createdAt),  
+      ...(exerciseConfig !== undefined ? { exerciseConfig: exerciseConfig } : {}),
+      ...(primitives.description !== undefined ? { description: primitives.description } : {})
     };
+
+    return document;
   }
 
   private toDomainEntity(document: LessonDocument): Lesson {
     return Lesson.fromPrimitives({
       id: document.__id,
-      topicId: document.topic_id,                    // Mapear snake_case → camelCase
-      subtopicId: document.subtopic_id,              // Mapear snake_case → camelCase
+      topicId: document.topicId,                    
+      subtopicId: document.subtopicId,              
       title: document.title,
-      description: document.description,
       content: document.content,
-      order: document.order,
-      estimatedTime: document.estimated_time,        // Mapear snake_case → camelCase
-      difficulty: document.difficulty,
-      exercises: document.exercises,
-      createdAt: document.created_at.toDate(),       // Mapear snake_case → camelCase
+      exerciseConfig: document.exerciseConfig,
+      description: document.description,
+      createdAt: document.createdAt,       
     });
   }
 }

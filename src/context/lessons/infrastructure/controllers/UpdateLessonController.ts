@@ -12,29 +12,19 @@ export class UpdateLessonController {
         title,
         description,
         content,
-        order,
-        estimatedTime,
-        difficulty,
-        exercises
+        exerciseConfig
       } = req.body;
 
       const request = new UpdateLessonRequest(
         title,
         description,
         content,
-        order,
-        estimatedTime,
-        difficulty,
-        exercises
+        exerciseConfig
       );
 
       const lesson = await this.updateLessonUseCase.execute(id, request);
 
-      res.status(200).json({
-        success: true,
-        message: 'Lección actualizada exitosamente',
-        data: lesson.toPrimitives(),
-      });
+      res.status(200).json(lesson);
     } catch (error) {
       if (error instanceof Error) {
         const statusCode = error.message === 'Lección no encontrada' ? 404 : 400;
