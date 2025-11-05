@@ -39,11 +39,25 @@
 
   progress: {
     [course_id: string]: {
-      last_lesson_id: string;      // Última lección accedida en este curso
+      last_lesson_completed_id: string;      // Última lección completada en este curso
       completed_count: number;      // Lecciones completadas del curso
       percentage: number;           // % del curso completado
       completedAt?: Date;           // Cuándo completó todo el curso
     }
+  };
+
+  current_attempt?: {
+    lesson_id: string;               // → lessons.__id
+    attempt_id: string;              // UUID único del intento
+    course_id: string;               // → courses.__id
+    status: 'evaluating' | 'approved_excellent' | 'approved_improve' | 'rejected';
+    user_answer: string | object;   // Respuesta del usuario al ejercicio
+    created_at: Date;
+    ai_feedback?: {
+      score: number;                 // 0-100
+      feedback: string;              // Comentarios de la IA
+      suggestions?: string;          // Sugerencias de mejora
+    };
   };
 
   achievements: {
@@ -77,6 +91,8 @@
 - Progreso: embebido, usar `set({...}, {merge: true})` para updates
 - Racha: se reinicia si pasa >1 día sin actividad
 - Level: auto-calculado `floor(sqrt(xp/100)) + 1`
+- `current_attempt`: se sobrescribe con cada nuevo intento, solo guarda el estado actual (no historial)
+- `last_lesson_completed_id`: solo se actualiza cuando `current_attempt.status` es `approved_*`
 
 ---
 
@@ -141,27 +157,19 @@
   topicId: string;         
   subtopicId: string | null;  // null si es lección final
   title: string;
-  description: string;
   content: string;          // Markdown
-  order: number;            // 999 para finales
-  difficulty: 'easy' | 'medium' | 'hard';
-  estimatedTime: number;     // minutos
 
-  // CAMBIO: Parámetros para generar ejercicios dinámicos con IA
-  // NO se almacenan los ejercicios completos aquí
   exercise_config?: {
+    intructions: string;  // Que sea en español
     type: 'fill_blank' | 'multiple_choice' | 'code_completion' | 'true_false' | 'open_ended';
-    difficulty: 'easy' | 'medium' | 'hard';
-    topic_focus: string;           // Ej: "closures", "async/await"
-    requirements?: string[];        // Ej: ["must use async", "error handling"]
-    max_points: number;
-    validation_type: 'exact_match' | 'ai_evaluation' | 'code_execution';
-    // Cada vez que se solicite, Gemini genera un ejercicio diferente basado en estos parámetros
+    max_points: number;   // 50
   };
 
+  description?: string;
   createdAt: Date;
 }
 ```
+Genera un ejercicion sobre el tema {{Subtopic.title}} de este tipo {{exercise_config.type}}
 
 **Índices**: topicId + subtopicId, topicId + order
 
@@ -200,31 +208,6 @@
 - `legendary`: 100 XP
 
 **Nota**: Al desbloquear, se copian datos completos a `users.achievements[]`. Los puntos se asignan automáticamente al crear o actualizar según la rareza.
-
----
-
-### notifications
-
-**Subcolección**: `/users/{userId}/notifications/{notificationId}`
-
-```typescript
-{
-  __id: string;
-  type: 'welcome' | 'achievement' | 'streak' | 'daily_challenge' | 'course_complete' | 'level_up' | 'ranking';
-  title: string;
-  message: string;
-  is_read: boolean;
-  created_at: Date;
-  expires_at?: Date;
-  priority?: number;      // 1-5, default: 3
-  action_url?: string;
-  metadata?: object;
-}
-```
-
-**Índices**: is_read + created_at, priority + created_at, expires_at
-
-**Reglas**: Se eliminan automáticamente al borrar el usuario. Limpieza de expiradas con Cloud Function.
 
 ---
 
@@ -280,18 +263,40 @@ firestore().collection('lessons').where('topic_id', '==', topicId).where('is_fin
 firestore().collection('users').doc(userId).set({
   progress: {
     [courseId]: {
-      last_lesson_id: lessonId,
+      last_lesson_completed_id: null,
       completed_count: 0,
       percentage: 0
     }
   }
 }, { merge: true });
 
-// Completar lección
-firestore().collection('users').doc(userId).set({
+// Crear intento de ejercicio (usuario envía respuesta)
+const attemptId = uuidv4();
+await firestore().collection('users').doc(userId).set({
+  current_attempt: {
+    lesson_id: lessonId,
+    attempt_id: attemptId,
+    course_id: courseId,
+    status: 'evaluating',
+    user_answer: answer,
+    created_at: FieldValue.serverTimestamp()
+  }
+}, { merge: true });
+
+// Actualizar intento cuando webhook responde (aprobado)
+await firestore().collection('users').doc(userId).set({
+  current_attempt: {
+    ...existingAttempt,
+    status: 'approved_excellent', // o 'approved_improve'
+    ai_feedback: {
+      score: 95,
+      feedback: 'Excelente trabajo...',
+      suggestions: 'Podrías mejorar...'
+    }
+  },
   progress: {
     [courseId]: {
-      last_lesson_id: lessonId,
+      last_lesson_completed_id: lessonId,  // 👈 Solo si aprobó
       completed_count: FieldValue.increment(1),
       percentage: newPercentage,
       completedAt: isCourseComplete ? FieldValue.serverTimestamp() : undefined
@@ -301,7 +306,21 @@ firestore().collection('users').doc(userId).set({
     total_lessons_completed: FieldValue.increment(1),
     total_exercises_completed: FieldValue.increment(1)
   },
-  xp: FieldValue.increment(points)
+  xp: FieldValue.increment(score / 2)
+}, { merge: true });
+
+// Actualizar intento cuando webhook responde (reprobado)
+await firestore().collection('users').doc(userId).set({
+  current_attempt: {
+    ...existingAttempt,
+    status: 'rejected',
+    ai_feedback: {
+      score: 45,
+      feedback: 'Necesitas repasar...',
+      suggestions: 'Intenta de nuevo considerando...'
+    }
+  }
+  // ⚠️ NO se actualiza last_lesson_completed_id ni progreso
 }, { merge: true });
 
 // Desbloquear achievement
@@ -320,3 +339,147 @@ await firestore().collection('users').doc(userId).set({
 - Usar `set({...}, {merge: true})` para updates sin sobrescribir
 - Progreso embebido: 1 read obtiene perfil + progreso + logros
 - Logros: copiar datos del catálogo al array del usuario
+
+---
+
+## Flujo de Evaluación de Ejercicios con IA
+
+### 1. Usuario solicita ejercicio
+**Endpoint**: `GET /lessons/:lessonId/exercise`
+
+```typescript
+// Generar ejercicio dinámicamente (NO se guarda en BD)
+const lesson = await getLessonById(lessonId);
+const exercise = await geminiService.generateExercise(lesson);
+
+return exercise;
+```
+
+### 2. Usuario envía respuesta
+**Endpoint**: `POST /lessons/:lessonId/submit`
+
+```typescript
+// Crear intento en estado 'evaluating'
+const attemptId = uuidv4();
+await firestore().collection('users').doc(userId).set({
+  current_attempt: {
+    lesson_id: lessonId,
+    attempt_id: attemptId,
+    course_id: courseId,
+    status: 'evaluating',
+    user_answer: answer,
+    created_at: FieldValue.serverTimestamp()
+  }
+}, { merge: true });
+
+// Enviar a webhook de Gemini para evaluación asíncrona
+await geminiWebhook.evaluate({
+  attempt_id: attemptId,
+  user_id: userId,
+  exercise: exercise,
+  user_answer: answer
+});
+
+return { attempt_id, status: 'evaluating' };
+```
+
+### 3. Webhook de Gemini responde
+**Endpoint**: `POST /webhooks/gemini/evaluation`
+
+```typescript
+const { attempt_id, user_id, score, feedback, suggestions } = payload;
+
+// Determinar estado según score
+let status: string;
+if (score >= 90) status = 'approved_excellent';
+else if (score >= 70) status = 'approved_improve';
+else status = 'rejected';
+
+// Obtener datos del intento actual
+const user = await firestore().collection('users').doc(user_id).get();
+const currentAttempt = user.data().current_attempt;
+
+// Actualizar intento + progreso (solo si aprobó)
+if (status === 'approved_excellent' || status === 'approved_improve') {
+  await firestore().collection('users').doc(user_id).set({
+    current_attempt: {
+      ...currentAttempt,
+      status,
+      ai_feedback: { score, feedback, suggestions }
+    },
+    progress: {
+      [currentAttempt.course_id]: {
+        last_lesson_completed_id: currentAttempt.lesson_id,
+        completed_count: FieldValue.increment(1),
+        percentage: calculatePercentage(courseId, newCount),
+        completedAt: isComplete ? FieldValue.serverTimestamp() : null
+      }
+    },
+    stats: {
+      total_lessons_completed: FieldValue.increment(1),
+      total_exercises_completed: FieldValue.increment(1)
+    },
+    xp: FieldValue.increment(score / 2)
+  }, { merge: true });
+} else {
+  // Solo actualizar el intento (NO progreso)
+  await firestore().collection('users').doc(user_id).set({
+    current_attempt: {
+      ...currentAttempt,
+      status,
+      ai_feedback: { score, feedback, suggestions }
+    }
+  }, { merge: true });
+}
+```
+
+### 4. Cliente consulta resultado
+**Endpoint**: `GET /lessons/:lessonId/attempt-status`
+
+```typescript
+const user = await firestore().collection('users').doc(userId).get();
+const attempt = user.data().current_attempt;
+
+if (!attempt || attempt.lesson_id !== lessonId) {
+  return { status: 'not_started' };
+}
+
+return {
+  status: attempt.status,
+  ai_feedback: attempt.ai_feedback,
+  can_retry: attempt.status === 'rejected',
+  can_advance: attempt.status.startsWith('approved')
+};
+```
+
+### Estados y Flujo de Avance
+
+| Estado | `last_lesson_completed_id` | Puede avanzar | Puede reintentar |
+|--------|---------------------------|---------------|------------------|
+| `evaluating` | ❌ No actualizado | ❌ No | ❌ Esperar evaluación |
+| `approved_excellent` | ✅ Actualizado | ✅ Sí | ✅ Opcional (mejorar) |
+| `approved_improve` | ✅ Actualizado | ✅ Sí | ✅ Opcional (mejorar) |
+| `rejected` | ❌ No actualizado | ❌ No | ✅ Obligatorio |
+
+### Validación de Acceso a Lecciones
+
+```typescript
+// Verificar si puede acceder a una lección
+async function canAccessLesson(userId: string, lessonId: string) {
+  const user = await getUser(userId);
+  const lesson = await getLesson(lessonId);
+
+  const progress = user.progress[lesson.course_id];
+  const lastCompletedId = progress?.last_lesson_completed_id;
+
+  // Primera lección del curso
+  if (!lastCompletedId) {
+    const firstLesson = await getFirstLesson(lesson.course_id);
+    return lessonId === firstLesson.__id;
+  }
+
+  // Puede acceder a la siguiente lección o reintentar la actual
+  const nextLesson = await getNextLessonAfter(lastCompletedId, lesson.course_id);
+  return lessonId === nextLesson?.__id || lessonId === lastCompletedId;
+}
+```
