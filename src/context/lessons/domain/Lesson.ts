@@ -1,74 +1,62 @@
 import { uid } from 'uid';
-
-export interface Exercise {
-  id: string;
-  question: string;
-  type: 'fill_blank' | 'multiple_choice' | 'code_completion' | 'true_false' | 'open_ended';
-  code_template?: string;
-  max_points: number;
-  options?: string[]; // Para multiple_choice
-  correct_answer?: string | string[]; // Depende del tipo
-}
-
-export interface LessonPrimitives {
-  id: string;
-  topicId: string;
-  subtopicId: string;
-  title: string;
-  description: string;
-  content: string;
-  order: number;
-  estimatedTime: number; // en minutos
-  difficulty: 'easy' | 'medium' | 'hard';
-  exercises: Exercise[];
-  createdAt: Date;
-}
+import { ExerciseConfig, ExerciseConfigProps } from './value-objects';
 
 export class Lesson {
   constructor(
     public readonly id: string,
     public readonly topicId: string,
-    public readonly subtopicId: string,
+    public readonly subtopicId: string | null,
     private title: string,
-    private description: string,
     private content: string,
-    private order: number,
-    private estimatedTime: number,
-    private difficulty: 'easy' | 'medium' | 'hard',
-    private exercises: Exercise[],
-    public readonly createdAt: Date
+    private exerciseConfig: ExerciseConfig | null,
+    private description: string | null,
+    public readonly createdAt: Date,
+    private updatedAt: Date
   ) {}
 
-  static create(data: Omit<LessonPrimitives, 'id' | 'createdAt'>): Lesson {
+  static create(data: Omit<LessonPrimitives, 'id' | 'createdAt' | 'updatedAt'>): Lesson {
     const now = new Date();
+
+    // Convertir exerciseConfig si viene como objeto plano
+    let exerciseConfig: ExerciseConfig | null = null;
+    if (data.exerciseConfig) {
+      exerciseConfig = data.exerciseConfig instanceof ExerciseConfig
+        ? data.exerciseConfig
+        : ExerciseConfig.fromPrimitives(data.exerciseConfig);
+    }
+
     return new Lesson(
       uid(),
       data.topicId,
       data.subtopicId,
       data.title,
-      data.description,
       data.content,
-      data.order,
-      data.estimatedTime,
-      data.difficulty,
-      data.exercises,
+      exerciseConfig,
+      data.description || null,
+      now,
       now
     );
   }
 
   static fromPrimitives(data: LessonPrimitives): Lesson {
+    // Convertir exerciseConfig si existe
+    let exerciseConfig: ExerciseConfig | null = null;
+    if (data.exerciseConfig) {
+      exerciseConfig = data.exerciseConfig instanceof ExerciseConfig
+        ? data.exerciseConfig
+        : ExerciseConfig.fromPrimitives(data.exerciseConfig);
+    }
+
     return new Lesson(
       data.id,
       data.topicId,
       data.subtopicId,
       data.title,
-      data.description,
       data.content,
-      data.order,
-      data.estimatedTime,
-      data.difficulty,
-      data.exercises,
-      data.createdAt
+      exerciseConfig,
+      data.description || null,
+      data.createdAt,
+      data.updatedAt
     );
   }
 
@@ -78,54 +66,51 @@ export class Lesson {
       topicId: this.topicId,
       subtopicId: this.subtopicId,
       title: this.title,
-      description: this.description,
       content: this.content,
-      order: this.order,
-      estimatedTime: this.estimatedTime,
-      difficulty: this.difficulty,
-      exercises: this.exercises,
-      createdAt: this.createdAt
+      exerciseConfig: this.exerciseConfig?.toPrimitives() || null,
+      description: this.description,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt
     };
   }
 
   // Métodos de actualización
-  public update(data: Partial<Omit<LessonPrimitives, 'id' | 'topicId' | 'subtopicId' | 'createdAt'>>): void {
+  public update(data: Partial<Omit<LessonPrimitives, 'id' | 'topicId' | 'subtopicId' | 'createdAt' | 'updatedAt'>>): void {
     if (data.title !== undefined) this.title = data.title;
-    if (data.description !== undefined) this.description = data.description;
     if (data.content !== undefined) this.content = data.content;
-    if (data.order !== undefined) this.order = data.order;
-    if (data.estimatedTime !== undefined) this.estimatedTime = data.estimatedTime;
-    if (data.difficulty !== undefined) this.difficulty = data.difficulty;
-    if (data.exercises !== undefined) this.exercises = data.exercises;
-    
+    if (data.description !== undefined) this.description = data.description;
+
+    if (data.exerciseConfig !== undefined) {
+      if (data.exerciseConfig === null) {
+        this.exerciseConfig = null;
+      } else {
+        this.exerciseConfig = data.exerciseConfig instanceof ExerciseConfig
+          ? data.exerciseConfig
+          : ExerciseConfig.fromPrimitives(data.exerciseConfig);
+      }
+    }
+
+    this.updatedAt = new Date();
   }
 
   public updateTitle(title: string): void {
     this.title = title;
-  }
-
-  public updateDescription(description: string): void {
-    this.description = description;
+    this.updatedAt = new Date();
   }
 
   public updateContent(content: string): void {
     this.content = content;
+    this.updatedAt = new Date();
   }
 
-  public updateOrder(order: number): void {
-    this.order = order;
+  public updateDescription(description: string | null): void {
+    this.description = description;
+    this.updatedAt = new Date();
   }
 
-  public updateEstimatedTime(estimatedTime: number): void {
-    this.estimatedTime = estimatedTime;
-  }
-
-  public updateDifficulty(difficulty: 'easy' | 'medium' | 'hard'): void {
-    this.difficulty = difficulty;
-  }
-
-  public updateExercises(exercises: Exercise[]): void {
-    this.exercises = exercises;
+  public updateExerciseConfig(exerciseConfig: ExerciseConfig | null): void {
+    this.exerciseConfig = exerciseConfig;
+    this.updatedAt = new Date();
   }
 
   // Getters
@@ -133,62 +118,64 @@ export class Lesson {
     return this.title;
   }
 
-  public getDescription(): string {
-    return this.description;
-  }
-
   public getContent(): string {
     return this.content;
   }
 
-  public getOrder(): number {
-    return this.order;
+  public getDescription(): string | null {
+    return this.description;
   }
 
-  public getEstimatedTime(): number {
-    return this.estimatedTime;
+  public getExerciseConfig(): ExerciseConfig | null {
+    return this.exerciseConfig;
   }
 
-  public getDifficulty(): 'easy' | 'medium' | 'hard' {
-    return this.difficulty;
-  }
-
-  public getExercises(): Exercise[] {
-    return [...this.exercises];
+  public getUpdatedAt(): Date {
+    return this.updatedAt;
   }
 
   // Métodos de negocio
-  getTotalPoints(): number {
-    return this.exercises.reduce((sum, exercise) => sum + exercise.max_points, 0);
+  public isFinalLesson(): boolean {
+    return this.subtopicId === null;
   }
 
-  getExerciseById(exerciseId: string): Exercise | undefined {
-    return this.exercises.find(ex => ex.id === exerciseId);
+  public isRegularLesson(): boolean {
+    return this.subtopicId !== null;
   }
 
-  hasExercises(): boolean {
-    return this.exercises.length > 0;
+  public hasExercise(): boolean {
+    return this.exerciseConfig !== null;
   }
 
-  getExerciseCount(): number {
-    return this.exercises.length;
+  public getMaxPoints(): number {
+    return this.exerciseConfig?.maxPoints || 0;
   }
 
-  getDifficultyLevel(): string {
-    const levels = {
-      easy: 'Fácil',
-      medium: 'Medio',
-      hard: 'Difícil'
-    };
-    return levels[this.difficulty];
+  public getExerciseType(): string | null {
+    return this.exerciseConfig?.type || null;
   }
 
-  getEstimatedTimeFormatted(): string {
-    if (this.estimatedTime < 60) {
-      return `${this.estimatedTime} min`;
+  public getExerciseInstructions(): string | null {
+    return this.exerciseConfig?.instructions || null;
+  }
+
+  // Método para generar prompt de IA (si tiene ejercicio)
+  public generateExercisePrompt(subtopicTitle: string): string | null {
+    if (!this.exerciseConfig) {
+      return null;
     }
-    const hours = Math.floor(this.estimatedTime / 60);
-    const minutes = this.estimatedTime % 60;
-    return minutes > 0 ? `${hours}h ${minutes}min` : `${hours}h`;
+    return this.exerciseConfig.generatePrompt(subtopicTitle);
   }
+}
+
+export interface LessonPrimitives {
+  id: string;
+  topicId: string;
+  subtopicId: string | null;  // null = lección final
+  title: string;
+  content: string;  // Markdown
+  exerciseConfig: ExerciseConfigProps | ExerciseConfig | null;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
