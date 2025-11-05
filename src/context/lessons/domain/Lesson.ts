@@ -1,5 +1,5 @@
 import { uid } from 'uid';
-import { ExerciseConfig, ExerciseConfigProps } from './value-objects';
+import { ExerciseConfig, ExerciseConfigProps } from './value-objects/ExerciseConfig';
 
 export class Lesson {
   constructor(
@@ -10,8 +10,7 @@ export class Lesson {
     private content: string,
     private exerciseConfig: ExerciseConfig | null,
     private description: string | null,
-    public readonly createdAt: Date,
-    private updatedAt: Date
+    public readonly createdAt: Date
   ) {}
 
   static create(data: Omit<LessonPrimitives, 'id' | 'createdAt' | 'updatedAt'>): Lesson {
@@ -33,7 +32,6 @@ export class Lesson {
       data.content,
       exerciseConfig,
       data.description || null,
-      now,
       now
     );
   }
@@ -55,8 +53,7 @@ export class Lesson {
       data.content,
       exerciseConfig,
       data.description || null,
-      data.createdAt,
-      data.updatedAt
+      data.createdAt
     );
   }
 
@@ -70,7 +67,6 @@ export class Lesson {
       exerciseConfig: this.exerciseConfig?.toPrimitives() || null,
       description: this.description,
       createdAt: this.createdAt,
-      updatedAt: this.updatedAt
     };
   }
 
@@ -89,28 +85,22 @@ export class Lesson {
           : ExerciseConfig.fromPrimitives(data.exerciseConfig);
       }
     }
-
-    this.updatedAt = new Date();
   }
 
   public updateTitle(title: string): void {
     this.title = title;
-    this.updatedAt = new Date();
   }
 
   public updateContent(content: string): void {
     this.content = content;
-    this.updatedAt = new Date();
   }
 
   public updateDescription(description: string | null): void {
     this.description = description;
-    this.updatedAt = new Date();
   }
 
   public updateExerciseConfig(exerciseConfig: ExerciseConfig | null): void {
     this.exerciseConfig = exerciseConfig;
-    this.updatedAt = new Date();
   }
 
   // Getters
@@ -128,10 +118,6 @@ export class Lesson {
 
   public getExerciseConfig(): ExerciseConfig | null {
     return this.exerciseConfig;
-  }
-
-  public getUpdatedAt(): Date {
-    return this.updatedAt;
   }
 
   // Métodos de negocio
@@ -177,5 +163,4 @@ export interface LessonPrimitives {
   exerciseConfig: ExerciseConfigProps | ExerciseConfig | null;
   description: string | null;
   createdAt: Date;
-  updatedAt: Date;
 }
