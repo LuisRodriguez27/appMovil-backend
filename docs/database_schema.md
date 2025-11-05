@@ -138,36 +138,38 @@
 ```typescript
 {
   __id: string;
-  topic_id: string;         // → topics.__id
-  subtopic_id: string | null;  // null si is_final = true
+  topicId: string;         
+  subtopicId: string | null;  // null si es lección final
   title: string;
+  description: string;
   content: string;          // Markdown
   order: number;            // 999 para finales
-  is_final: boolean;
+  difficulty: 'easy' | 'medium' | 'hard';
+  estimatedTime: number;     // minutos
 
-  exercise: {
-    id: string;
-    question: string;
-    code_template?: string;
-    max_points: number;
+  // CAMBIO: Parámetros para generar ejercicios dinámicos con IA
+  // NO se almacenan los ejercicios completos aquí
+  exercise_config?: {
     type: 'fill_blank' | 'multiple_choice' | 'code_completion' | 'true_false' | 'open_ended';
-    options?: string[];     // Para multiple_choice
-    correct_answer?: string | number;  // Índice (0-based) para multiple_choice
-    validation?: {
-      type: 'exact_match' | 'ai_evaluation' | 'code_execution';
-      criteria?: string;
-    };
+    difficulty: 'easy' | 'medium' | 'hard';
+    topic_focus: string;           // Ej: "closures", "async/await"
+    requirements?: string[];        // Ej: ["must use async", "error handling"]
+    max_points: number;
+    validation_type: 'exact_match' | 'ai_evaluation' | 'code_execution';
+    // Cada vez que se solicite, Gemini genera un ejercicio diferente basado en estos parámetros
   };
 
-  created_at: Date;
+  createdAt: Date;
 }
 ```
 
-**Índices**: topic_id + is_final, subtopic_id, topic_id + order
+**Índices**: topicId + subtopicId, topicId + order
 
 **Reglas**:
-- Regular: is_final=false, subtopic_id!=null
-- Final: is_final=true, subtopic_id=null, order=999
+- Regular: subtopicId != null
+- Final: subtopicId = null, order = 999
+- Ejercicios: Se generan dinámicamente vía API, NO se guardan en BD
+- Validación: Vía webhook si es ai_evaluation, síncrono si es exact_match
 
 ---
 
@@ -223,6 +225,45 @@
 **Índices**: is_read + created_at, priority + created_at, expires_at
 
 **Reglas**: Se eliminan automáticamente al borrar el usuario. Limpieza de expiradas con Cloud Function.
+
+---
+
+## Integración de IA (Gemini)
+
+### Arquitectura: Contextos DDD para IA
+
+#### 1. `exercises` - Generación y validación de ejercicios
+
+**Ubicación**: `/src/context/exercises/`
+
+```
+context/exercises/
+├── application/
+│   ├── GenerateExerciseUseCase.ts
+│   ├── ValidateExerciseAnswerUseCase.ts
+│   ├── requests/
+│   │   ├── GenerateExerciseRequest.ts
+│   │   └── ValidateExerciseRequest.ts
+│
+├── domain/
+│   ├── Exercise.ts                  // Ejercicio generado (no persistente)
+│   ├── ExerciseValidator.ts         // Interfaz para validación
+│   └── value-objects/
+│
+├── infrastructure/
+│   ├── controllers/
+│   │   ├── GenerateExerciseController.ts
+│   │   └── ValidateExerciseController.ts
+│   │
+│   ├── gemini/
+│   │   ├── GeminiExerciseGenerator.ts     // Genera ejercicio + prompt builder
+│   │   ├── PromptBuilder.ts               // Construye prompts con parámetros
+│   │   └── ExerciseParser.ts              // Parsea respuesta de Gemini → Exercise
+│   │
+│   └── validators/
+│       ├── ExactMatchValidator.ts
+│       └── AIEvaluationValidator.ts      // Llama a Gemini vía webhook
+```
 
 ---
 
