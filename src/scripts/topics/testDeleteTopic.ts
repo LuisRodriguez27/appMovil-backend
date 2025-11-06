@@ -1,5 +1,7 @@
 import configureFirebase from '../../app/config/configureFirebase';
 import { FirebaseTopicRepository } from '../../context/topics/infrastructure/repository/FirebaseTopicRepository';
+import { FireBaseSubtopicRepository } from '../../context/subtopics/infrastructure/repository/FireBaseSubtopic';
+import { FirebaseLessonRepository } from '../../context/lessons/infrastructure/repository/FirebaseLessonRepository';
 import { DeleteTopicUseCase } from '../../context/topics/application/DeleteTopicUseCase';
 import { DeleteTopicRequest } from '../../context/topics/application/requests/DeleteTopicRequest';
 
@@ -11,7 +13,9 @@ async function testDeleteTopic() {
 
     // Crear instancias
     const topicRepository = new FirebaseTopicRepository();
-    const deleteTopicUseCase = new DeleteTopicUseCase(topicRepository);
+    const subtopicRepository = new FireBaseSubtopicRepository();
+    const lessonRepository = new FirebaseLessonRepository();
+    const deleteTopicUseCase = new DeleteTopicUseCase(topicRepository, subtopicRepository, lessonRepository);
 
     console.log('\n🧪 Probando eliminación de topics...\n');
 

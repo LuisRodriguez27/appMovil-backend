@@ -1,6 +1,7 @@
 import { User, UserPrimitives } from '../../domain/User';
-import { UserRepository } from '../../domain/UserRepository';
+import { UserRepository, CurrentAttempt } from '../../domain/UserRepository';
 import { firestore } from '../../../../app/config/configureFirebase';
+import { FieldValue } from 'firebase-admin/firestore';
 
 interface UserDocument extends Omit<UserPrimitives, 'id'> {
   __id: string;
@@ -140,5 +141,117 @@ export class FirebaseUserRepository implements UserRepository {
       },
       createdAt: document.createdAt,
     });
+  }
+
+  async createAttempt(userId: string, attempt: Omit<CurrentAttempt, 'aiFeedback'>): Promise<void> {
+    const userRef = firestore().collection(this.collection).doc(userId);
+
+    await userRef.set({
+      current_attempt: {
+        lesson_id: attempt.lessonId,
+        attempt_id: attempt.attemptId,
+        course_id: attempt.courseId,
+        status: attempt.status,
+        user_answer: attempt.userAnswer,
+        created_at: FieldValue.serverTimestamp()
+      }
+    }, { merge: true });
+  }
+
+  async updateAttemptWithEvaluation(
+    userId: string,
+    attemptId: string,
+    evaluation: {
+      status: CurrentAttempt['status'];
+      score: number;
+      feedback: string;
+      suggestions?: string;
+    }
+  ): Promise<void> {
+    const userRef = firestore().collection(this.collection).doc(userId);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      throw new Error(`Usuario ${userId} no encontrado`);
+    }
+
+    const userData = userDoc.data();
+    const currentAttempt = userData?.current_attempt;
+
+    if (!currentAttempt || currentAttempt.attempt_id !== attemptId) {
+      throw new Error(`Intento ${attemptId} no encontrado para el usuario ${userId}`);
+    }
+
+    // Preparar la actualización
+    const updateData: any = {
+      current_attempt: {
+        ...currentAttempt,
+        status: evaluation.status,
+        ai_feedback: {
+          score: evaluation.score,
+          feedback: evaluation.feedback,
+          suggestions: evaluation.suggestions
+        }
+      }
+    };
+
+    // Si fue aprobado, actualizar progreso y estadísticas
+    if (evaluation.status === 'approved_excellent' || evaluation.status === 'approved_improve') {
+      const courseId = currentAttempt.course_id;
+      const lessonId = currentAttempt.lesson_id;
+
+      // Actualizar progreso
+      updateData[`progress.${courseId}.last_lesson_completed_id`] = lessonId;
+      updateData[`progress.${courseId}.completed_count`] = FieldValue.increment(1);
+
+      // Actualizar estadísticas
+      updateData['stats.total_lessons_completed'] = FieldValue.increment(1);
+      updateData['stats.total_exercises_completed'] = FieldValue.increment(1);
+
+      // Agregar XP (score / 2)
+      const xpToAdd = Math.floor(evaluation.score / 2);
+      updateData.xp = FieldValue.increment(xpToAdd);
+    }
+
+    await userRef.set(updateData, { merge: true });
+
+    // Si ganó XP, recalcular nivel
+    if (updateData.xp) {
+      const updatedDoc = await userRef.get();
+      const updatedData = updatedDoc.data();
+      if (updatedData) {
+        const newLevel = Math.floor(Math.sqrt(updatedData.xp / 100)) + 1;
+        await userRef.update({ level: newLevel });
+      }
+    }
+  }
+
+  async getCurrentAttempt(userId: string): Promise<CurrentAttempt | null> {
+    const userDoc = await firestore().collection(this.collection).doc(userId).get();
+
+    if (!userDoc.exists) {
+      return null;
+    }
+
+    const userData = userDoc.data();
+    const currentAttempt = userData?.current_attempt;
+
+    if (!currentAttempt) {
+      return null;
+    }
+
+    return {
+      lessonId: currentAttempt.lesson_id,
+      attemptId: currentAttempt.attempt_id,
+      courseId: currentAttempt.course_id,
+      status: currentAttempt.status,
+      userAnswer: currentAttempt.user_answer,
+      createdAt: currentAttempt.created_at?.toDate() || new Date(),
+      aiFeedback: currentAttempt.ai_feedback ? {
+        score: currentAttempt.ai_feedback.score,
+        feedback: currentAttempt.ai_feedback.feedback,
+        suggestions: currentAttempt.ai_feedback.suggestions
+      } : undefined
+    };
   }
 }
