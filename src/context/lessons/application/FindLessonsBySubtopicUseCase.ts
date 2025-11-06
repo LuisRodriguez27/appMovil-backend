@@ -15,7 +15,6 @@ export class FindLessonsBySubtopicUseCase {
 
     const lessons = await this.lessonRepository.findBySubtopicId(topicId, subtopicId);
 
-    // Las lecciones ya vienen ordenadas desde el repositorio
     return lessons;
   }
 }

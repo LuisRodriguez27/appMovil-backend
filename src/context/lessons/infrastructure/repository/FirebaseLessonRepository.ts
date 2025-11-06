@@ -19,10 +19,23 @@ export class FirebaseLessonRepository implements LessonRepository {
   
   async update(lesson: Lesson): Promise<void> {
     const primitives = lesson.toPrimitives();
-    const document = this.toFirestoreDocument(primitives);
-    const { __id, ...data } = document;
 
-    await firestore().collection(this.collection).doc(__id).update(data);
+    // Preparar solo los campos actualizables (sin topic_id, subtopic_id, created_at)
+    const updateData: any = {
+      title: primitives.title,
+      content: primitives.content,
+    };
+
+    // Agregar campos opcionales solo si están definidos
+    if (primitives.exerciseConfig !== undefined) {
+      updateData.exerciseConfig = primitives.exerciseConfig;
+    }
+
+    if (primitives.description !== undefined) {
+      updateData.description = primitives.description;
+    }
+
+    await firestore().collection(this.collection).doc(primitives.id).update(updateData);
   }
 
   async findAll(): Promise<Lesson[]> {
@@ -49,7 +62,6 @@ export class FirebaseLessonRepository implements LessonRepository {
     const snapshot = await firestore()
       .collection(this.collection)
       .where('topic_id', '==', topicId)
-      .orderBy('order', 'asc')
       .get();
 
     return snapshot.docs.map((doc) => {
@@ -63,7 +75,6 @@ export class FirebaseLessonRepository implements LessonRepository {
       .collection(this.collection)
       .where('topic_id', '==', topicId)
       .where('subtopic_id', '==', subtopicId)
-      .orderBy('order', 'asc')
       .get();
 
     return snapshot.docs.map((doc) => {
@@ -73,8 +84,6 @@ export class FirebaseLessonRepository implements LessonRepository {
   }
 
   async findByCourseId(courseId: string): Promise<Lesson[]> {
-    // Para obtener lecciones por curso, necesitamos hacer join con topics
-    // Primero obtenemos todos los topics del curso
     const topicsSnapshot = await firestore()
       .collection('topics')
       .where('course_id', '==', courseId)
@@ -95,7 +104,6 @@ export class FirebaseLessonRepository implements LessonRepository {
       const snapshot = await firestore()
         .collection(this.collection)
         .where('topic_id', 'in', batch)
-        .orderBy('order', 'asc')
         .get();
 
       const batchLessons = snapshot.docs.map((doc) => {
@@ -110,7 +118,19 @@ export class FirebaseLessonRepository implements LessonRepository {
   }
 
   async findFinalLessonByTopicId(topicId: string): Promise<Lesson | null> {
-    throw new Error("Method not implemented.");
+    const snapshot = await firestore()
+      .collection(this.collection)
+      .where('topic_id', '==', topicId)
+      .where('subtopic_id', '==', null)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return null;
+    }
+
+    const data = snapshot.docs[0].data() as LessonDocument;
+    return this.toDomainEntity(data);
   }
 
   async delete(id: string): Promise<void> {
@@ -126,12 +146,11 @@ export class FirebaseLessonRepository implements LessonRepository {
 
     const document: any = {
       __id: primitives.id,
-      topic_id: primitives.topicId,              
-      subtopic_id: primitives.subtopicId,       
+      topic_id: primitives.topicId,
+      subtopic_id: primitives.subtopicId,
       title: primitives.title,
-      description: primitives.description,
       content: primitives.content,
-      created_at: Timestamp.fromDate(primitives.createdAt),  
+      created_at: Timestamp.fromDate(primitives.createdAt),
       ...(exerciseConfig !== undefined ? { exerciseConfig: exerciseConfig } : {}),
       ...(primitives.description !== undefined ? { description: primitives.description } : {})
     };
@@ -142,13 +161,13 @@ export class FirebaseLessonRepository implements LessonRepository {
   private toDomainEntity(document: LessonDocument): Lesson {
     return Lesson.fromPrimitives({
       id: document.__id,
-      topicId: document.topicId,                    
-      subtopicId: document.subtopicId,              
+      topicId: document.topicId,
+      subtopicId: document.subtopicId,
       title: document.title,
       content: document.content,
       exerciseConfig: document.exerciseConfig,
       description: document.description,
-      createdAt: document.createdAt,       
+      createdAt: document.createdAt
     });
   }
 }

@@ -10,11 +10,8 @@ export class FindLessonsBySubtopicController {
 
       const lessons = await this.findLessonsBySubtopicUseCase.execute(topicId, subtopicId);
 
-      res.status(200).json({
-        success: true,
-        data: lessons.map(lesson => lesson.toPrimitives()),
-        count: lessons.length,
-      });
+      res.status(200).json(lessons);
+      
     } catch (error) {
       if (error instanceof Error) {
         res.status(400).json({

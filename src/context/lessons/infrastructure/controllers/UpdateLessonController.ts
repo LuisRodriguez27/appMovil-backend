@@ -10,16 +10,16 @@ export class UpdateLessonController {
       const { id } = req.params;
       const {
         title,
-        description,
         content,
-        exerciseConfig
+        exerciseConfig,
+        description,
       } = req.body;
 
       const request = new UpdateLessonRequest(
         title,
-        description,
         content,
-        exerciseConfig
+        exerciseConfig,
+        description
       );
 
       const lesson = await this.updateLessonUseCase.execute(id, request);

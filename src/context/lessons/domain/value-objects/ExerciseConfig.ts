@@ -11,7 +11,7 @@ export type ExerciseType = typeof VALID_EXERCISE_TYPES[number];
 export interface ExerciseConfigProps {
   instructions: string;
   type: ExerciseType;
-  max_points: number;
+  maxPoints: number;
 }
 
 export class ExerciseConfig {
@@ -53,7 +53,7 @@ export class ExerciseConfig {
     return new ExerciseConfig(
       props.instructions,
       props.type,
-      props.max_points
+      props.maxPoints
     );
   }
 
@@ -61,7 +61,7 @@ export class ExerciseConfig {
     return {
       instructions: this.instructions,
       type: this.type,
-      max_points: this.maxPoints
+      maxPoints: this.maxPoints
     };
   }
 

@@ -10,10 +10,8 @@ export class FindLessonByIdController {
 
       const lesson = await this.findLessonByIdUseCase.execute(id);
 
-      res.status(200).json({
-        success: true,
-        data: lesson.toPrimitives(),
-      });
+      res.status(200).json(lesson);
+      
     } catch (error) {
       if (error instanceof Error) {
         const statusCode = error.message === 'Lección no encontrada' ? 404 : 400;

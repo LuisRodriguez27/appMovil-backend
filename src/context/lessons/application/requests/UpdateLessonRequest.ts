@@ -25,12 +25,15 @@ export class UpdateLessonRequest {
       throw new Error('El contenido no puede estar vacío');
     }
 
-    if (!ExerciseConfig.isValid(this.exerciseConfig?.type || '')) {
-      throw new Error('Configuración de ejercicio inválida. Debe de ser fill_blank, multiple_choice, code_completion, true_false, open_ended');
-    }
+    // Exercise config (solo validar si existe)
+    if (this.exerciseConfig !== undefined) {
+      if (!ExerciseConfig.isValid(this.exerciseConfig?.type || '')) {
+        throw new Error('Configuración de ejercicio inválida. Debe de ser fill_blank, multiple_choice, code_completion, true_false, open_ended');
+      }
 
-    if (this.exerciseConfig?.max_points && (this.exerciseConfig.max_points < 0 || this.exerciseConfig.max_points > 50)) {
-      throw new Error('Los puntos máximos del ejercicio deben estar entre 0 y 50');
+      if (this.exerciseConfig?.maxPoints && (this.exerciseConfig.maxPoints < 0 || this.exerciseConfig.maxPoints > 50)) {
+        throw new Error('Los puntos máximos del ejercicio deben estar entre 0 y 50');
+      }
     }
 
     if (this.description && this.description.length > 500) {
