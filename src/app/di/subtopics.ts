@@ -36,7 +36,8 @@ export default function registerSubtopicsDependencies(container: ContainerBuilde
 
 	container
 		.register("DeleteSubtopicUseCase", DeleteSubtopicUseCase)
-		.addArgument(new Reference("SubtopicRepository"));
+		.addArgument(new Reference("SubtopicRepository"))
+		.addArgument(new Reference("LessonRepository"));
 
 	container
 		.register("UpdateSubtopicUseCase", UpdateSubtopicUseCase)

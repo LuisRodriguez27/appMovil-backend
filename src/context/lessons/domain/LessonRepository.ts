@@ -18,4 +18,6 @@ export interface LessonRepository {
   findFinalLessonByTopicId(topicId: string): Promise<Lesson | null>;
 
   delete(id: string): Promise<void>;
+
+  deleteBySubtopicId(subtopicId: string): Promise<void>;
 }
