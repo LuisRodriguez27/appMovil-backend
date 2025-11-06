@@ -20,3 +20,5 @@ firebase-adminsdk-*.json
 # Auth tokens para testing (contienen refresh tokens)
 .tokens.json
 src/scripts/auth/.tokens.json
+
+.claude
