@@ -64,6 +64,20 @@ export class FireBaseSubtopicRepository implements SubtopicRepository {
 		await firestore().collection(this.collection).doc(id).delete();
 	}
 
+	async deleteByTopicId(topicId: string): Promise<void> {
+		const snapshot = await firestore()
+			.collection(this.collection)
+			.where('topicId', '==', topicId)
+			.get();
+
+		const batch = firestore().batch();
+		snapshot.docs.forEach((doc) => {
+			batch.delete(doc.ref);
+		});
+
+		await batch.commit();
+	}
+
 	private toFirestoreDocument(primitives: SubtopicPrimitives): SubtopicDocument {
 		return {
 			__id: primitives.id,

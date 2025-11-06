@@ -151,6 +151,20 @@ export class FirebaseLessonRepository implements LessonRepository {
     await batch.commit();
   }
 
+  async deleteByTopicId(topicId: string): Promise<void> {
+    const snapshot = await firestore()
+      .collection(this.collection)
+      .where('topic_id', '==', topicId)
+      .get();
+
+    const batch = firestore().batch();
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+  }
+
   private toFirestoreDocument(lesson: LessonPrimitives): LessonDocument {
     const primitives = lesson;
 

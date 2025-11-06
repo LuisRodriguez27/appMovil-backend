@@ -51,7 +51,9 @@ export default function registerTopicsDependencies(container: ContainerBuilder) 
 
   container
     .register("DeleteTopicUseCase", DeleteTopicUseCase)
-    .addArgument(new Reference("TopicRepository"));
+    .addArgument(new Reference("TopicRepository"))
+    .addArgument(new Reference("SubtopicRepository"))
+    .addArgument(new Reference("LessonRepository"));
 
   container
     .register("CreateTopicController", CreateTopicController)

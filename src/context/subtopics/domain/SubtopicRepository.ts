@@ -7,4 +7,5 @@ export interface SubtopicRepository {
   findByTopicId(topicId: string): Promise<Subtopic[]>;
   update(subtopic: Subtopic): Promise<void>;
   delete(id: string): Promise<void>;
+  deleteByTopicId(topicId: string): Promise<void>;
 }

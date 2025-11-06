@@ -20,4 +20,6 @@ export interface LessonRepository {
   delete(id: string): Promise<void>;
 
   deleteBySubtopicId(subtopicId: string): Promise<void>;
+
+  deleteByTopicId(topicId: string): Promise<void>;
 }

@@ -1,20 +1,25 @@
 import { TopicRepository } from "../domain/TopicRepository";
 import { DeleteTopicRequest } from "./requests/DeleteTopicRequest";
+import { SubtopicRepository } from "../../subtopics/domain/SubtopicRepository";
+import { LessonRepository } from "../../lessons/domain/LessonRepository";
 
 export class DeleteTopicUseCase {
-  constructor(private readonly topicRepository: TopicRepository) {}
+  constructor(
+    private readonly topicRepository: TopicRepository,
+    private readonly subtopicRepository: SubtopicRepository,
+    private readonly lessonRepository: LessonRepository
+  ) {}
 
   async execute(request: DeleteTopicRequest): Promise<void> {
-    // Verificar que el topic existe
     const topic = await this.topicRepository.findById(request.id);
     if (!topic) {
       throw new Error('Tema no encontrado');
     }
 
-    // NOTA: Si en el futuro tenemos Lessons, aquí deberíamos eliminarlas primero (cascada)
-    // await this.lessonRepository.deleteAllByTopicId(request.id);
+    await this.lessonRepository.deleteByTopicId(request.id);
 
-    // Eliminar el topic
+    await this.subtopicRepository.deleteByTopicId(request.id);
+
     await this.topicRepository.delete(request.id);
   }
 }
