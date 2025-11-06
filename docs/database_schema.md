@@ -162,7 +162,7 @@
   exercise_config?: {
     intructions: string;  // Que sea en español
     type: 'fill_blank' | 'multiple_choice' | 'code_completion' | 'true_false' | 'open_ended';
-    max_points: number;   // 50
+    maxPoints: number;   // 50
   };
 
   description?: string;

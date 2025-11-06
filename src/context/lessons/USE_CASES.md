@@ -286,7 +286,7 @@ Este módulo gestiona las lecciones de estudio con ejercicios embebidos para una
 - ID requerido
 - Question no vacía
 - Type debe ser: fill_blank, multiple_choice, code_completion, true_false, open_ended
-- max_points > 0
+- maxPoints > 0
 - Multiple choice debe tener al menos 2 opciones
 - Code completion requiere code_template
 - Debe tener correct_answer (excepto open_ended)

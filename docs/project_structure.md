@@ -31,7 +31,7 @@ topics
 lessons
   ├── topic_id → topics.__id
   ├── subtopic_id → topics.subtopics[].id
-  └── exercises[] → (embebido) array de ejercicios con id, question, type, max_points
+  └── exercises[] → (embebido) array de ejercicios con id, question, type, maxPoints
 
 achievements (catálogo maestro)
   └── Relacionado con users.achievements[]
