@@ -54,7 +54,10 @@ export class GeminiExerciseGenerator {
 
       const text = result.text || '';
 
-      console.log('Respuesta de Gemini recibida:', text.substring(0, 200) + '...');
+      console.log('=== RESPUESTA COMPLETA DE GEMINI (generateExercise) ===');
+      console.log('Longitud:', text.length);
+      console.log('Contenido:', text);
+      console.log('=== FIN RESPUESTA ===');
 
       // Parsear la respuesta
       const exerciseContent = ExerciseParser.parse(params.type, text);

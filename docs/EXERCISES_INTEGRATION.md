@@ -2,26 +2,6 @@
 
 Este documento explica cómo funciona el sistema de generación y evaluación de ejercicios con IA Gemini.
 
-## Configuración
-
-### 1. Obtener API Key de Gemini
-
-1. Ve a [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Crea un nuevo proyecto o selecciona uno existente
-3. Genera una nueva API key
-4. Copia la API key
-
-### 2. Configurar variables de entorno
-
-Agrega las siguientes variables a tu archivo `.env`:
-
-```bash
-GEMINI_API_KEY=tu_api_key_aqui
-GEMINI_MODEL=gemini-2.0-flash-exp
-GEMINI_MAX_TOKENS=2048
-GEMINI_TEMPERATURE=0.7
-```
-
 ## Flujo de Uso
 
 ### Flujo 1: Validación Síncrona (Uso Directo)
