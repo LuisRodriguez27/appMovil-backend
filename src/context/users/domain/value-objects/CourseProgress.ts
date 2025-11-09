@@ -1,112 +1,84 @@
-/**
- * Value Object: CourseProgress
- * Representa el progreso de un usuario en un curso específico
- */
 export class CourseProgress {
   private constructor(
-    public readonly lessonsCompleted: Map<string, boolean>,
+    public readonly lastLessonCompletedId: string,
+    public readonly nextLessonId: string,
     public readonly completedCount: number,
     public readonly percentage: number,
-    public readonly lastViewedLesson: string | null
+    public readonly completedAt?: Date
   ) {}
 
-  /**
-   * Crea una nueva instancia de CourseProgress
-   */
   static create(data?: {
-    lessonsCompleted?: Record<string, boolean>;
+    lastLessonCompletedId?: string;
+    nextLessonId?: string;
     completedCount?: number;
     percentage?: number;
-    lastViewedLesson?: string | null;
+    completedAt?: Date;
   }): CourseProgress {
-    const lessonsMap = new Map(
-      Object.entries(data?.lessonsCompleted || {})
-    );
-
     return new CourseProgress(
-      lessonsMap,
+      data?.lastLessonCompletedId || '',
+      data?.nextLessonId || '',
       data?.completedCount || 0,
       data?.percentage || 0,
-      data?.lastViewedLesson || null
+      data?.completedAt
     );
   }
 
-  /**
-   * Marca una lección como completada
-   */
-  markLessonCompleted(lessonId: string, totalLessons: number): CourseProgress {
-    // Si ya está completada, no hacer nada
-    if (this.lessonsCompleted.has(lessonId)) {
-      return this;
-    }
-
-    const newLessons = new Map(this.lessonsCompleted);
-    newLessons.set(lessonId, true);
-
+  markLessonCompleted(lessonId: string, nextLessonId: string, totalLessons: number): CourseProgress {
     const newCompletedCount = this.completedCount + 1;
     const newPercentage = totalLessons > 0 
       ? Math.round((newCompletedCount / totalLessons) * 100)
       : 0;
-
     return new CourseProgress(
-      newLessons,
+      lessonId,
+      nextLessonId,
       newCompletedCount,
       newPercentage,
-      lessonId
+      newPercentage === 100 ? new Date() : undefined
     );
   }
 
-  /**
-   * Verifica si una lección está completada
-   */
   isLessonCompleted(lessonId: string): boolean {
-    return this.lessonsCompleted.has(lessonId);
+    return this.lastLessonCompletedId === lessonId;
   }
 
-  /**
-   * Actualiza la última lección vista (sin marcarla como completada)
-   */
-  updateLastViewedLesson(lessonId: string): CourseProgress {
+  updateNextLesson(nextLessonId: string): CourseProgress {
     return new CourseProgress(
-      this.lessonsCompleted,
+      this.lastLessonCompletedId,
+      nextLessonId,
       this.completedCount,
       this.percentage,
-      lessonId
+      this.completedAt
     );
   }
 
-  /**
-   * Recalcula el porcentaje basado en el total de lecciones
-   */
   recalculatePercentage(totalLessons: number): CourseProgress {
     const newPercentage = totalLessons > 0
       ? Math.round((this.completedCount / totalLessons) * 100)
       : 0;
-
     return new CourseProgress(
-      this.lessonsCompleted,
+      this.lastLessonCompletedId,
+      this.nextLessonId,
       this.completedCount,
       newPercentage,
-      this.lastViewedLesson
+      this.completedAt
     );
   }
 
-  /**
-   * Convierte el value object a primitivos para persistencia
-   */
   toPrimitives(): CourseProgressPrimitives {
     return {
-      lessons_completed: Object.fromEntries(this.lessonsCompleted),
-      completed_count: this.completedCount,
+      lastLessonCompletedId: this.lastLessonCompletedId,
+      nextLessonId: this.nextLessonId,
+      completedCount: this.completedCount,
       percentage: this.percentage,
-      last_viewed_lesson: this.lastViewedLesson
+      completedAt: this.completedAt
     };
   }
 }
 
 export type CourseProgressPrimitives = {
-  lessons_completed: Record<string, boolean>;
-  completed_count: number;
+  lastLessonCompletedId: string;
+  nextLessonId: string;
+  completedCount: number;
   percentage: number;
-  last_viewed_lesson: string | null;
+  completedAt?: Date;
 };

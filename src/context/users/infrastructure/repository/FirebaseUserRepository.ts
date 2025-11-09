@@ -1,5 +1,6 @@
 import { User, UserPrimitives } from '../../domain/User';
-import { UserRepository, CurrentAttempt } from '../../domain/UserRepository';
+import { UserRepository } from '../../domain/UserRepository';
+import { CurrentAttempt } from '../../domain/value-objects/CurrentAttempt';
 import { firestore } from '../../../../app/config/configureFirebase';
 import { FieldValue } from 'firebase-admin/firestore';
 
@@ -46,7 +47,7 @@ export class FirebaseUserRepository implements UserRepository {
   async findByNumeroControl(controlNumber: string): Promise<User | null> {
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('control_number', '==', controlNumber)
+      .where('controlNumber', '==', controlNumber)
       .limit(1)
       .get();
 
@@ -81,64 +82,54 @@ export class FirebaseUserRepository implements UserRepository {
 
   async updateXP(id: string, xpToAdd: number): Promise<void> {
     const userRef = firestore().collection(this.collection).doc(id);
-    const doc = await userRef.get();
-
-    if (!doc.exists) {
-      throw new Error('Usuario no encontrado');
-    }
-
-    const data = doc.data() as UserDocument;
-    const newXP = data.xp + xpToAdd;
-    const newLevel = Math.floor(Math.sqrt(newXP / 100)) + 1;
-
+    
     await userRef.update({
-      xp: newXP,
-      level: newLevel,
+      xp: FieldValue.increment(xpToAdd),
     });
   }
 
   private toFirestoreDocument(primitives: UserPrimitives): UserDocument {
     return {
-      __id: primitives.id,
+      __id: primitives.__id,
       controlNumber: primitives.controlNumber,
       name: primitives.name,
       email: primitives.email,
       role: primitives.role,
       xp: primitives.xp,
-      level: primitives.level,
-      currentCourse: primitives.currentCourse,
+      currentCourseId: primitives.currentCourseId,
       profilePicture: primitives.profilePicture,
       progress: primitives.progress,
       achievements: primitives.achievements,
       streakData: primitives.streakData,
       stats: primitives.stats,
+      currentAttempt: primitives.currentAttempt,
       createdAt: primitives.createdAt,
     };
   }
 
   private toDomainEntity(document: UserDocument): User {
     return User.fromPrimitives({
-      id: document.__id,
+      __id: document.__id,
       controlNumber: document.controlNumber,
       name: document.name,
       email: document.email,
       role: document.role || 'student',
       xp: document.xp,
-      level: document.level,
-      currentCourse: document.currentCourse,
+      currentCourseId: document.currentCourseId,
       profilePicture: document.profilePicture,
       progress: document.progress || {},
       achievements: document.achievements || [],
       streakData: document.streakData || {
-        current_streak: 0,
-        best_streak: 0,
-        last_study_date: '',
+        currentStreak: 0,
+        bestStreak: 0,
+        lastStudyDate: null,
       },
       stats: document.stats || {
-        total_lessons_completed: 0,
-        total_exercises_completed: 0,
-        total_courses_completed: 0,
+        totalLessonsCompleted: 0,
+        totalExercisesCompleted: 0,
+        totalCoursesCompleted: 0,
       },
+      currentAttempt: document.currentAttempt,
       createdAt: document.createdAt,
     });
   }
@@ -147,13 +138,13 @@ export class FirebaseUserRepository implements UserRepository {
     const userRef = firestore().collection(this.collection).doc(userId);
 
     await userRef.set({
-      current_attempt: {
-        lesson_id: attempt.lessonId,
-        attempt_id: attempt.attemptId,
+      currentAttempt: {
+        lessonId: attempt.lessonId,
+        attemptId: attempt.attemptId,
         courseId: attempt.courseId,
         status: attempt.status,
-        user_answer: attempt.userAnswer,
-        created_at: FieldValue.serverTimestamp()
+        userAnswer: attempt.userAnswer,
+        createdAt: FieldValue.serverTimestamp()
       }
     }, { merge: true });
   }
@@ -176,18 +167,18 @@ export class FirebaseUserRepository implements UserRepository {
     }
 
     const userData = userDoc.data();
-    const currentAttempt = userData?.current_attempt;
+    const currentAttempt = userData?.currentAttempt;
 
-    if (!currentAttempt || currentAttempt.attempt_id !== attemptId) {
+    if (!currentAttempt || currentAttempt.attemptId !== attemptId) {
       throw new Error(`Intento ${attemptId} no encontrado para el usuario ${userId}`);
     }
 
     // Preparar la actualización
     const updateData: any = {
-      current_attempt: {
+      currentAttempt: {
         ...currentAttempt,
         status: evaluation.status,
-        ai_feedback: {
+        aiFeedback: {
           score: evaluation.score,
           feedback: evaluation.feedback,
           suggestions: evaluation.suggestions
@@ -196,17 +187,17 @@ export class FirebaseUserRepository implements UserRepository {
     };
 
     // Si fue aprobado, actualizar progreso y estadísticas
-    if (evaluation.status === 'approved_excellent' || evaluation.status === 'approved_improve') {
+    if (evaluation.status === 'approvedExcellent' || evaluation.status === 'approvedImprove') {
       const courseId = currentAttempt.courseId;
-      const lessonId = currentAttempt.lesson_id;
+      const lessonId = currentAttempt.lessonId;
 
       // Actualizar progreso
-      updateData[`progress.${courseId}.last_lesson_completed_id`] = lessonId;
-      updateData[`progress.${courseId}.completed_count`] = FieldValue.increment(1);
+      updateData[`progress.${courseId}.lastLessonCompletedId`] = lessonId;
+      updateData[`progress.${courseId}.completedCount`] = FieldValue.increment(1);
 
       // Actualizar estadísticas
-      updateData['stats.total_lessons_completed'] = FieldValue.increment(1);
-      updateData['stats.total_exercises_completed'] = FieldValue.increment(1);
+      updateData['stats.totalLessonsCompleted'] = FieldValue.increment(1);
+      updateData['stats.totalExercisesCompleted'] = FieldValue.increment(1);
 
       // Agregar XP (score / 2)
       const xpToAdd = Math.floor(evaluation.score / 2);
@@ -214,16 +205,6 @@ export class FirebaseUserRepository implements UserRepository {
     }
 
     await userRef.set(updateData, { merge: true });
-
-    // Si ganó XP, recalcular nivel
-    if (updateData.xp) {
-      const updatedDoc = await userRef.get();
-      const updatedData = updatedDoc.data();
-      if (updatedData) {
-        const newLevel = Math.floor(Math.sqrt(updatedData.xp / 100)) + 1;
-        await userRef.update({ level: newLevel });
-      }
-    }
   }
 
   async getCurrentAttempt(userId: string): Promise<CurrentAttempt | null> {
@@ -234,24 +215,24 @@ export class FirebaseUserRepository implements UserRepository {
     }
 
     const userData = userDoc.data();
-    const currentAttempt = userData?.current_attempt;
+    const currentAttempt = userData?.currentAttempt;
 
     if (!currentAttempt) {
       return null;
     }
 
-    return {
-      lessonId: currentAttempt.lesson_id,
-      attemptId: currentAttempt.attempt_id,
+    return CurrentAttempt.fromPrimitives({
+      lessonId: currentAttempt.lessonId,
+      attemptId: currentAttempt.attemptId,
       courseId: currentAttempt.courseId,
       status: currentAttempt.status,
-      userAnswer: currentAttempt.user_answer,
-      createdAt: currentAttempt.created_at?.toDate() || new Date(),
-      aiFeedback: currentAttempt.ai_feedback ? {
-        score: currentAttempt.ai_feedback.score,
-        feedback: currentAttempt.ai_feedback.feedback,
-        suggestions: currentAttempt.ai_feedback.suggestions
+      userAnswer: currentAttempt.userAnswer,
+      createdAt: currentAttempt.createdAt?.toDate() || new Date(),
+      aiFeedback: currentAttempt.aiFeedback ? {
+        score: currentAttempt.aiFeedback.score,
+        feedback: currentAttempt.aiFeedback.feedback,
+        suggestions: currentAttempt.aiFeedback.suggestions
       } : undefined
-    };
+    });
   }
 }

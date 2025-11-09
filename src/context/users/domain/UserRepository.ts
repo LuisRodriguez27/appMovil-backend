@@ -1,18 +1,5 @@
 import { User } from './User';
-
-export interface CurrentAttempt {
-  lessonId: string;
-  attemptId: string;
-  courseId: string;
-  status: 'evaluating' | 'approved_excellent' | 'approved_improve' | 'rejected';
-  userAnswer: any;
-  createdAt: Date;
-  aiFeedback?: {
-    score: number;
-    feedback: string;
-    suggestions?: string;
-  };
-}
+import { CurrentAttempt } from './value-objects/CurrentAttempt';
 
 export interface UserRepository {
   create(user: User): Promise<void>;
@@ -30,7 +17,7 @@ export interface UserRepository {
     userId: string,
     attemptId: string,
     evaluation: {
-      status: CurrentAttempt['status'];
+      status: 'approvedExcellent' | 'approvedImprove' | 'rejected';
       score: number;
       feedback: string;
       suggestions?: string;

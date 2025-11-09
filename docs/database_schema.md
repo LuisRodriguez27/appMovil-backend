@@ -32,9 +32,6 @@
   email: string;
   role: 'student' | 'admin';
   xp: number;
-  currentCourseId?: string;
-  profilePicture?: string;
-  createdAt: Date;
 
   progress: {
     [courseId: string]: {
@@ -76,6 +73,10 @@
     totalExercisesCompleted: number;
     totalCoursesCompleted: number;
   };
+
+  currentCourseId?: string;
+  profilePicture?: string;
+  createdAt: Date;
 }
 ```
 

@@ -1,7 +1,3 @@
-/**
- * Value Object: UserStats
- * Representa las estadísticas generales del usuario
- */
 export class UserStats {
   private constructor(
     public readonly totalLessonsCompleted: number,
@@ -9,15 +5,10 @@ export class UserStats {
     public readonly totalCoursesCompleted: number
   ) {}
 
-  /**
-   * Crea una nueva instancia de UserStats con valores por defecto
-   */
   static create(data?: {
     totalLessonsCompleted?: number;
     totalExercisesCompleted?: number;
     totalCoursesCompleted?: number;
-    averageScore?: number;
-    studyTimeMinutes?: number;
   }): UserStats {
     return new UserStats(
       data?.totalLessonsCompleted || 0,
@@ -26,24 +17,18 @@ export class UserStats {
     );
   }
 
-  /**
-   * Crea UserStats desde datos de persistencia
-   */
   static fromPrimitives(data: {
-    total_lessons_completed: number;
-    total_exercises_completed: number;
-    total_courses_completed: number;
+    totalLessonsCompleted: number;
+    totalExercisesCompleted: number;
+    totalCoursesCompleted: number;
   }): UserStats {
     return new UserStats(
-      data.total_lessons_completed,
-      data.total_exercises_completed,
-      data.total_courses_completed
+      data.totalLessonsCompleted,
+      data.totalExercisesCompleted,
+      data.totalCoursesCompleted
     );
   }
 
-  /**
-   * Incrementa el contador de lecciones completadas
-   */
   incrementLessonsCompleted(count: number = 1): UserStats {
     return new UserStats(
       this.totalLessonsCompleted + count,
@@ -52,12 +37,8 @@ export class UserStats {
     );
   }
 
-  /**
-   * Incrementa el contador de ejercicios completados y actualiza el promedio
-   */
   incrementExercisesCompleted(score: number): UserStats {
     const newTotal = this.totalExercisesCompleted + 1;
-
     return new UserStats(
       this.totalLessonsCompleted,
       newTotal,
@@ -65,9 +46,6 @@ export class UserStats {
     );
   }
 
-  /**
-   * Incrementa el contador de cursos completados
-   */
   incrementCoursesCompleted(): UserStats {
     return new UserStats(
       this.totalLessonsCompleted,
@@ -76,9 +54,6 @@ export class UserStats {
     );
   }
 
-  /**
-   * Añade tiempo de estudio en minutos
-   */
   addStudyTime(minutes: number): UserStats {
     if (minutes < 0) {
       throw new Error('El tiempo de estudio no puede ser negativo');
@@ -91,17 +66,10 @@ export class UserStats {
     );
   }
 
-  /**
-   * Verifica si el usuario es considerado activo
-   * (al menos 1 lección o ejercicio completado)
-   */
   isActive(): boolean {
     return this.totalLessonsCompleted > 0 || this.totalExercisesCompleted > 0;
   }
 
-  /**
-   * Obtiene estadísticas resumidas
-   */
   getSummary(): {
     lessons: number;
     exercises: number;
@@ -114,20 +82,17 @@ export class UserStats {
     };
   }
 
-  /**
-   * Convierte el value object a primitivos para persistencia
-   */
   toPrimitives(): UserStatsPrimitives {
     return {
-      total_lessons_completed: this.totalLessonsCompleted,
-      total_exercises_completed: this.totalExercisesCompleted,
-      total_courses_completed: this.totalCoursesCompleted
+      totalLessonsCompleted: this.totalLessonsCompleted,
+      totalExercisesCompleted: this.totalExercisesCompleted,
+      totalCoursesCompleted: this.totalCoursesCompleted
     };
   }
 }
 
 export type UserStatsPrimitives = {
-  total_lessons_completed: number;
-  total_exercises_completed: number;
-  total_courses_completed: number;
+  totalLessonsCompleted: number;
+  totalExercisesCompleted: number;
+  totalCoursesCompleted: number;
 };

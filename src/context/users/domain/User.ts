@@ -1,79 +1,72 @@
-import { uid } from 'uid';
+import { StreakData, UserStats, CurrentAttempt } from './value-objects';
+import { UserAchievement } from './value-objects/Achievement';
 import { Progress, ProgressPrimitives } from './value-objects/Progress';
-import { UserAchievementCollection, UserAchievementPrimitives } from './value-objects/Achievement';
-import { StreakData, StreakDataPrimitives } from './value-objects/StreakData';
-import { UserStats, UserStatsPrimitives } from './value-objects/UserStats';
-
+import { StreakDataPrimitives } from './value-objects/StreakData';
+import { UserStatsPrimitives } from './value-objects/UserStats';
+import { CurrentAttemptPrimitives } from './value-objects/CurrentAttempt';
 
 export class User {
   constructor(
-    public readonly id: string,
+    public readonly __id: string,
     private controlNumber: string,
     private name: string,
     private email: string,
     private role: 'student' | 'admin',
     private xp: number,
-    private level: number,
-    private currentCourse: string | null,
-    private profilePicture: string | null,
     private progress: Progress,
-    private achievements: UserAchievementCollection,
+    private achievements: UserAchievement[],
     private streakData: StreakData,
     private stats: UserStats,
+    private currentCourseId?: string,
+    private profilePicture?: string,
+    private currentAttempt?: CurrentAttempt,
     private readonly createdAt: Date = new Date()
   ) {}
 
-  static create(data: Omit<UserPrimitives, 'id' | 'createdAt'>): User {
+  static create(data: Omit<UserPrimitives, '__id' | 'createdAt'>): User {
     return new User(
-      uid(),
+      '', // __id se debe asignar externamente o por Firestore
       data.controlNumber,
       data.name,
       data.email,
-      data.role || 'student', // Por defecto: student
+      data.role || 'student',
       data.xp || 0,
-      data.level || 1,
-      data.currentCourse || null,
-      data.profilePicture || null,
       Progress.create(data.progress),
-      UserAchievementCollection.fromArray(data.achievements || []),
-      StreakData.fromPrimitives(data.streakData || {
-        current_streak: 0,
-        best_streak: 0,
-        last_study_date: '',
-      }),
-      UserStats.fromPrimitives(data.stats || {
-        total_lessons_completed: 0,
-        total_exercises_completed: 0,
-        total_courses_completed: 0,
-      })
+      data.achievements || [],
+      StreakData.fromPrimitives(data.streakData || { currentStreak: 0, bestStreak: 0, lastStudyDate: null }),
+      UserStats.fromPrimitives(data.stats || { totalLessonsCompleted: 0, totalExercisesCompleted: 0, totalCoursesCompleted: 0 }),
+      data.currentCourseId,
+      data.profilePicture,
+      data.currentAttempt ? CurrentAttempt.fromPrimitives(data.currentAttempt) : undefined,
+      new Date()
     );
   }
 
   static fromPrimitives(data: UserPrimitives): User {
     return new User(
-      data.id,
+      data.__id,
       data.controlNumber,
       data.name,
       data.email,
       data.role,
       data.xp,
-      data.level,
-      data.currentCourse,
-      data.profilePicture,
       Progress.create(data.progress),
-      UserAchievementCollection.fromArray(data.achievements),
+      data.achievements,
       StreakData.fromPrimitives(data.streakData),
       UserStats.fromPrimitives(data.stats),
+      data.currentCourseId,
+      data.profilePicture,
+      data.currentAttempt ? CurrentAttempt.fromPrimitives(data.currentAttempt) : undefined,
       new Date(data.createdAt)
     );
   }
 
   // ========== MÉTODOS DE ACTUALIZACIÓN ==========
 
-  public update(data: Partial<Pick<UserPrimitives, 'name' | 'email' | 'currentCourse' | 'profilePicture'>>): void {
+  public update(data: Partial<Pick<UserPrimitives, 'name' | 'email' | 'currentCourseId' | 'profilePicture'>>): void {
     if (data.name !== undefined) this.name = data.name;
     if (data.email !== undefined) this.email = data.email;
-    if (data.currentCourse !== undefined) this.currentCourse = data.currentCourse;
+    if (data.currentCourseId !== undefined) this.currentCourseId = data.currentCourseId;
     if (data.profilePicture !== undefined) this.profilePicture = data.profilePicture;
   }
 
@@ -82,25 +75,22 @@ export class User {
       throw new Error('XP points cannot be negative');
     }
     this.xp += points;
-    this.recalculateLevel();
   }
 
-  public completeLesson(courseId: string, lessonId: string, totalLessons: number): void {
-    this.progress = this.progress.completeLesson(courseId, lessonId, totalLessons);
+  public completeLesson(courseId: string, lessonId: string, nextLessonId: string, totalLessons: number): void {
+    this.progress = this.progress.completeLesson(courseId, lessonId, nextLessonId, totalLessons);
     this.stats = this.stats.incrementLessonsCompleted();
   }
 
-  public updateLastViewedLesson(courseId: string, lessonId: string): void {
-    this.progress = this.progress.updateLastViewedLesson(courseId, lessonId);
+  public updateNextLesson(courseId: string, nextLessonId: string): void {
+    this.progress = this.progress.updateNextLesson(courseId, nextLessonId);
   }
 
-  public unlockAchievement(achievementId: string): boolean {
-    if (this.achievements.has(achievementId)) {
+  public unlockAchievement(achievementId: string, quantity: number = 1): boolean {
+    if (this.achievements.some(a => a.achievementId === achievementId)) {
       return false; // Ya tiene el logro
     }
-
-    const achievement = require('./value-objects/Achievement').UserAchievement.create(achievementId);
-    this.achievements = this.achievements.add(achievement);
+    this.achievements.push({ achievementId, quantity });
     return true;
   }
 
@@ -109,7 +99,7 @@ export class User {
   }
 
   public addStudyTime(minutes: number): void {
-    this.stats = this.stats.addStudyTime(minutes);
+    // No implementado en el esquema actual
   }
 
   public completeExercise(score: number): void {
@@ -120,15 +110,32 @@ export class User {
     this.stats = this.stats.incrementCoursesCompleted();
   }
 
-  private recalculateLevel(): void {
-    // Fórmula: level = floor(sqrt(xp / 100)) + 1
-    this.level = Math.floor(Math.sqrt(this.xp / 100)) + 1;
+  public createAttempt(attempt: CurrentAttempt): void {
+    this.currentAttempt = attempt;
   }
+
+  public updateAttemptWithEvaluation(evaluation: {
+    status: 'approvedExcellent' | 'approvedImprove' | 'rejected';
+    score: number;
+    feedback: string;
+    suggestions?: string;
+  }): void {
+    if (!this.currentAttempt) {
+      throw new Error('No hay un intento activo para evaluar');
+    }
+    this.currentAttempt = this.currentAttempt.withEvaluation(evaluation);
+  }
+
+  public clearCurrentAttempt(): void {
+    this.currentAttempt = undefined;
+  }
+
+  // Eliminado: recalculateLevel (no existe level en el esquema)
 
   // ========== GETTERS ==========
 
   public getId(): string {
-    return this.id;
+    return this.__id;
   }
 
   public getControlNumber(): string {
@@ -147,15 +154,13 @@ export class User {
     return this.xp;
   }
 
-  public getLevel(): number {
-    return this.level;
+  // Eliminado: getLevel (no existe level en el esquema)
+
+  public getCurrentCourseId(): string | undefined {
+    return this.currentCourseId;
   }
 
-  public getCurrentCourse(): string | null {
-    return this.currentCourse;
-  }
-
-  public getProfilePicture(): string | null {
+  public getProfilePicture(): string | undefined {
     return this.profilePicture;
   }
 
@@ -163,7 +168,7 @@ export class User {
     return this.progress;
   }
 
-  public getAchievements(): UserAchievementCollection {
+  public getAchievements(): UserAchievement[] {
     return this.achievements;
   }
 
@@ -173,6 +178,10 @@ export class User {
 
   public getStats(): UserStats {
     return this.stats;
+  }
+
+  public getCurrentAttempt(): CurrentAttempt | undefined {
+    return this.currentAttempt;
   }
 
   public getRole(): 'student' | 'admin' {
@@ -198,7 +207,7 @@ export class User {
   }
 
   public hasAchievement(achievementId: string): boolean {
-    return this.achievements.has(achievementId);
+    return this.achievements.some(a => a.achievementId === achievementId);
   }
 
   public isStreakActive(today: string): boolean {
@@ -209,37 +218,37 @@ export class User {
 
   toPrimitives(): UserPrimitives {
     return {
-      id: this.id,
+      __id: this.__id,
       controlNumber: this.controlNumber,
       name: this.name,
       email: this.email,
       role: this.role,
       xp: this.xp,
-      level: this.level,
-      currentCourse: this.currentCourse,
+      currentCourseId: this.currentCourseId,
       profilePicture: this.profilePicture,
       progress: this.progress.toPrimitives(),
-      achievements: this.achievements.toPrimitives(),
+      achievements: this.achievements,
       streakData: this.streakData.toPrimitives(),
       stats: this.stats.toPrimitives(),
+      currentAttempt: this.currentAttempt?.toPrimitives(),
       createdAt: this.createdAt.toISOString(),
     };
   }
 }
 
 export type UserPrimitives = {
-  id: string;
+  __id: string;
   controlNumber: string;
   name: string;
   email: string;
   role: 'student' | 'admin';
   xp: number;
-  level: number;
-  currentCourse: string | null;
-  profilePicture: string | null;
+  currentCourseId?: string;
+  profilePicture?: string;
   progress: ProgressPrimitives;
-  achievements: UserAchievementPrimitives[];
+  achievements: UserAchievement[];
   streakData: StreakDataPrimitives;
   stats: UserStatsPrimitives;
+  currentAttempt?: CurrentAttemptPrimitives;
   createdAt: string;
 };

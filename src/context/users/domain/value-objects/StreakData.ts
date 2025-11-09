@@ -1,48 +1,34 @@
-/**
- * Value Object: StreakData
- * Representa la racha de estudio del usuario
- */
 export class StreakData {
   private constructor(
     public readonly currentStreak: number,
     public readonly bestStreak: number,
-    public readonly lastStudyDate: string,
+    public readonly lastStudyDate: string | null,
   ) {}
 
-  /**
-   * Crea una nueva instancia de StreakData
-   */
   static create(data?: {
     currentStreak?: number;
     bestStreak?: number;
-    lastStudyDate?: string;
-    streakFreezeCount?: number;
+    lastStudyDate?: string | null;
   }): StreakData {
     return new StreakData(
       data?.currentStreak || 0,
       data?.bestStreak || 0,
-      data?.lastStudyDate || ''
+      data?.lastStudyDate ?? null
     );
   }
 
-  /**
-   * Crea StreakData desde datos de persistencia
-   */
   static fromPrimitives(data: {
-    current_streak: number;
-    best_streak: number;
-    last_study_date: string;
+    currentStreak: number;
+    bestStreak: number;
+    lastStudyDate: string | null;
   }): StreakData {
     return new StreakData(
-      data.current_streak,
-      data.best_streak,
-      data.last_study_date
+      data.currentStreak,
+      data.bestStreak,
+      data.lastStudyDate
     );
   }
 
-  /**
-   * Actualiza la racha basándose en la fecha actual
-   */
   updateStreak(today: string): StreakData {
     // Si no hay fecha previa, es el primer día
     if (!this.lastStudyDate) {
@@ -145,15 +131,15 @@ export class StreakData {
    */
   toPrimitives(): StreakDataPrimitives {
     return {
-      current_streak: this.currentStreak,
-      best_streak: this.bestStreak,
-      last_study_date: this.lastStudyDate,
+      currentStreak: this.currentStreak,
+      bestStreak: this.bestStreak,
+      lastStudyDate: this.lastStudyDate,
     };
   }
 }
 
 export type StreakDataPrimitives = {
-  current_streak: number;
-  best_streak: number;
-  last_study_date: string;
+  currentStreak: number;
+  bestStreak: number;
+  lastStudyDate: string | null;
 };
