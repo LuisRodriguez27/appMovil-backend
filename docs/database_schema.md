@@ -39,6 +39,7 @@
   progress: {
     [courseId: string]: {
       lastLessonCompletedId: string;      // Última lección completada en este curso
+      nextLessonId: string;
       completedCount: number;      // Lecciones completadas del curso
       percentage: number;           // % del curso completado
       completedAt?: Date;           // Cuándo completó todo el curso
@@ -86,10 +87,8 @@
 **Índices**: email (único), controlNumber (único), role, xp (desc), streakData.currentStreak (desc)
 
 **Reglas clave**:
-- Logros: datos se copian del catálogo al array (desnormalización)
 - Progreso: embebido, usar `set({...}, {merge: true})` para updates
 - Racha: se reinicia si pasa >1 día sin actividad
-- Level: auto-calculado `floor(sqrt(xp/100)) + 1`
 - `currentAttempt`: se sobrescribe con cada nuevo intento, solo guarda el estado actual (no historial)
 - `lastLessonCompletedId`: solo se actualiza cuando `currentAttempt.status` es `approved*`
 
