@@ -27,19 +27,17 @@
 ```typescript
 {
   __id: string;
-  control_number: string;
+  controlNumber: string;
   name: string;
   email: string;
   role: 'student' | 'admin';
   xp: number;
-  level: number;  // floor(sqrt(xp/100)) + 1
-  current_course: string | null;
   profile_picture: string | null;
   created_at: Date;
 
   progress: {
     [courseId: string]: {
-      last_lesson_completed_id: string;      // Última lección completada en este curso
+      lastLessonCompletedId: string;      // Última lección completada en este curso
       completed_count: number;      // Lecciones completadas del curso
       percentage: number;           // % del curso completado
       completedAt?: Date;           // Cuándo completó todo el curso
@@ -81,7 +79,7 @@
 
 **Relaciones**:
 - `current_course` → `courses.__id`
-- `progress[courseId].last_lesson_id` → `lessons.__id`
+- `progress[courseId].lastLessonCompletedId` → `lessons.__id`
 - `achievements[].achievement_id` → `achievements.__id`
 
 **Índices**: email (único), control_number (único), role, xp (desc), streak_data.current_streak (desc)
@@ -160,7 +158,7 @@
   content: string;          // Markdown
 
   exercise_config?: {
-    intructions: string;  // Que sea en español
+    instructions: string;  // Que sea en español
     type: 'fill_blank' | 'multiple_choice' | 'code_completion' | 'true_false' | 'open_ended';
     maxPoints: number;   // 50
   };
@@ -171,11 +169,11 @@
 ```
 Genera un ejercicion sobre el tema {{Subtopic.title}} de este tipo {{exercise_config.type}}
 
-**Índices**: topicId + subtopicId, topicId + order
+**Índices**: topicId + subtopicId, topicId 
 
 **Reglas**:
 - Regular: subtopicId != null
-- Final: subtopicId = null, order = 999
+- Final: subtopicId = null
 - Ejercicios: Se generan dinámicamente vía API, NO se guardan en BD
 - Validación: Vía webhook si es ai_evaluation, síncrono si es exact_match
 
