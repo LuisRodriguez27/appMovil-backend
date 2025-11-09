@@ -13,10 +13,10 @@ async function createIndex() {
 
     console.log('\n🔍 Intentando hacer query que requiere índice compuesto...\n');
 
-    // Esta query requiere un índice compuesto: course_id + order
+    // Esta query requiere un índice compuesto: courseId + order
     const snapshot = await firestore()
       .collection('topics')
-      .where('course_id', '==', 'test_course_id')
+      .where('courseId', '==', 'test_courseId')
       .orderBy('order', 'asc')
       .get();
 
@@ -61,6 +61,6 @@ console.log('\n═════════════════════�
 console.log('  🔥 Firestore Composite Index Creator');
 console.log('═══════════════════════════════════════════════════════════════\n');
 console.log('Este script te ayudará a crear el índice compuesto necesario');
-console.log('para la colección "topics" (course_id + order).\n');
+console.log('para la colección "topics" (courseId + order).\n');
 
 createIndex();

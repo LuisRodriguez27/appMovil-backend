@@ -20,7 +20,7 @@ export class FirebaseLessonRepository implements LessonRepository {
   async update(lesson: Lesson): Promise<void> {
     const primitives = lesson.toPrimitives();
 
-    // Preparar solo los campos actualizables (sin topic_id, subtopic_id, created_at)
+    // Preparar solo los campos actualizables (sin topicId, subtopicId, created_at)
     const updateData: any = {
       title: primitives.title,
       content: primitives.content,
@@ -61,7 +61,7 @@ export class FirebaseLessonRepository implements LessonRepository {
   async findByTopicId(topicId: string): Promise<Lesson[]> {
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('topic_id', '==', topicId)
+      .where('topicId', '==', topicId)
       .get();
 
     return snapshot.docs.map((doc) => {
@@ -73,8 +73,8 @@ export class FirebaseLessonRepository implements LessonRepository {
   async findBySubtopicId(topicId: string, subtopicId: string): Promise<Lesson[]> {
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('topic_id', '==', topicId)
-      .where('subtopic_id', '==', subtopicId)
+      .where('topicId', '==', topicId)
+      .where('subtopicId', '==', subtopicId)
       .get();
 
     return snapshot.docs.map((doc) => {
@@ -86,7 +86,7 @@ export class FirebaseLessonRepository implements LessonRepository {
   async findByCourseId(courseId: string): Promise<Lesson[]> {
     const topicsSnapshot = await firestore()
       .collection('topics')
-      .where('course_id', '==', courseId)
+      .where('courseId', '==', courseId)
       .get();
 
     const topicIds = topicsSnapshot.docs.map(doc => doc.id);
@@ -103,7 +103,7 @@ export class FirebaseLessonRepository implements LessonRepository {
       const batch = topicIds.slice(i, i + batchSize);
       const snapshot = await firestore()
         .collection(this.collection)
-        .where('topic_id', 'in', batch)
+        .where('topicId', 'in', batch)
         .get();
 
       const batchLessons = snapshot.docs.map((doc) => {
@@ -120,8 +120,8 @@ export class FirebaseLessonRepository implements LessonRepository {
   async findFinalLessonByTopicId(topicId: string): Promise<Lesson | null> {
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('topic_id', '==', topicId)
-      .where('subtopic_id', '==', null)
+      .where('topicId', '==', topicId)
+      .where('subtopicId', '==', null)
       .limit(1)
       .get();
 
@@ -140,7 +140,7 @@ export class FirebaseLessonRepository implements LessonRepository {
   async deleteBySubtopicId(subtopicId: string): Promise<void> {
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('subtopic_id', '==', subtopicId)
+      .where('subtopicId', '==', subtopicId)
       .get();
 
     const batch = firestore().batch();
@@ -154,7 +154,7 @@ export class FirebaseLessonRepository implements LessonRepository {
   async deleteByTopicId(topicId: string): Promise<void> {
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('topic_id', '==', topicId)
+      .where('topicId', '==', topicId)
       .get();
 
     const batch = firestore().batch();
@@ -174,8 +174,8 @@ export class FirebaseLessonRepository implements LessonRepository {
 
     const document: any = {
       __id: primitives.id,
-      topic_id: primitives.topicId,
-      subtopic_id: primitives.subtopicId,
+      topicId: primitives.topicId,
+      subtopicId: primitives.subtopicId,
       title: primitives.title,
       content: primitives.content,
       created_at: Timestamp.fromDate(primitives.createdAt),

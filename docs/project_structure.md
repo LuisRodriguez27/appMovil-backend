@@ -14,23 +14,23 @@ Este archivo documenta la arquitectura del proyecto, las convenciones de código
 users (6 colecciones principales)
   ├── current_course → courses.__id
   ├── progress{} → (embebido) progreso por curso
-  │   └── [course_id] → lessons_completed[], percentage, last_viewed_lesson
+  │   └── [courseId] → lessons_completed[], percentage, last_viewed_lesson
   ├── achievements[] → (embebido) logros obtenidos con xp_earned y unlocked_at
   ├── streak_data{} → (embebido) current_streak, best_streak, last_study_date
   └── notifications (1:N) → notifications.user_id
 
 courses
-  ├── topics (1:N) → topics.course_id
-  └── lessons (1:N) → lessons.topic_id
+  ├── topics (1:N) → topics.courseId
+  └── lessons (1:N) → lessons.topicId
 
 topics
-  ├── course_id → courses.__id
+  ├── courseId → courses.__id
   ├── subtopics[] → (embebido) array de subtemas con id, title, description, order
-  └── lessons (1:N) → lessons.topic_id + lessons.subtopic_id
+  └── lessons (1:N) → lessons.topicId + lessons.subtopicId
 
 lessons
-  ├── topic_id → topics.__id
-  ├── subtopic_id → topics.subtopics[].id
+  ├── topicId → topics.__id
+  ├── subtopicId → topics.subtopics[].id
   └── exercises[] → (embebido) array de ejercicios con id, question, type, maxPoints
 
 achievements (catálogo maestro)
@@ -77,7 +77,7 @@ notifications
 #### Lecciones
 - Se marcan como completadas cuando el usuario las visualiza completamente
 - El tiempo estimado es referencial para planificación
-- Se registran en `users.progress[course_id].lessons_completed[]`
+- Se registran en `users.progress[courseId].lessons_completed[]`
 
 #### Ejercicios
 - Los ejercicios están embebidos dentro de cada lección (`lessons.exercises[]`)
@@ -86,10 +86,10 @@ notifications
 - El sistema de submissions para tracking de intentos está pendiente de implementación
 
 #### Progreso del Curso
-- El porcentaje se almacena en `users.progress[course_id].percentage`
+- El porcentaje se almacena en `users.progress[courseId].percentage`
 - Se calcula automáticamente por Gemini considerando lecciones y ejercicios completados
 - Se actualiza automáticamente con cada actividad
-- La última lección vista se guarda en `users.progress[course_id].last_viewed_lesson`
+- La última lección vista se guarda en `users.progress[courseId].last_viewed_lesson`
 
 ---
 
@@ -124,12 +124,12 @@ const query = usersRef
 
 // Obtener temas de un curso (denormalización optimizada)
 const courseTopics = topicsRef
-  .where('course_id', '==', 'fp_fundamentos_programacion')
+  .where('courseId', '==', 'fp_fundamentos_programacion')
   .orderBy('order', 'asc');
 
 // Obtener lecciones de un subtema
 const subtopicLessons = lessonsRef
-  .where('subtopic_id', '==', 'sub_fp_integers')
+  .where('subtopicId', '==', 'sub_fp_integers')
   .orderBy('order', 'asc');
 
 // Acceso a datos embebidos
@@ -172,8 +172,8 @@ const subtopicLessons = lessonsRef
 ### 2. Denormalización de Referencias
 
 Para optimizar consultas, algunos campos se denormalizan:
-- `course_id` se repite en `topics` y `lessons` para consultas rápidas
-- `topic_id` y `subtopic_id` se repiten en `lessons` para filtrado eficiente
+- `courseId` se repite en `topics` y `lessons` para consultas rápidas
+- `topicId` y `subtopicId` se repiten en `lessons` para filtrado eficiente
 - `user_id` se incluye en `notifications` para consultas por usuario
 
 **Ventajas**: Consultas más rápidas sin joins
@@ -182,7 +182,7 @@ Para optimizar consultas, algunos campos se denormalizan:
 ### 3. Transacciones y Consistencia
 
 Operaciones que **requieren** transacciones atómicas:
-- Completar lección → Actualizar `users.progress[course_id].lessons_completed[]` + porcentaje
+- Completar lección → Actualizar `users.progress[courseId].lessons_completed[]` + porcentaje
 - Desbloquear logro → Agregar a `users.achievements[]` + actualizar `users.xp`
 - Actualizar racha → Actualizar `users.streak_data{}` + verificar logros de racha
 
@@ -218,15 +218,15 @@ await firestore().runTransaction(async (transaction) => {
     {
       "collectionGroup": "topics",
       "fields": [
-        { "fieldPath": "course_id", "order": "ASCENDING" },
+        { "fieldPath": "courseId", "order": "ASCENDING" },
         { "fieldPath": "order", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "lessons",
       "fields": [
-        { "fieldPath": "topic_id", "order": "ASCENDING" },
-        { "fieldPath": "subtopic_id", "order": "ASCENDING" },
+        { "fieldPath": "topicId", "order": "ASCENDING" },
+        { "fieldPath": "subtopicId", "order": "ASCENDING" },
         { "fieldPath": "order", "order": "ASCENDING" }
       ]
     },

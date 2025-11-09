@@ -150,7 +150,7 @@ export class FirebaseUserRepository implements UserRepository {
       current_attempt: {
         lesson_id: attempt.lessonId,
         attempt_id: attempt.attemptId,
-        course_id: attempt.courseId,
+        courseId: attempt.courseId,
         status: attempt.status,
         user_answer: attempt.userAnswer,
         created_at: FieldValue.serverTimestamp()
@@ -197,7 +197,7 @@ export class FirebaseUserRepository implements UserRepository {
 
     // Si fue aprobado, actualizar progreso y estadísticas
     if (evaluation.status === 'approved_excellent' || evaluation.status === 'approved_improve') {
-      const courseId = currentAttempt.course_id;
+      const courseId = currentAttempt.courseId;
       const lessonId = currentAttempt.lesson_id;
 
       // Actualizar progreso
@@ -243,7 +243,7 @@ export class FirebaseUserRepository implements UserRepository {
     return {
       lessonId: currentAttempt.lesson_id,
       attemptId: currentAttempt.attempt_id,
-      courseId: currentAttempt.course_id,
+      courseId: currentAttempt.courseId,
       status: currentAttempt.status,
       userAnswer: currentAttempt.user_answer,
       createdAt: currentAttempt.created_at?.toDate() || new Date(),

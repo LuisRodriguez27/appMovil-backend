@@ -13,7 +13,7 @@ export class UpdateTopicUseCase {
     }
 
     // Si se está actualizando el título, verificar que no exista otro con el mismo título
-    // NOTA: Esta query requiere un índice compuesto en Firestore (course_id + order)
+    // NOTA: Esta query requiere un índice compuesto en Firestore (courseId + order)
     // Si no existe, crear en: https://console.firebase.google.com/project/plataforma-estudio/firestore/indexes
     if (request.title !== undefined) {
       const topicsInCourse = await this.topicRepository.findByCourseId(topic.getCourseId());

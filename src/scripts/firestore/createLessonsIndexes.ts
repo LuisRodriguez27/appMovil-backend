@@ -4,8 +4,8 @@ import configureFirebase, { firestore } from '../../app/config/configureFirebase
  * Script para crear índices compuestos en Firestore para la colección lessons
  *
  * Índices requeridos:
- * 1. topic_id (ASC) + subtopic_id (ASC) + order (ASC)
- * 2. topic_id (ASC) + order (ASC)
+ * 1. topicId (ASC) + subtopicId (ASC) + order (ASC)
+ * 2. topicId (ASC) + order (ASC)
  */
 async function createLessonsIndexes() {
   try {
@@ -19,17 +19,17 @@ async function createLessonsIndexes() {
     console.log('para la colección "lessons".\n');
 
     // ========================================
-    // Índice 1: topic_id + subtopic_id + order
+    // Índice 1: topicId + subtopicId + order
     // ========================================
-    console.log('📋 Índice 1: topic_id (ASC) + subtopic_id (ASC) + order (ASC)');
+    console.log('📋 Índice 1: topicId (ASC) + subtopicId (ASC) + order (ASC)');
     console.log('   Usado en: FindLessonsBySubtopicUseCase');
     console.log('   Permite: Listar lecciones de un subtema ordenadas\n');
 
     try {
       const snapshot1 = await firestore()
         .collection('lessons')
-        .where('topic_id', '==', 'test_topic_id')
-        .where('subtopic_id', '==', 'test_subtopic_id')
+        .where('topicId', '==', 'test_topicId')
+        .where('subtopicId', '==', 'test_subtopicId')
         .orderBy('order', 'asc')
         .get();
 
@@ -50,16 +50,16 @@ async function createLessonsIndexes() {
     }
 
     // ========================================
-    // Índice 2: topic_id + order
+    // Índice 2: topicId + order
     // ========================================
-    console.log('📋 Índice 2: topic_id (ASC) + order (ASC)');
+    console.log('📋 Índice 2: topicId (ASC) + order (ASC)');
     console.log('   Usado en: FindLessonsByTopicUseCase');
     console.log('   Permite: Listar todas las lecciones de un tema ordenadas\n');
 
     try {
       const snapshot2 = await firestore()
         .collection('lessons')
-        .where('topic_id', '==', 'test_topic_id')
+        .where('topicId', '==', 'test_topicId')
         .orderBy('order', 'asc')
         .get();
 

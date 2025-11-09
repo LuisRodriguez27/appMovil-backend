@@ -38,7 +38,7 @@
   created_at: Date;
 
   progress: {
-    [course_id: string]: {
+    [courseId: string]: {
       last_lesson_completed_id: string;      // Última lección completada en este curso
       completed_count: number;      // Lecciones completadas del curso
       percentage: number;           // % del curso completado
@@ -49,7 +49,7 @@
   current_attempt?: {
     lesson_id: string;               // → lessons.__id
     attempt_id: string;              // UUID único del intento
-    course_id: string;               // → courses.__id
+    courseId: string;               // → courses.__id
     status: 'evaluating' | 'approved_excellent' | 'approved_improve' | 'rejected';
     user_answer: string | object;   // Respuesta del usuario al ejercicio
     created_at: Date;
@@ -81,7 +81,7 @@
 
 **Relaciones**:
 - `current_course` → `courses.__id`
-- `progress[course_id].last_lesson_id` → `lessons.__id`
+- `progress[courseId].last_lesson_id` → `lessons.__id`
 - `achievements[].achievement_id` → `achievements.__id`
 
 **Índices**: email (único), control_number (único), role, xp (desc), streak_data.current_streak (desc)
@@ -118,7 +118,7 @@
 ```typescript
 {
   __id: string;
-  course_id: string;  // → courses.__id
+  courseId: string;  // → courses.__id
   title: string;
   description: string;
   order: number;
@@ -126,7 +126,7 @@
 }
 ```
 
-**Índices**: course_id + order (compuesto)
+**Índices**: courseId + order (compuesto)
 
 ---
 
@@ -135,7 +135,7 @@
 ```typescript
 {
   __id: string;
-  topic_id: string;  // → topics.__id
+  topicId: string;  // → topics.__id
   title: string;
   description: string;
   order: number;
@@ -143,7 +143,7 @@
 }
 ```
 
-**Índices**: topic_id + order (compuesto)
+**Índices**: topicId + order (compuesto)
 
 **Reglas**: 1 subtopic = 1 lesson. Cascade delete al eliminar topic.
 
@@ -190,7 +190,7 @@ Genera un ejercicion sobre el tema {{Subtopic.title}} de este tipo {{exercise_co
   rarity: 'common' | 'special' | 'epic' | 'legendary';
   condition: {
     type: 'complete_lessons' | 'streak_days' | 'xp_total' | 'complete_course' | 'perfect_lesson' | 'level_reached';
-    value: number | string;  // number para contadores, string para complete_course (course_id)
+    value: number | string;  // number para contadores, string para complete_course (courseId)
   };
   points: number; 
   description?: string;
@@ -254,10 +254,10 @@ context/exercises/
 
 ```typescript
 // Obtener subtopics de un tema
-firestore().collection('subtopics').where('topic_id', '==', topicId).orderBy('order').get();
+firestore().collection('subtopics').where('topicId', '==', topicId).orderBy('order').get();
 
 // Obtener lesson final de un tema
-firestore().collection('lessons').where('topic_id', '==', topicId).where('is_final', '==', true).limit(1).get();
+firestore().collection('lessons').where('topicId', '==', topicId).where('is_final', '==', true).limit(1).get();
 
 // Iniciar lección (primera vez)
 firestore().collection('users').doc(userId).set({
@@ -276,7 +276,7 @@ await firestore().collection('users').doc(userId).set({
   current_attempt: {
     lesson_id: lessonId,
     attempt_id: attemptId,
-    course_id: courseId,
+    courseId: courseId,
     status: 'evaluating',
     user_answer: answer,
     created_at: FieldValue.serverTimestamp()
@@ -365,7 +365,7 @@ await firestore().collection('users').doc(userId).set({
   current_attempt: {
     lesson_id: lessonId,
     attempt_id: attemptId,
-    course_id: courseId,
+    courseId: courseId,
     status: 'evaluating',
     user_answer: answer,
     created_at: FieldValue.serverTimestamp()
@@ -408,7 +408,7 @@ if (status === 'approved_excellent' || status === 'approved_improve') {
       ai_feedback: { score, feedback, suggestions }
     },
     progress: {
-      [currentAttempt.course_id]: {
+      [currentAttempt.courseId]: {
         last_lesson_completed_id: currentAttempt.lesson_id,
         completed_count: FieldValue.increment(1),
         percentage: calculatePercentage(courseId, newCount),
@@ -469,17 +469,17 @@ async function canAccessLesson(userId: string, lessonId: string) {
   const user = await getUser(userId);
   const lesson = await getLesson(lessonId);
 
-  const progress = user.progress[lesson.course_id];
+  const progress = user.progress[lesson.courseId];
   const lastCompletedId = progress?.last_lesson_completed_id;
 
   // Primera lección del curso
   if (!lastCompletedId) {
-    const firstLesson = await getFirstLesson(lesson.course_id);
+    const firstLesson = await getFirstLesson(lesson.courseId);
     return lessonId === firstLesson.__id;
   }
 
   // Puede acceder a la siguiente lección o reintentar la actual
-  const nextLesson = await getNextLessonAfter(lastCompletedId, lesson.course_id);
+  const nextLesson = await getNextLessonAfter(lastCompletedId, lesson.courseId);
   return lessonId === nextLesson?.__id || lessonId === lastCompletedId;
 }
 ```

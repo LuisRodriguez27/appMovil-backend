@@ -16,7 +16,7 @@ export class CreateTopicUseCase {
     }
 
     // Verificar que no exista un topic con el mismo título en el mismo curso
-    // NOTA: Esta query requiere un índice compuesto en Firestore (course_id + order)
+    // NOTA: Esta query requiere un índice compuesto en Firestore (courseId + order)
     // Si no existe, crear en: https://console.firebase.google.com/project/plataforma-estudio/firestore/indexes
     const topicsInCourse = await this.topicRepository.findByCourseId(request.courseId);
     const existingTopicByTitle = topicsInCourse.find(

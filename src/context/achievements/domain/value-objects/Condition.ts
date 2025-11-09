@@ -33,7 +33,7 @@ export class Condition {
 
     if (this.type === 'complete_course') {
       if (typeof this.value !== 'string' || this.value.trim() === '') {
-        throw new Error('El valor para "complete_course" debe ser un string no vacío (course_id)');
+        throw new Error('El valor para "complete_course" debe ser un string no vacío (courseId)');
       }
     } else {
       if (typeof this.value !== 'number' || this.value <= 0) {
