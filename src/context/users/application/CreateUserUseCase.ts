@@ -1,6 +1,7 @@
 import { UserRepository } from '../domain/UserRepository';
 import { User } from '../domain/User';
 import { CreateUserRequest } from './requests/CreateUserRequest';
+import { firebaseAuth } from '../../../app/config/configureFirebase';
 
 export class CreateUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
@@ -18,28 +19,35 @@ export class CreateUserUseCase {
       throw new Error('El número de control ya está registrado');
     }
 
-    // Crear el usuario
-    const user = User.create({
+    // Crear el usuario en Firebase Authentication
+    const userRecord = await firebaseAuth().createUser({
+      email: request.email,
+      displayName: request.name,
+      photoURL: request.profilePicture,
+    });
+
+    // Crear el usuario en Firestore con el UID de Firebase Auth
+    const user = User.fromPrimitives({
+      __id: userRecord.uid,
       controlNumber: request.controlNumber,
       name: request.name,
       email: request.email,
       role: 'student', // Por defecto: student
       xp: 0,
-      level: 1,
-      currentCourse: null,
-      profilePicture: request.profilePicture || null,
+      profilePicture: request.profilePicture,
       progress: {},
       achievements: [],
       streakData: {
-        current_streak: 0,
-        best_streak: 0,
-        last_study_date: '',
+        currentStreak: 0,
+        bestStreak: 0,
+        lastStudyDate: null,
       },
       stats: {
-        total_lessons_completed: 0,
-        total_exercises_completed: 0,
-        total_courses_completed: 0,
+        totalLessonsCompleted: 0,
+        totalExercisesCompleted: 0,
+        totalCoursesCompleted: 0,
       },
+      createdAt: new Date().toISOString(),
     });
 
     await this.userRepository.create(user);

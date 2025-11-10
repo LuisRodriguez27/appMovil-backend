@@ -13,12 +13,12 @@ export class ProcessEvaluationWebhookUseCase {
 
   async execute(payload: EvaluationWebhookPayload): Promise<void> {
     // Determinar estado según score
-    let status: 'approved_excellent' | 'approved_improve' | 'rejected';
+    let status: 'approvedExcellent' | 'approvedImprove' | 'rejected';
 
     if (payload.score >= 90) {
-      status = 'approved_excellent';
+      status = 'approvedExcellent';
     } else if (payload.score >= 70) {
-      status = 'approved_improve';
+      status = 'approvedImprove';
     } else {
       status = 'rejected';
     }

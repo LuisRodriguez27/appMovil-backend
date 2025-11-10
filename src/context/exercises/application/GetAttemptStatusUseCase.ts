@@ -6,7 +6,7 @@ export interface GetAttemptStatusRequest {
 }
 
 export interface AttemptStatusResponse {
-  status: 'not_started' | 'evaluating' | 'approved_excellent' | 'approved_improve' | 'rejected';
+  status: 'notStarted' | 'evaluating' | 'approvedExcellent' | 'approvedImprove' | 'rejected';
   aiFeedback?: {
     score: number;
     feedback: string;
@@ -25,15 +25,15 @@ export class GetAttemptStatusUseCase {
     // No hay intento o es de otra lección
     if (!currentAttempt || currentAttempt.lessonId !== request.lessonId) {
       return {
-        status: 'not_started',
+        status: 'notStarted',
         canRetry: false,
         canAdvance: false
       };
     }
 
     // Hay un intento para esta lección
-    const canAdvance = currentAttempt.status === 'approved_excellent' ||
-                       currentAttempt.status === 'approved_improve';
+    const canAdvance = currentAttempt.status === 'approvedExcellent' ||
+                       currentAttempt.status === 'approvedImprove';
     const canRetry = currentAttempt.status !== 'evaluating';
 
     return {

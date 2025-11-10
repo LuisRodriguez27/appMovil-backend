@@ -1,5 +1,6 @@
 import { UserRepository } from '../../users/domain/UserRepository';
 import { LessonRepository } from '../../lessons/domain/LessonRepository';
+import { CurrentAttempt } from '../../users/domain/value-objects/CurrentAttempt';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface SubmitExerciseAnswerRequest {
@@ -43,9 +44,8 @@ export class SubmitExerciseAnswerUseCase {
     // 4. Generar ID de intento único
     const attemptId = uuidv4();
 
-    // 5. Crear el intento en Firestore usando el repositorio
-    // NOTA: Este método debe ser implementado en UserRepository para actualizar current_attempt
-    await this.userRepository.createAttempt(request.userId, {
+    // 5. Crear el intento usando el value object CurrentAttempt
+    const attempt = CurrentAttempt.create({
       lessonId: request.lessonId,
       attemptId,
       courseId: request.courseId,
@@ -53,6 +53,9 @@ export class SubmitExerciseAnswerUseCase {
       userAnswer: request.userAnswer,
       createdAt: new Date()
     });
+
+    // 6. Guardar el intento en Firestore usando el repositorio
+    await this.userRepository.createAttempt(request.userId, attempt);
 
     return {
       attemptId,

@@ -2,8 +2,8 @@ export class UpdateUserRequest {
   constructor(
     public readonly name?: string,
     public readonly email?: string,
-    public readonly currentCourse?: string | null,
-    public readonly profilePicture?: string | null,
+    public readonly currentCourseId?: string,
+    public readonly profilePicture?: string,
   ) {
     this.validate();
   }

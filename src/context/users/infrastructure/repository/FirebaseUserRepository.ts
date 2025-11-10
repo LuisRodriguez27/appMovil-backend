@@ -89,22 +89,32 @@ export class FirebaseUserRepository implements UserRepository {
   }
 
   private toFirestoreDocument(primitives: UserPrimitives): UserDocument {
-    return {
+    const document: any = {
       __id: primitives.__id,
       controlNumber: primitives.controlNumber,
       name: primitives.name,
       email: primitives.email,
       role: primitives.role,
       xp: primitives.xp,
-      currentCourseId: primitives.currentCourseId,
-      profilePicture: primitives.profilePicture,
       progress: primitives.progress,
       achievements: primitives.achievements,
       streakData: primitives.streakData,
       stats: primitives.stats,
-      currentAttempt: primitives.currentAttempt,
       createdAt: primitives.createdAt,
     };
+
+    // Solo agregar campos opcionales si tienen valor
+    if (primitives.currentCourseId !== undefined) {
+      document.currentCourseId = primitives.currentCourseId;
+    }
+    if (primitives.profilePicture !== undefined) {
+      document.profilePicture = primitives.profilePicture;
+    }
+    if (primitives.currentAttempt !== undefined) {
+      document.currentAttempt = primitives.currentAttempt;
+    }
+
+    return document;
   }
 
   private toDomainEntity(document: UserDocument): User {
@@ -134,17 +144,20 @@ export class FirebaseUserRepository implements UserRepository {
     });
   }
 
-  async createAttempt(userId: string, attempt: Omit<CurrentAttempt, 'aiFeedback'>): Promise<void> {
+  async createAttempt(userId: string, attempt: CurrentAttempt): Promise<void> {
     const userRef = firestore().collection(this.collection).doc(userId);
 
+    const primitives = attempt.toPrimitives();
+    
     await userRef.set({
       currentAttempt: {
-        lessonId: attempt.lessonId,
-        attemptId: attempt.attemptId,
-        courseId: attempt.courseId,
-        status: attempt.status,
-        userAnswer: attempt.userAnswer,
-        createdAt: FieldValue.serverTimestamp()
+        lessonId: primitives.lessonId,
+        attemptId: primitives.attemptId,
+        courseId: primitives.courseId,
+        status: primitives.status,
+        userAnswer: primitives.userAnswer,
+        createdAt: FieldValue.serverTimestamp(),
+        aiFeedback: primitives.aiFeedback
       }
     }, { merge: true });
   }

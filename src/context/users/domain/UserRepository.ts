@@ -12,7 +12,7 @@ export interface UserRepository {
   updateXP(id: string, xpToAdd: number): Promise<void>;
 
   // Métodos para manejo de intentos de ejercicios
-  createAttempt(userId: string, attempt: Omit<CurrentAttempt, 'aiFeedback'>): Promise<void>;
+  createAttempt(userId: string, attempt: CurrentAttempt): Promise<void>;
   updateAttemptWithEvaluation(
     userId: string,
     attemptId: string,
