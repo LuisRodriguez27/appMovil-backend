@@ -1,7 +1,7 @@
 import { User, UserPrimitives } from '../../domain/User';
 import { UserRepository } from '../../domain/UserRepository';
 import { CurrentAttempt } from '../../domain/value-objects/CurrentAttempt';
-import { firestore } from '../../../../app/config/configureFirebase';
+import { firestore, firebaseAuth } from '../../../../app/config/configureFirebase';
 import { FieldValue } from 'firebase-admin/firestore';
 
 interface UserDocument extends Omit<UserPrimitives, 'id'> {
@@ -73,10 +73,20 @@ export class FirebaseUserRepository implements UserRepository {
     const document = this.toFirestoreDocument(primitives);
     const { __id, ...updateData } = document;
 
-    await firestore().collection(this.collection).doc(__id).update(updateData);
+    // Usar set con merge: true para manejar campos opcionales correctamente
+    await firestore().collection(this.collection).doc(__id).set(updateData, { merge: true });
   }
 
   async delete(id: string): Promise<void> {
+    // Eliminar de Firebase Authentication primero
+    try {
+      await firebaseAuth().deleteUser(id);
+    } catch (error) {
+      // Si el usuario no existe en Auth, continuar con la eliminación de Firestore
+      console.warn(`Usuario ${id} no encontrado en Firebase Auth, continuando con eliminación de Firestore`);
+    }
+    
+    // Eliminar de Firestore
     await firestore().collection(this.collection).doc(id).delete();
   }
 
