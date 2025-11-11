@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { GetAttemptStatusUseCase } from '../../application/GetAttemptStatusUseCase';
+import { getUserId } from '../../../../app/helpers/auth.helpers';
 
 export class GetAttemptStatusController {
   constructor(private readonly getAttemptStatusUseCase: GetAttemptStatusUseCase) {}
@@ -7,15 +8,7 @@ export class GetAttemptStatusController {
   async run(req: Request, res: Response): Promise<void> {
     try {
       const { lessonId } = req.params;
-      const userId = (req as any).user?.uid;
-
-      if (!userId) {
-        res.status(401).json({
-          success: false,
-          message: 'Usuario no autenticado'
-        });
-        return;
-      }
+      const userId = getUserId(req);
 
       if (!lessonId) {
         res.status(400).json({
@@ -36,6 +29,17 @@ export class GetAttemptStatusController {
       });
     } catch (error) {
       console.error('Error en GetAttemptStatusController:', error);
+
+      if (error instanceof Error) {
+        // Manejar error de autenticación
+        if (error.message === 'Usuario no autenticado') {
+          res.status(401).json({
+            success: false,
+            message: error.message
+          });
+          return;
+        }
+      }
 
       res.status(500).json({
         success: false,
