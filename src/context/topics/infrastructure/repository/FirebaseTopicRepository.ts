@@ -1,14 +1,9 @@
 import { firestore } from "../../../../app/config/configureFirebase";
-import { Topic, TopicPrimitives, Subtopic } from "../../domain/Topic";
+import { Topic, TopicPrimitives } from "../../domain/Topic";
 import { TopicRepository } from "../../domain/TopicRepository";
 
-interface TopicDocument {
+interface TopicDocument extends Omit<TopicPrimitives, 'id' > {
   __id: string;
-  course_id: string;
-  title: string;
-  description: string;
-  order: number;
-  subtopics: Subtopic[];
 }
 
 export class FirebaseTopicRepository implements TopicRepository {
@@ -35,7 +30,7 @@ export class FirebaseTopicRepository implements TopicRepository {
   async findByCourseId(courseId: string): Promise<Topic[]> {
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('course_id', '==', courseId)
+      .where('courseId', '==', courseId)
       .orderBy('order', 'asc')
       .get();
 
@@ -66,25 +61,40 @@ export class FirebaseTopicRepository implements TopicRepository {
     await firestore().collection(this.collection).doc(id).delete();
   }
 
+  async deleteAllByCourseId(courseId: string): Promise<void> {
+    const snapshot = await firestore()
+      .collection(this.collection)
+      .where('courseId', '==', courseId)
+      .get();
+
+    // Eliminar todos los topics del curso en batch
+    const batch = firestore().batch();
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+  }
+
   private toFirestoreDocument(primitives: TopicPrimitives): TopicDocument {
     return {
       __id: primitives.id,
-      course_id: primitives.courseId,
+      courseId: primitives.courseId,
       title: primitives.title,
-      description: primitives.description,
       order: primitives.order,
-      subtopics: primitives.subtopics
+      createdAt: primitives.createdAt,
+      ...(primitives.description !== undefined ? { description: primitives.description } : {})
     };
   }
 
   private toDomainEntity(document: TopicDocument): Topic {
     return Topic.fromPrimitives({
       id: document.__id,
-      courseId: document.course_id,
+      courseId: document.courseId,
       title: document.title,
-      description: document.description,
       order: document.order,
-      subtopics: document.subtopics
+      description: document.description,
+      createdAt: document.createdAt
     });
   }
 }

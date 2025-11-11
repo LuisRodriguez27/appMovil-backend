@@ -2,13 +2,8 @@ import { firestore } from "../../../../app/config/configureFirebase";
 import { Course, CoursePrimitives } from "../../domain/Course";
 import { CourseRepository } from "../../domain/CourseRepository";
 
-interface CourseDocument {
-  __id: string,
-  title: string,
-  description: string,
-  total_topics: number,
-  total_lessons: number,
-  created_at: FirebaseFirestore.Timestamp
+interface CourseDocument extends Omit<CoursePrimitives, 'id' > {
+  __id: string
 }
 
 export class FirebaseCourseRepository implements CourseRepository {
@@ -43,16 +38,23 @@ export class FirebaseCourseRepository implements CourseRepository {
       return null;
     }
 
-    const data = snapshot.docs[0].data() as CourseDocument;
-    return this.toDomainEntity(data);
+    const doc = snapshot.docs[0];
+    const data = doc.data() as Omit<CourseDocument, '__id'>;
+    return this.toDomainEntity({
+      __id: doc.id,  // Usar el ID del documento de Firestore
+      ...data
+    });
   }
 
   async findAll(): Promise<Course[]> {
-    const snapshot = await firestore().collection(this.collection).get();
+    const doc = await firestore().collection(this.collection).get();
 
-    return snapshot.docs.map((doc) => {
-      const data = doc.data() as CourseDocument;
-      return this.toDomainEntity(data);
+    return doc.docs.map((doc) => {
+      const data = doc.data() as Omit<CourseDocument, '__id'>;
+      return this.toDomainEntity({
+        __id: doc.id,  // Usar el ID del documento de Firestore
+        ...data
+      });
     });
   }
 
@@ -85,24 +87,26 @@ export class FirebaseCourseRepository implements CourseRepository {
   }
 
   private toFirestoreDocument(primitives: CoursePrimitives): CourseDocument {
-    return {
+    const document: any = {
       __id: primitives.id,
       title: primitives.title,
-      description: primitives.description,
-      total_topics: primitives.totalTopics,
-      total_lessons: primitives.totalLessons,
-      created_at: FirebaseFirestore.Timestamp.fromDate(primitives.createdAt)
-    }
+      totalTopics: primitives.totalTopics,
+      totalLessons: primitives.totalLessons,
+      createdAt: primitives.createdAt,
+      ...(primitives.description !== undefined ? { description: primitives.description } : {})
+    };
+
+    return document;
   }
 
   private toDomainEntity(document: CourseDocument): Course {
     return Course.fromPrimitives({
       id: document.__id,
       title: document.title,
+      totalTopics: document.totalTopics,
+      totalLessons: document.totalLessons,
       description: document.description,
-      totalTopics: document.total_topics,
-      totalLessons: document.total_lessons,
-      createdAt: document.created_at.toDate()
-    })
+      createdAt: document.createdAt
+    });
   }
 }

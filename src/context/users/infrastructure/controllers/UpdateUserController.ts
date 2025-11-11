@@ -8,12 +8,12 @@ export class UpdateUserController {
   async run(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const { name, email, currentCourse, profilePicture } = req.body;
+      const { name, email, currentCourseId, profilePicture } = req.body;
 
       const request = new UpdateUserRequest(
         name,
         email,
-        currentCourse,
+        currentCourseId,
         profilePicture,
       );
 

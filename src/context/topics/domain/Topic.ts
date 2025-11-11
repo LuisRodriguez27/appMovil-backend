@@ -5,19 +5,18 @@ export class Topic {
     public readonly id: string,
     private courseId: string,
     private title: string,
-    private description: string,
     private order: number,
-    private subtopics: Subtopic[]
+    private description?: string,
+    private readonly createdAt: Date = new Date(),
   ) {}
 
-  static create(data: Omit<TopicPrimitives, 'id' | 'subtopics'>): Topic {
+  static create(data: Omit<TopicPrimitives, 'id' | 'createdAt'>): Topic {
     return new Topic(
       uid(),
       data.courseId,
       data.title,
-      data.description,
       data.order,
-      [] // subtopics inicial vacío
+      data.description,
     )
   }
 
@@ -26,16 +25,16 @@ export class Topic {
       data.id,
       data.courseId,
       data.title,
-      data.description,
       data.order,
-      data.subtopics
+      data.description,
+      new Date(data.createdAt)
     );
   }
 
-  public update(data: Partial<Omit<TopicPrimitives, 'id' | 'courseId' | 'subtopics'>>): void {
+  public update(data: Partial<Omit<TopicPrimitives, 'id' | 'courseId' >>): void {
     if (data.title !== undefined) this.title = data.title;
-    if (data.description !== undefined) this.description = data.description;
     if (data.order !== undefined) this.order = data.order;
+    if (data.description !== undefined) this.description = data.description;
   }
 
   public updateTitle(title: string): void {
@@ -48,41 +47,6 @@ export class Topic {
 
   public updateOrder(order: number): void {
     this.order = order;
-  }
-
-  public addSubtopic(subtopic: Omit<Subtopic, 'id'>): Subtopic {
-    const newSubtopic: Subtopic = {
-      id: `sub_${uid()}`,
-      title: subtopic.title,
-      description: subtopic.description,
-      order: subtopic.order !== undefined ? subtopic.order : this.subtopics.length + 1
-    };
-
-    this.subtopics.push(newSubtopic);
-    return newSubtopic;
-  }
-
-  public updateSubtopic(subtopicId: string, data: Partial<Omit<Subtopic, 'id'>>): void {
-    const subtopic = this.subtopics.find(s => s.id === subtopicId);
-    if (!subtopic) {
-      throw new Error('Subtema no encontrado');
-    }
-
-    if (data.title !== undefined) subtopic.title = data.title;
-    if (data.description !== undefined) subtopic.description = data.description;
-    if (data.order !== undefined) subtopic.order = data.order;
-  }
-
-  public deleteSubtopic(subtopicId: string): void {
-    const index = this.subtopics.findIndex(s => s.id === subtopicId);
-    if (index === -1) {
-      throw new Error('Subtema no encontrado');
-    }
-    this.subtopics.splice(index, 1);
-  }
-
-  public getSubtopic(subtopicId: string): Subtopic | undefined {
-    return this.subtopics.find(s => s.id === subtopicId);
   }
 
   // Getters
@@ -98,7 +62,7 @@ export class Topic {
     return this.title;
   }
 
-  public getDescription(): string {
+  public getDescription(): string | undefined {
     return this.description;
   }
 
@@ -106,9 +70,6 @@ export class Topic {
     return this.order;
   }
 
-  public getSubtopics(): Subtopic[] {
-    return [...this.subtopics]; // Retorna copia para inmutabilidad
-  }
 
   public toPrimitives(): TopicPrimitives {
     return {
@@ -117,23 +78,16 @@ export class Topic {
       title: this.title,
       description: this.description,
       order: this.order,
-      subtopics: [...this.subtopics]
+      createdAt: this.createdAt.toISOString(),
     }
   }
 }
-
-export type Subtopic = {
-  id: string;
-  title: string;
-  description: string;
-  order: number;
-};
 
 export type TopicPrimitives = {
   id: string;
   courseId: string;
   title: string;
-  description: string;
   order: number;
-  subtopics: Subtopic[];
+  description?: string;
+  createdAt: string;
 };

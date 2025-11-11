@@ -7,14 +7,11 @@ import fs from 'fs';
 const isProd = process.env.NODE_ENV === 'production';
 
 export async function registerRouteFiles(router: Router, container: ContainerBuilder) {
-    // Determina el directorio base
     const baseDir = isProd ? 'dist' : 'src';
     const extension = isProd ? 'js' : 'ts';
 
-    // Genera el patrón glob compatible
     const pattern = `${ baseDir }/**/*.route.${ extension }`;
 
-    // Busca rutas con path absoluto
     const routes = await glob(pattern, { absolute: true });
 
     for (const routePath of routes) {
@@ -31,7 +28,6 @@ async function register(routePath: string, app: Router, container: ContainerBuil
             return;
         }
 
-        // Limpiar caché en desarrollo para recargar cambios
         const fullPath = path.resolve(routePath);
         delete require.cache[fullPath];
 

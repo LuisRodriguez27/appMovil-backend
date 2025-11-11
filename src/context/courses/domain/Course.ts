@@ -4,20 +4,19 @@ export class Course {
   constructor(
     public readonly id: string,
     private title: string,
-    private description: string,
     private totalTopics: number,
     private totalLessons: number,
-    private createdAt: Date
+    private description?: string,
+    private readonly createdAt: Date = new Date()
   ) {}
 
   static create(data:Omit<CoursePrimitives, 'id' | 'totalTopics' | 'totalLessons' | 'createdAt'>): Course {
     return new Course(
       uid(),
       data.title,
-      data.description,
-      0, // totalTopics inicial
-      0, // totalLessons inicial
-      new Date() // createdAt actual
+      0,
+      0,
+      data.description
     )
   }
 
@@ -25,10 +24,10 @@ export class Course {
     return new Course(
       data.id,
       data.title,
-      data.description,
       data.totalTopics,
       data.totalLessons,
-      data.createdAt
+      data.description,
+      new Date(data.createdAt)
     );
   }
 
@@ -69,7 +68,7 @@ export class Course {
     return this.title
   }
 
-  public getDescription(): string {
+  public getDescription(): string | undefined {
     return this.description
   }
 
@@ -89,10 +88,10 @@ export class Course {
     return {
       id: this.id,
       title: this.title,
-      description: this.description,
       totalTopics: this.totalTopics,
       totalLessons: this.totalLessons,
-      createdAt: this.createdAt
+      description: this.description,
+      createdAt: this.createdAt.toISOString()
     }
   }
 }
@@ -100,8 +99,8 @@ export class Course {
 export type CoursePrimitives = {
   id: string,
   title: string,
-  description: string,
   totalTopics: number,
   totalLessons: number,
-  createdAt: Date
+  description?: string,
+  createdAt: string
 }

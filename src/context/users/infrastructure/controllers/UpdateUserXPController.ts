@@ -25,7 +25,6 @@ export class UpdateUserXPController {
         data: {
           id: user.getId(),
           xp: user.getXP(),
-          level: user.getLevel(),
         },
       });
     } catch (error) {

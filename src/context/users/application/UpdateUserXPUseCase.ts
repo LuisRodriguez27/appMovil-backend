@@ -19,17 +19,10 @@ export class UpdateUserXPUseCase {
       throw new Error('Usuario no encontrado');
     }
 
-    const oldLevel = user.getLevel();
     user.addXP(xpToAdd);
-    const newLevel = user.getLevel();
 
     await this.userRepository.update(user);
 
-    // Si subió de nivel, se podría disparar un evento aquí
-    if (newLevel > oldLevel) {
-      console.log(`Usuario ${user.getName()} subió al nivel ${newLevel}!`);
-      // TODO: Disparar evento UserLeveledUp para notificaciones
-    }
 
     return user;
   }

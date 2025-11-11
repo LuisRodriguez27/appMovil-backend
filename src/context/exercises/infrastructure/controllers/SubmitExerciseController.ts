@@ -1,0 +1,65 @@
+import { Request, Response } from 'express';
+import { SubmitExerciseAnswerUseCase } from '../../application/SubmitExerciseAnswerUseCase';
+
+export class SubmitExerciseController {
+  constructor(private readonly submitExerciseAnswerUseCase: SubmitExerciseAnswerUseCase) {}
+
+  async run(req: Request, res: Response): Promise<void> {
+    try {
+      const { lessonId } = req.params;
+      const { courseId, userAnswer } = req.body;
+      const userId = (req as any).user?.uid;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: 'Usuario no autenticado'
+        });
+        return;
+      }
+
+      if (!lessonId || !courseId) {
+        res.status(400).json({
+          success: false,
+          message: 'lessonId y courseId son requeridos'
+        });
+        return;
+      }
+
+      if (userAnswer === undefined || userAnswer === null) {
+        res.status(400).json({
+          success: false,
+          message: 'userAnswer es requerido'
+        });
+        return;
+      }
+
+      const result = await this.submitExerciseAnswerUseCase.execute({
+        userId,
+        lessonId,
+        courseId,
+        userAnswer
+      });
+
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('Error en SubmitExerciseController:', error);
+
+      if (error instanceof Error) {
+        const statusCode = error.message.includes('no encontrad') ? 404 : 400;
+        res.status(statusCode).json({
+          success: false,
+          message: error.message
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: 'Error interno del servidor al enviar la respuesta'
+        });
+      }
+    }
+  }
+}

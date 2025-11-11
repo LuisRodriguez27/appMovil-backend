@@ -1,16 +1,11 @@
 import { User, UserPrimitives } from '../../domain/User';
 import { UserRepository } from '../../domain/UserRepository';
-import { firestore } from '../../../../app/config/configureFirebase';
+import { CurrentAttempt } from '../../domain/value-objects/CurrentAttempt';
+import { firestore, firebaseAuth } from '../../../../app/config/configureFirebase';
+import { FieldValue } from 'firebase-admin/firestore';
 
-interface UserDocument {
+interface UserDocument extends Omit<UserPrimitives, 'id'> {
   __id: string;
-  control_number: string;
-  name: string;
-  email: string;
-  xp: number;
-  level: number;
-  current_course: string | null;
-  profile_picture: string | null;
 }
 
 export class FirebaseUserRepository implements UserRepository {
@@ -52,7 +47,7 @@ export class FirebaseUserRepository implements UserRepository {
   async findByNumeroControl(controlNumber: string): Promise<User | null> {
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('control_number', '==', controlNumber)
+      .where('controlNumber', '==', controlNumber)
       .limit(1)
       .get();
 
@@ -78,54 +73,189 @@ export class FirebaseUserRepository implements UserRepository {
     const document = this.toFirestoreDocument(primitives);
     const { __id, ...updateData } = document;
 
-    await firestore().collection(this.collection).doc(__id).update(updateData);
+    // Usar set con merge: true para manejar campos opcionales correctamente
+    await firestore().collection(this.collection).doc(__id).set(updateData, { merge: true });
   }
 
   async delete(id: string): Promise<void> {
+    // Eliminar de Firebase Authentication primero
+    try {
+      await firebaseAuth().deleteUser(id);
+    } catch (error) {
+      // Si el usuario no existe en Auth, continuar con la eliminación de Firestore
+      console.warn(`Usuario ${id} no encontrado en Firebase Auth, continuando con eliminación de Firestore`);
+    }
+    
+    // Eliminar de Firestore
     await firestore().collection(this.collection).doc(id).delete();
   }
 
   async updateXP(id: string, xpToAdd: number): Promise<void> {
     const userRef = firestore().collection(this.collection).doc(id);
-    const doc = await userRef.get();
-
-    if (!doc.exists) {
-      throw new Error('Usuario no encontrado');
-    }
-
-    const data = doc.data() as UserDocument;
-    const newXP = data.xp + xpToAdd;
-    const newLevel = Math.floor(Math.sqrt(newXP / 100)) + 1;
-
+    
     await userRef.update({
-      xp: newXP,
-      level: newLevel,
+      xp: FieldValue.increment(xpToAdd),
     });
   }
 
   private toFirestoreDocument(primitives: UserPrimitives): UserDocument {
-    return {
-      __id: primitives.id,
-      control_number: primitives.controlNumber,
+    const document: any = {
+      __id: primitives.__id,
+      controlNumber: primitives.controlNumber,
       name: primitives.name,
       email: primitives.email,
+      role: primitives.role,
       xp: primitives.xp,
-      level: primitives.level,
-      current_course: primitives.currentCourse,
-      profile_picture: primitives.profilePicture,
+      progress: primitives.progress,
+      achievements: primitives.achievements,
+      streakData: primitives.streakData,
+      stats: primitives.stats,
+      createdAt: primitives.createdAt,
     };
+
+    // Solo agregar campos opcionales si tienen valor
+    if (primitives.currentCourseId !== undefined) {
+      document.currentCourseId = primitives.currentCourseId;
+    }
+    if (primitives.profilePicture !== undefined) {
+      document.profilePicture = primitives.profilePicture;
+    }
+    if (primitives.currentAttempt !== undefined) {
+      document.currentAttempt = primitives.currentAttempt;
+    }
+
+    return document;
   }
 
   private toDomainEntity(document: UserDocument): User {
     return User.fromPrimitives({
-      id: document.__id,
-      controlNumber: document.control_number,
+      __id: document.__id,
+      controlNumber: document.controlNumber,
       name: document.name,
       email: document.email,
+      role: document.role || 'student',
       xp: document.xp,
-      level: document.level,
-      currentCourse: document.current_course,
-      profilePicture: document.profile_picture,
+      currentCourseId: document.currentCourseId,
+      profilePicture: document.profilePicture,
+      progress: document.progress || {},
+      achievements: document.achievements || [],
+      streakData: document.streakData || {
+        currentStreak: 0,
+        bestStreak: 0,
+        lastStudyDate: null,
+      },
+      stats: document.stats || {
+        totalLessonsCompleted: 0,
+        totalExercisesCompleted: 0,
+        totalCoursesCompleted: 0,
+      },
+      currentAttempt: document.currentAttempt,
+      createdAt: document.createdAt,
+    });
+  }
+
+  async createAttempt(userId: string, attempt: CurrentAttempt): Promise<void> {
+    const userRef = firestore().collection(this.collection).doc(userId);
+
+    const primitives = attempt.toPrimitives();
+    
+    await userRef.set({
+      currentAttempt: {
+        lessonId: primitives.lessonId,
+        attemptId: primitives.attemptId,
+        courseId: primitives.courseId,
+        status: primitives.status,
+        userAnswer: primitives.userAnswer,
+        createdAt: FieldValue.serverTimestamp(),
+        aiFeedback: primitives.aiFeedback
+      }
+    }, { merge: true });
+  }
+
+  async updateAttemptWithEvaluation(
+    userId: string,
+    attemptId: string,
+    evaluation: {
+      status: CurrentAttempt['status'];
+      score: number;
+      feedback: string;
+      suggestions?: string;
+    }
+  ): Promise<void> {
+    const userRef = firestore().collection(this.collection).doc(userId);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      throw new Error(`Usuario ${userId} no encontrado`);
+    }
+
+    const userData = userDoc.data();
+    const currentAttempt = userData?.currentAttempt;
+
+    if (!currentAttempt || currentAttempt.attemptId !== attemptId) {
+      throw new Error(`Intento ${attemptId} no encontrado para el usuario ${userId}`);
+    }
+
+    // Preparar la actualización
+    const updateData: any = {
+      currentAttempt: {
+        ...currentAttempt,
+        status: evaluation.status,
+        aiFeedback: {
+          score: evaluation.score,
+          feedback: evaluation.feedback,
+          suggestions: evaluation.suggestions
+        }
+      }
+    };
+
+    // Si fue aprobado, actualizar progreso y estadísticas
+    if (evaluation.status === 'approvedExcellent' || evaluation.status === 'approvedImprove') {
+      const courseId = currentAttempt.courseId;
+      const lessonId = currentAttempt.lessonId;
+
+      // Actualizar progreso
+      updateData[`progress.${courseId}.lastLessonCompletedId`] = lessonId;
+      updateData[`progress.${courseId}.completedCount`] = FieldValue.increment(1);
+
+      // Actualizar estadísticas
+      updateData['stats.totalLessonsCompleted'] = FieldValue.increment(1);
+      updateData['stats.totalExercisesCompleted'] = FieldValue.increment(1);
+
+      // Agregar XP (score / 2)
+      const xpToAdd = Math.floor(evaluation.score / 2);
+      updateData.xp = FieldValue.increment(xpToAdd);
+    }
+
+    await userRef.set(updateData, { merge: true });
+  }
+
+  async getCurrentAttempt(userId: string): Promise<CurrentAttempt | null> {
+    const userDoc = await firestore().collection(this.collection).doc(userId).get();
+
+    if (!userDoc.exists) {
+      return null;
+    }
+
+    const userData = userDoc.data();
+    const currentAttempt = userData?.currentAttempt;
+
+    if (!currentAttempt) {
+      return null;
+    }
+
+    return CurrentAttempt.fromPrimitives({
+      lessonId: currentAttempt.lessonId,
+      attemptId: currentAttempt.attemptId,
+      courseId: currentAttempt.courseId,
+      status: currentAttempt.status,
+      userAnswer: currentAttempt.userAnswer,
+      createdAt: currentAttempt.createdAt?.toDate() || new Date(),
+      aiFeedback: currentAttempt.aiFeedback ? {
+        score: currentAttempt.aiFeedback.score,
+        feedback: currentAttempt.aiFeedback.feedback,
+        suggestions: currentAttempt.aiFeedback.suggestions
+      } : undefined
     });
   }
 }

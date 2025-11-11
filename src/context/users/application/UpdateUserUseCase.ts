@@ -28,7 +28,7 @@ export class UpdateUserUseCase {
     user.update({
       name: request.name,
       email: request.email,
-      currentCourse: request.currentCourse,
+      currentCourseId: request.currentCourseId,
       profilePicture: request.profilePicture,
     });
 

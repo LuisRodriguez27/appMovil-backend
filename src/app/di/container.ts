@@ -2,6 +2,11 @@ import { ContainerBuilder } from "node-dependency-injection";
 import registerUsersDependencies from "./users";
 import registerCoursesDependencies from "./courses";
 import registerTopicsDependencies from "./topics";
+import registerAchievementDependencies from "./achievement";
+import registerLessonsDependencies from "./lessons";
+import registerAuthDependencies from "./auth";
+import registerSubtopicsDependencies from "./subtopics";
+import registerExercisesDependencies from "./exercises";
 
 function getContainer(): ContainerBuilder {
   const container = new ContainerBuilder(true, __dirname);
@@ -10,6 +15,11 @@ function getContainer(): ContainerBuilder {
   registerUsersDependencies(container);
   registerCoursesDependencies(container);
   registerTopicsDependencies(container);
+  registerLessonsDependencies(container);
+  registerAchievementDependencies(container);
+  registerAuthDependencies(container);
+  registerSubtopicsDependencies(container);
+  registerExercisesDependencies(container);
 
   return container;
 }
