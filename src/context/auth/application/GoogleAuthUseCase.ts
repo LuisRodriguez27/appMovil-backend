@@ -9,7 +9,6 @@ export interface GoogleAuthResponse {
     name: string;
     email: string;
     role: 'student' | 'admin';
-    controlNumber?: string;
     profilePicture?: string;
     xp?: number;
   };
@@ -60,12 +59,6 @@ export class GoogleAuthUseCase {
     }
 
     // Usuario no existe en Firestore, crear nuevo
-    // Validar que se proporcione el número de control para nuevos usuarios
-    if (!request.controlNumber) {
-      throw new Error('El número de control es requerido para nuevos usuarios');
-    }
-
-    // Crear nuevo usuario en Firestore con el UID de Firebase Auth
     const newUser = User.fromPrimitives({
       __id: uid,
       name: name || 'Usuario',
