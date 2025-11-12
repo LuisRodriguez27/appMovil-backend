@@ -12,7 +12,7 @@ export default function registerAuthDependencies(container: ContainerBuilder) {
   container.register("RefreshTokenUseCase", RefreshTokenUseCase);
   container
     .register("GoogleAuthUseCase", GoogleAuthUseCase)
-    .addArgument(new Reference("FirebaseUserRepository"));
+    .addArgument(new Reference("UserRepository"));
 
   // CONTROLLERS
   container
