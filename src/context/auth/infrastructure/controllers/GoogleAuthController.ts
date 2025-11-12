@@ -7,9 +7,9 @@ export class GoogleAuthController {
 
   async run(req: Request, res: Response): Promise<void> {
     try {
-      const { idToken, controlNumber } = req.body;
+      const { idToken } = req.body;
 
-      const request = new GoogleAuthRequest(idToken, controlNumber);
+      const request = new GoogleAuthRequest(idToken);
       const result = await this.googleAuthUseCase.execute(request);
 
       res.status(result.isNewUser ? 201 : 200).json({
