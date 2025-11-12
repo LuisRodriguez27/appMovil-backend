@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { SubmitExerciseAnswerUseCase } from '../../application/SubmitExerciseAnswerUseCase';
+import { getUserId } from '../../../../app/helpers/auth.helpers';
 
 export class SubmitExerciseController {
   constructor(private readonly submitExerciseAnswerUseCase: SubmitExerciseAnswerUseCase) {}
@@ -8,15 +9,9 @@ export class SubmitExerciseController {
     try {
       const { lessonId } = req.params;
       const { courseId, userAnswer } = req.body;
-      const userId = (req as any).user?.uid;
 
-      if (!userId) {
-        res.status(401).json({
-          success: false,
-          message: 'Usuario no autenticado'
-        });
-        return;
-      }
+      // Extraer userId de forma segura con tipado fuerte
+      const userId = getUserId(req);
 
       if (!lessonId || !courseId) {
         res.status(400).json({
@@ -49,6 +44,15 @@ export class SubmitExerciseController {
       console.error('Error en SubmitExerciseController:', error);
 
       if (error instanceof Error) {
+        // Manejar error de autenticación
+        if (error.message === 'Usuario no autenticado') {
+          res.status(401).json({
+            success: false,
+            message: error.message
+          });
+          return;
+        }
+
         const statusCode = error.message.includes('no encontrad') ? 404 : 400;
         res.status(statusCode).json({
           success: false,

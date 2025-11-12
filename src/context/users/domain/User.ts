@@ -8,7 +8,6 @@ import { CurrentAttemptPrimitives } from './value-objects/CurrentAttempt';
 export class User {
   constructor(
     public readonly __id: string,
-    private controlNumber: string,
     private name: string,
     private email: string,
     private role: 'student' | 'admin',
@@ -26,7 +25,6 @@ export class User {
   static create(data: Omit<UserPrimitives, '__id' | 'createdAt'>): User {
     return new User(
       '', // __id se debe asignar externamente o por Firestore
-      data.controlNumber,
       data.name,
       data.email,
       data.role || 'student',
@@ -45,7 +43,6 @@ export class User {
   static fromPrimitives(data: UserPrimitives): User {
     return new User(
       data.__id,
-      data.controlNumber,
       data.name,
       data.email,
       data.role,
@@ -154,16 +151,8 @@ export class User {
     this.currentAttempt = undefined;
   }
 
-  // Eliminado: recalculateLevel (no existe level en el esquema)
-
-  // ========== GETTERS ==========
-
   public getId(): string {
     return this.__id;
-  }
-
-  public getControlNumber(): string {
-    return this.controlNumber;
   }
 
   public getName(): string {
@@ -238,12 +227,9 @@ export class User {
     return this.streakData ? this.streakData.isActive(today) : false;
   }
 
-  // ========== SERIALIZACIÓN ==========
-
   toPrimitives(): UserPrimitives {
     return {
       __id: this.__id,
-      controlNumber: this.controlNumber,
       name: this.name,
       email: this.email,
       role: this.role,
@@ -262,7 +248,6 @@ export class User {
 
 export type UserPrimitives = {
   __id: string;
-  controlNumber: string;
   name: string;
   email: string;
   role: 'student' | 'admin';

@@ -13,12 +13,6 @@ export class CreateUserUseCase {
       throw new Error('El email ya está registrado');
     }
 
-    // Verificar que el número de control no esté registrado
-    const existingUserByNumeroControl = await this.userRepository.findByNumeroControl(request.controlNumber);
-    if (existingUserByNumeroControl) {
-      throw new Error('El número de control ya está registrado');
-    }
-
     // Crear el usuario en Firebase Authentication
     const userRecord = await firebaseAuth().createUser({
       email: request.email,
@@ -29,7 +23,6 @@ export class CreateUserUseCase {
     // Crear el usuario en Firestore con el UID de Firebase Auth
     const user = User.fromPrimitives({
       __id: userRecord.uid,
-      controlNumber: request.controlNumber,
       name: request.name,
       email: request.email,
       role: 'student', // Por defecto: student
