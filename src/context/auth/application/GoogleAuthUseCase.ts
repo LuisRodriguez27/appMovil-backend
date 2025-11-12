@@ -11,8 +11,10 @@ export interface GoogleAuthResponse {
     role: 'student' | 'admin';
     profilePicture?: string;
     xp?: number;
+    currentCourseId?: string;
   };
   isNewUser: boolean;
+  needsOnboarding: boolean;
   message: string;
 }
 
@@ -44,6 +46,9 @@ export class GoogleAuthUseCase {
 
     if (user) {
       // Usuario ya existe, retornar sus datos
+      // Verificar si necesita completar onboarding (usuario sin currentCourseId)
+      const needsOnboarding = !user.getCurrentCourseId();
+
       return {
         user: {
           __id: user.getId(),
@@ -52,8 +57,10 @@ export class GoogleAuthUseCase {
           role: user.getRole(),
           profilePicture: user.getProfilePicture(),
           xp: user.getXP(),
+          currentCourseId: user.getCurrentCourseId(),
         },
         isNewUser: false,
+        needsOnboarding,
         message: 'Inicio de sesión exitoso',
       };
     }
@@ -91,8 +98,10 @@ export class GoogleAuthUseCase {
         role: newUser.getRole(),
         profilePicture: newUser.getProfilePicture(),
         xp: newUser.getXP(),
+        currentCourseId: newUser.getCurrentCourseId(),
       },
       isNewUser: true,
+      needsOnboarding: true, // Los nuevos usuarios siempre necesitan completar onboarding
       message: 'Usuario registrado exitosamente',
     };
   }

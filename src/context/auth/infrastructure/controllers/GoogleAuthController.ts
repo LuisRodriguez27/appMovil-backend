@@ -18,6 +18,7 @@ export class GoogleAuthController {
         data: {
           user: result.user,
           isNewUser: result.isNewUser,
+          needsOnboarding: result.needsOnboarding,
         },
       });
     } catch (error: any) {
