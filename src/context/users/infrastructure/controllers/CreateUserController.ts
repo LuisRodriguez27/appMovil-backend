@@ -7,10 +7,9 @@ export class CreateUserController {
 
   async run(req: Request, res: Response): Promise<void> {
     try {
-      const { controlNumber, name, email, profilePicture } = req.body;
+      const { name, email, profilePicture } = req.body;
 
       const request = new CreateUserRequest(
-        controlNumber,
         name,
         email,
         profilePicture

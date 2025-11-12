@@ -1,6 +1,5 @@
 export class CreateUserRequest {
   constructor(
-    public readonly controlNumber: string,
     public readonly name: string,
     public readonly email: string,
     public readonly profilePicture?: string
@@ -9,10 +8,6 @@ export class CreateUserRequest {
   }
 
   private validate(): void {
-    if (!this.controlNumber || this.controlNumber.trim().length === 0) {
-      throw new Error('Número de control es requerido');
-    }
-
     if (!this.name || this.name.trim().length === 0) {
       throw new Error('Nombre es requerido');
     }

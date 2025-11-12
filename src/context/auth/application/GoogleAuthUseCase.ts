@@ -51,7 +51,6 @@ export class GoogleAuthUseCase {
           name: user.getName(),
           email: user.getEmail(),
           role: user.getRole(),
-          controlNumber: user.getControlNumber(),
           profilePicture: user.getProfilePicture(),
           xp: user.getXP(),
         },
@@ -66,16 +65,9 @@ export class GoogleAuthUseCase {
       throw new Error('El número de control es requerido para nuevos usuarios');
     }
 
-    // Verificar que el número de control no esté registrado
-    const existingUserByControlNumber = await this.userRepository.findByNumeroControl(request.controlNumber);
-    if (existingUserByControlNumber) {
-      throw new Error('El número de control ya está registrado con otro usuario');
-    }
-
     // Crear nuevo usuario en Firestore con el UID de Firebase Auth
     const newUser = User.fromPrimitives({
       __id: uid,
-      controlNumber: request.controlNumber,
       name: name || 'Usuario',
       email: email,
       role: 'student',
@@ -104,7 +96,6 @@ export class GoogleAuthUseCase {
         name: newUser.getName(),
         email: newUser.getEmail(),
         role: newUser.getRole(),
-        controlNumber: newUser.getControlNumber(),
         profilePicture: newUser.getProfilePicture(),
         xp: newUser.getXP(),
       },

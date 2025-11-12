@@ -44,21 +44,6 @@ export class FirebaseUserRepository implements UserRepository {
     return this.toDomainEntity(data);
   }
 
-  async findByNumeroControl(controlNumber: string): Promise<User | null> {
-    const snapshot = await firestore()
-      .collection(this.collection)
-      .where('controlNumber', '==', controlNumber)
-      .limit(1)
-      .get();
-
-    if (snapshot.empty) {
-      return null;
-    }
-
-    const data = snapshot.docs[0].data() as UserDocument;
-    return this.toDomainEntity(data);
-  }
-
   async findAll(): Promise<User[]> {
     const snapshot = await firestore().collection(this.collection).get();
 
@@ -101,7 +86,6 @@ export class FirebaseUserRepository implements UserRepository {
   private toFirestoreDocument(primitives: UserPrimitives): UserDocument {
     const document: any = {
       __id: primitives.__id,
-      controlNumber: primitives.controlNumber,
       name: primitives.name,
       email: primitives.email,
       role: primitives.role,
@@ -130,7 +114,6 @@ export class FirebaseUserRepository implements UserRepository {
   private toDomainEntity(document: UserDocument): User {
     return User.fromPrimitives({
       __id: document.__id,
-      controlNumber: document.controlNumber,
       name: document.name,
       email: document.email,
       role: document.role || 'student',
