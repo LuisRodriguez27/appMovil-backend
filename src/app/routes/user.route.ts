@@ -7,6 +7,7 @@ import { UpdateUserController } from "../../context/users/infrastructure/control
 import { DeleteUserController } from "../../context/users/infrastructure/controllers/DeleteUserController";
 import { UpdateUserXPController } from "../../context/users/infrastructure/controllers/UpdateUserXPController";
 import { EnrollUserInCourseController } from "../../context/users/infrastructure/controllers/EnrollUserInCourseController";
+import { AdminUserController } from "../../context/users/infrastructure/controllers/AdminUserController";
 import { UserRepository } from "../../context/users/domain/UserRepository";
 import { verifyFirebaseToken, requireRole, requireOwnershipOrAdmin } from "../middleware/auth.middleware";
 
@@ -18,6 +19,7 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   const deleteUserController = container.get<DeleteUserController>("DeleteUserController");
   const updateUserXPController = container.get<UpdateUserXPController>("UpdateUserXPController");
   const enrollUserInCourseController = container.get<EnrollUserInCourseController>("EnrollUserInCourseController");
+  const adminUserController = container.get<AdminUserController>("AdminUserController");
   const userRepository = container.get<UserRepository>("UserRepository");
   const authMiddleware = verifyFirebaseToken(userRepository);
 
@@ -28,4 +30,5 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   app.delete('/users/:id', authMiddleware, requireRole(['admin']), deleteUserController.run.bind(deleteUserController));
   app.patch('/users/:id/xp', authMiddleware, requireOwnershipOrAdmin, updateUserXPController.run.bind(updateUserXPController));
   app.post('/users/:userId/enroll', authMiddleware, requireRole(['admin']), enrollUserInCourseController.run.bind(enrollUserInCourseController));
+  app.get('/admin/students-progress', authMiddleware, requireRole(['admin']), adminUserController.getStudentProgress.bind(adminUserController));
 };
