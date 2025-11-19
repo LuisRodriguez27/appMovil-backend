@@ -5,6 +5,7 @@ import { FindUserByIdUseCase } from "../../context/users/application/FindUserByI
 import { FindAllUsersUseCase } from "../../context/users/application/FindAllUsersUseCase";
 import { UpdateUserUseCase } from "../../context/users/application/UpdateUserUseCase";
 import { DeleteUserUseCase } from "../../context/users/application/DeleteUserUseCase";
+import { EnrollUserInCourseUseCase } from "../../context/users/application/EnrollUserInCourseUseCase";
 import { UpdateUserXPUseCase } from "../../context/users/application/UpdateUserXPUseCase";
 import { CreateUserController } from "../../context/users/infrastructure/controllers/CreateUserController";
 import { FindUserByIdController } from "../../context/users/infrastructure/controllers/FindUserByIdController";
@@ -12,6 +13,7 @@ import { FindAllUsersController } from "../../context/users/infrastructure/contr
 import { UpdateUserController } from "../../context/users/infrastructure/controllers/UpdateUserController";
 import { DeleteUserController } from "../../context/users/infrastructure/controllers/DeleteUserController";
 import { UpdateUserXPController } from "../../context/users/infrastructure/controllers/UpdateUserXPController";
+import { EnrollUserInCourseController } from "../../context/users/infrastructure/controllers/EnrollUserInCourseController";
 
 export default function registerUsersDependencies(container: ContainerBuilder) {
   // Repository
@@ -42,6 +44,14 @@ export default function registerUsersDependencies(container: ContainerBuilder) {
     .register("UpdateUserXPUseCase", UpdateUserXPUseCase)
     .addArgument(new Reference("UserRepository"));
 
+  container
+    .register("EnrollUserInCourseUseCase", EnrollUserInCourseUseCase)
+    .addArgument(new Reference("UserRepository"))
+    .addArgument(new Reference("CourseRepository"))
+    .addArgument(new Reference("LessonRepository"))
+    .addArgument(new Reference("TopicRepository"))
+    .addArgument(new Reference("SubtopicRepository"));
+
   // Controllers
   container
     .register("CreateUserController", CreateUserController)
@@ -66,6 +76,10 @@ export default function registerUsersDependencies(container: ContainerBuilder) {
   container
     .register("UpdateUserXPController", UpdateUserXPController)
     .addArgument(new Reference("UpdateUserXPUseCase"));
+
+  container
+    .register("EnrollUserInCourseController", EnrollUserInCourseController)
+    .addArgument(new Reference("EnrollUserInCourseUseCase"));
 
   return container;
 }

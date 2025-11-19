@@ -19,6 +19,7 @@ export class User {
     private currentCourseId?: string,
     private profilePicture?: string,
     private currentAttempt?: CurrentAttempt,
+    private enrolledCourses: string[] = [],
     private readonly createdAt: Date = new Date()
   ) {}
 
@@ -36,6 +37,7 @@ export class User {
       data.currentCourseId,
       data.profilePicture,
       data.currentAttempt ? CurrentAttempt.fromPrimitives(data.currentAttempt) : undefined,
+      data.enrolledCourses || [],
       new Date()
     );
   }
@@ -54,6 +56,7 @@ export class User {
       data.currentCourseId,
       data.profilePicture,
       data.currentAttempt ? CurrentAttempt.fromPrimitives(data.currentAttempt) : undefined,
+      data.enrolledCourses || [],
       new Date(data.createdAt)
     );
   }
@@ -201,6 +204,21 @@ export class User {
     return this.role;
   }
 
+  public enrollInCourse(courseId: string, firstLessonId: string): void {
+    if (!this.enrolledCourses.includes(courseId)) {
+      this.enrolledCourses.push(courseId);
+    }
+    if (!this.progress) {
+      // If progress is null, initialize it
+      this.progress = Progress.create();
+    }
+    this.progress = this.progress.initializeCourseProgress(courseId, firstLessonId);
+  }
+
+  public getEnrolledCourses(): string[] {
+    return this.enrolledCourses;
+  }
+
   // ========== QUERIES DE CONVENIENCIA ==========
 
   public isAdmin(): boolean {
@@ -241,6 +259,7 @@ export class User {
       currentCourseId: this.currentCourseId,
       profilePicture: this.profilePicture,
       currentAttempt: this.currentAttempt?.toPrimitives(),
+      enrolledCourses: this.enrolledCourses,
       createdAt: this.createdAt.toISOString(),
     };
   }
@@ -259,5 +278,6 @@ export type UserPrimitives = {
   currentCourseId?: string;
   profilePicture?: string;
   currentAttempt?: CurrentAttemptPrimitives;
+  enrolledCourses?: string[];
   createdAt: string;
 };
