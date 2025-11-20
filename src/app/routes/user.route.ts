@@ -30,5 +30,5 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   app.delete('/users/:id', authMiddleware, requireRole(['admin']), deleteUserController.run.bind(deleteUserController));
   app.patch('/users/:id/xp', authMiddleware, requireOwnershipOrAdmin, updateUserXPController.run.bind(updateUserXPController));
   app.post('/users/:userId/enroll', authMiddleware, requireRole(['admin']), enrollUserInCourseController.run.bind(enrollUserInCourseController));
-  app.get('/admin/students-progress', authMiddleware, requireRole(['admin']), adminUserController.getStudentProgress.bind(adminUserController));
+  app.get('/admin/students-progress', authMiddleware, requireRole(['admin', 'student']), adminUserController.getStudentProgress.bind(adminUserController));
 };
