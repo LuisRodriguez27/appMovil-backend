@@ -1,3 +1,4 @@
+import { CourseProgress } from '../domain/value-objects/CourseProgress';
 import { UserRepository } from '../domain/UserRepository';
 import { CourseRepository } from '../../courses/domain/CourseRepository';
 import { User } from '../domain/User';
@@ -22,20 +23,18 @@ export class FindStudentUsersWithProgressUseCase {
       const primitives = student.toPrimitives();
 
       if (primitives.progress && typeof primitives.progress === 'object') {
-        Object.entries(primitives.progress).forEach(([courseId, courseProgress]: [string, any]) => {
+        const userProgress = primitives.progress; 
+        Object.entries(userProgress).forEach(([courseId, courseProgress]: [string, any]) => {
           const course = courseMap.get(courseId);
           const totalLessons = course ? course.getTotalLessons() : 0;
-          const completedCount = courseProgress?.completedCount || 0;
-
-          const percentage = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
-          courseProgress.percentage = percentage;
-
-          if (percentage === 100) {
-            courseProgress.completedAt = courseProgress.completedAt ? new Date(courseProgress.completedAt) : new Date();
-          } else {
-            courseProgress.completedAt = undefined;
+          
+          if (totalLessons > 0) {
+            const currentCourseProgress = CourseProgress.create(courseProgress);
+            const updatedCourseProgress = currentCourseProgress.recalculatePercentage(totalLessons);
+            userProgress[courseId] = updatedCourseProgress.toPrimitives();
           }
         });
+        primitives.progress = userProgress;
       }
 
       return User.fromPrimitives(primitives);
@@ -44,7 +43,3 @@ export class FindStudentUsersWithProgressUseCase {
     return updatedStudents;
   }
 }
-
-
-
-//Revisar por que aqui se recalcula el porcentaje de progreso del usuario en un curso y eso lo debe de hacer el usuario no cada vez que el admin realiza una consulta
