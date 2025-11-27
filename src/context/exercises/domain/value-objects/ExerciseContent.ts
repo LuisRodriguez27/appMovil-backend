@@ -5,6 +5,7 @@ export interface FillBlankContent {
   blanks: {
     id: number;
     correctAnswer: string;
+    incorrectAnswers: string[];
   }[];
 }
 

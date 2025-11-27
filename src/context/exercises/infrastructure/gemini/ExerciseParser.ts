@@ -47,6 +47,9 @@ export class ExerciseParser {
           if (typeof blank.id !== 'number' || typeof blank.correctAnswer !== 'string') {
             throw new Error(`Blank ${index} inválido: debe tener "id" (número) y "correctAnswer" (string)`);
           }
+          if (!Array.isArray(blank.incorrectAnswers) || blank.incorrectAnswers.length === 0) {
+            throw new Error(`Blank ${index} inválido: debe tener "incorrectAnswers" (array de strings)`);
+          }
         });
         break;
 
