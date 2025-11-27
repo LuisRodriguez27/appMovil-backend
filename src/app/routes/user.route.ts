@@ -6,8 +6,13 @@ import { FindAllUsersController } from "../../context/users/infrastructure/contr
 import { UpdateUserController } from "../../context/users/infrastructure/controllers/UpdateUserController";
 import { DeleteUserController } from "../../context/users/infrastructure/controllers/DeleteUserController";
 import { UpdateUserXPController } from "../../context/users/infrastructure/controllers/UpdateUserXPController";
+<<<<<<< HEAD
 import { EnrollUserInCourseController } from "../../context/users/infrastructure/controllers/EnrollUserInCourseController";
 import { AdminUserController } from "../../context/users/infrastructure/controllers/AdminUserController";
+=======
+import { GetUserCoursesController } from "../../context/users/infrastructure/controllers/GetUserCoursesController";
+import { AddCoursesToUserController } from "../../context/users/infrastructure/controllers/AddCoursesToUserController";
+>>>>>>> 841335b (feat: implement user course management features; add use cases and controllers for getting and adding courses to users)
 import { UserRepository } from "../../context/users/domain/UserRepository";
 import { verifyFirebaseToken, requireRole, requireOwnershipOrAdmin } from "../middleware/auth.middleware";
 
@@ -18,8 +23,13 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   const updateUserController = container.get<UpdateUserController>("UpdateUserController");
   const deleteUserController = container.get<DeleteUserController>("DeleteUserController");
   const updateUserXPController = container.get<UpdateUserXPController>("UpdateUserXPController");
+<<<<<<< HEAD
   const enrollUserInCourseController = container.get<EnrollUserInCourseController>("EnrollUserInCourseController");
   const adminUserController = container.get<AdminUserController>("AdminUserController");
+=======
+  const getUserCoursesController = container.get<GetUserCoursesController>("GetUserCoursesController");
+  const addCoursesToUserController = container.get<AddCoursesToUserController>("AddCoursesToUserController");
+>>>>>>> 841335b (feat: implement user course management features; add use cases and controllers for getting and adding courses to users)
   const userRepository = container.get<UserRepository>("UserRepository");
   const authMiddleware = verifyFirebaseToken(userRepository);
 
@@ -29,6 +39,11 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   app.put('/users/:id', authMiddleware, requireOwnershipOrAdmin, updateUserController.run.bind(updateUserController));
   app.delete('/users/:id', authMiddleware, requireRole(['admin']), deleteUserController.run.bind(deleteUserController));
   app.patch('/users/:id/xp', authMiddleware, requireOwnershipOrAdmin, updateUserXPController.run.bind(updateUserXPController));
+<<<<<<< HEAD
   app.post('/users/:userId/enroll', authMiddleware, requireRole(['admin']), enrollUserInCourseController.run.bind(enrollUserInCourseController));
   app.get('/admin/students-progress', authMiddleware, requireRole(['admin', 'student']), adminUserController.getStudentProgress.bind(adminUserController));
+=======
+  app.get('/users/:id/courses', authMiddleware, requireOwnershipOrAdmin, getUserCoursesController.run.bind(getUserCoursesController));
+  app.post('/users/:id/courses', authMiddleware, requireOwnershipOrAdmin, addCoursesToUserController.run.bind(addCoursesToUserController));
+>>>>>>> 841335b (feat: implement user course management features; add use cases and controllers for getting and adding courses to users)
 };

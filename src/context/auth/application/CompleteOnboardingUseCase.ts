@@ -1,6 +1,8 @@
 import { UserRepository } from '../../users/domain/UserRepository';
 import { CourseRepository } from '../../courses/domain/CourseRepository';
 import { CompleteOnboardingRequest } from './requests/CompleteOnboardingRequest';
+import { Progress } from '../../users/domain/value-objects/Progress';
+import { CourseProgress } from '../../users/domain/value-objects/CourseProgress';
 
 export interface CompleteOnboardingResponse {
   user: {
@@ -60,8 +62,32 @@ export class CompleteOnboardingUseCase {
     });
 
     // 4. Inicializar el progreso para cada curso seleccionado
-    // El progreso se inicializa automáticamente cuando el usuario comienza una lección
-    // Por ahora solo guardamos el usuario con su currentCourseId actualizado
+    let userProgress = user.getProgress();
+
+    // Si el usuario no tiene progress, crear uno nuevo
+    if (!userProgress) {
+      userProgress = Progress.create({});
+    }
+
+    // Agregar cada curso seleccionado al progress con valores iniciales
+    for (const courseId of validatedCourses) {
+      // Solo agregar si el usuario no está ya inscrito en este curso
+      const existingProgress = userProgress.getCourseProgress(courseId);
+
+      if (!existingProgress) {
+        const newCourseProgress = CourseProgress.create({
+          lastLessonCompletedId: '',
+          nextLessonId: '',
+          completedCount: 0,
+          percentage: 0,
+        });
+
+        userProgress = userProgress.updateCourseProgress(courseId, newCourseProgress);
+      }
+    }
+
+    // Actualizar el usuario con el nuevo progress
+    user.setProgress(userProgress);
 
     // 5. Guardar los cambios
     await this.userRepository.update(user);

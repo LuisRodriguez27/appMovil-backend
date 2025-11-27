@@ -7,15 +7,25 @@ import { UpdateUserUseCase } from "../../context/users/application/UpdateUserUse
 import { DeleteUserUseCase } from "../../context/users/application/DeleteUserUseCase";
 import { EnrollUserInCourseUseCase } from "../../context/users/application/EnrollUserInCourseUseCase";
 import { UpdateUserXPUseCase } from "../../context/users/application/UpdateUserXPUseCase";
+<<<<<<< HEAD
 import { FindStudentUsersWithProgressUseCase } from "../../context/users/application/FindStudentUsersWithProgressUseCase";
+=======
+import { GetUserCoursesUseCase } from "../../context/users/application/GetUserCoursesUseCase";
+import { AddCoursesToUserUseCase } from "../../context/users/application/AddCoursesToUserUseCase";
+>>>>>>> 841335b (feat: implement user course management features; add use cases and controllers for getting and adding courses to users)
 import { CreateUserController } from "../../context/users/infrastructure/controllers/CreateUserController";
 import { FindUserByIdController } from "../../context/users/infrastructure/controllers/FindUserByIdController";
 import { FindAllUsersController } from "../../context/users/infrastructure/controllers/FindAllUsersController";
 import { UpdateUserController } from "../../context/users/infrastructure/controllers/UpdateUserController";
 import { DeleteUserController } from "../../context/users/infrastructure/controllers/DeleteUserController";
 import { UpdateUserXPController } from "../../context/users/infrastructure/controllers/UpdateUserXPController";
+<<<<<<< HEAD
 import { EnrollUserInCourseController } from "../../context/users/infrastructure/controllers/EnrollUserInCourseController";
 import { AdminUserController } from "../../context/users/infrastructure/controllers/AdminUserController";
+=======
+import { GetUserCoursesController } from "../../context/users/infrastructure/controllers/GetUserCoursesController";
+import { AddCoursesToUserController } from "../../context/users/infrastructure/controllers/AddCoursesToUserController";
+>>>>>>> 841335b (feat: implement user course management features; add use cases and controllers for getting and adding courses to users)
 
 export default function registerUsersDependencies(container: ContainerBuilder) {
   // Repository
@@ -47,6 +57,7 @@ export default function registerUsersDependencies(container: ContainerBuilder) {
     .addArgument(new Reference("UserRepository"));
 
   container
+<<<<<<< HEAD
     .register("EnrollUserInCourseUseCase", EnrollUserInCourseUseCase)
     .addArgument(new Reference("UserRepository"))
     .addArgument(new Reference("CourseRepository"))
@@ -56,6 +67,14 @@ export default function registerUsersDependencies(container: ContainerBuilder) {
 
   container
     .register("FindStudentUsersWithProgressUseCase", FindStudentUsersWithProgressUseCase)
+=======
+    .register("GetUserCoursesUseCase", GetUserCoursesUseCase)
+    .addArgument(new Reference("UserRepository"))
+    .addArgument(new Reference("CourseRepository"));
+
+  container
+    .register("AddCoursesToUserUseCase", AddCoursesToUserUseCase)
+>>>>>>> 841335b (feat: implement user course management features; add use cases and controllers for getting and adding courses to users)
     .addArgument(new Reference("UserRepository"))
     .addArgument(new Reference("CourseRepository"));
 
@@ -85,12 +104,21 @@ export default function registerUsersDependencies(container: ContainerBuilder) {
     .addArgument(new Reference("UpdateUserXPUseCase"));
 
   container
+<<<<<<< HEAD
     .register("EnrollUserInCourseController", EnrollUserInCourseController)
     .addArgument(new Reference("EnrollUserInCourseUseCase"));
 
   container
     .register("AdminUserController", AdminUserController)
     .addArgument(new Reference("FindStudentUsersWithProgressUseCase"));
+=======
+    .register("GetUserCoursesController", GetUserCoursesController)
+    .addArgument(new Reference("GetUserCoursesUseCase"));
+
+  container
+    .register("AddCoursesToUserController", AddCoursesToUserController)
+    .addArgument(new Reference("AddCoursesToUserUseCase"));
+>>>>>>> 841335b (feat: implement user course management features; add use cases and controllers for getting and adding courses to users)
 
   return container;
 }

@@ -46,8 +46,12 @@ export class GoogleAuthUseCase {
 
     if (user) {
       // Usuario ya existe, retornar sus datos
-      // Verificar si necesita completar onboarding (usuario sin currentCourseId)
-      const needsOnboarding = !user.getCurrentCourseId();
+      // Verificar si necesita completar onboarding:
+      // - Si no tiene currentCourseId O
+      // - Si no tiene ningún curso en progress
+      const userProgress = user.getProgress();
+      const hasCourses = userProgress && userProgress.courses.size > 0;
+      const needsOnboarding = !user.getCurrentCourseId() || !hasCourses;
 
       return {
         user: {

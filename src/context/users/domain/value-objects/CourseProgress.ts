@@ -19,7 +19,7 @@ export class CourseProgress {
       data?.nextLessonId || '',
       data?.completedCount || 0,
       data?.percentage || 0,
-      data?.completedAt
+      data?.completedAt === undefined ? null : data?.completedAt
     );
   }
 

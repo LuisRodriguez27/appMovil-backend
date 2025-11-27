@@ -98,6 +98,10 @@ export class User {
     this.progress = this.progress.updateNextLesson(courseId, nextLessonId);
   }
 
+  public setProgress(progress: Progress): void {
+    this.progress = progress;
+  }
+
   public unlockAchievement(achievementId: string, quantity: number = 1): boolean {
     if (this.achievements && this.achievements.some(a => a.achievementId === achievementId)) {
       return false; // Ya tiene el logro
