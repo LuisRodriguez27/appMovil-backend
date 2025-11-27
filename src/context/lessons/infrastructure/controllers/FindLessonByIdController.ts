@@ -10,7 +10,8 @@ export class FindLessonByIdController {
 
       const lesson = await this.findLessonByIdUseCase.execute(id);
 
-      res.status(200).json(lesson);
+      // Convertir a primitivos para serialización correcta
+      res.status(200).json(lesson.toPrimitives());
       
     } catch (error) {
       if (error instanceof Error) {

@@ -8,7 +8,7 @@ export class SubmitExerciseController {
   async run(req: Request, res: Response): Promise<void> {
     try {
       const { lessonId } = req.params;
-      const { courseId, userAnswer } = req.body;
+      const { courseId, score } = req.body;
 
       // Extraer userId de forma segura con tipado fuerte
       const userId = getUserId(req);
@@ -21,10 +21,10 @@ export class SubmitExerciseController {
         return;
       }
 
-      if (userAnswer === undefined || userAnswer === null) {
+      if (score === undefined || score === null || typeof score !== 'number') {
         res.status(400).json({
           success: false,
-          message: 'userAnswer es requerido'
+          message: 'score es requerido y debe ser un número'
         });
         return;
       }
@@ -33,7 +33,7 @@ export class SubmitExerciseController {
         userId,
         lessonId,
         courseId,
-        userAnswer
+        score
       });
 
       res.status(200).json({

@@ -12,12 +12,12 @@ export class ExerciseParser {
       cleanedResponse = cleanedResponse.replace(/```\n?/g, '');
       cleanedResponse = cleanedResponse.trim();
 
-      console.log('=== JSON A PARSEAR (ExerciseParser.parse) ===');
-      console.log('Tipo de ejercicio:', type);
-      console.log('Longitud respuesta original:', geminiResponse.length);
-      console.log('Longitud respuesta limpia:', cleanedResponse.length);
-      console.log('Contenido limpio:', cleanedResponse);
-      console.log('=== FIN JSON A PARSEAR ===');
+      // console.log('=== JSON A PARSEAR (ExerciseParser.parse) ===');
+      // console.log('Tipo de ejercicio:', type);
+      // console.log('Longitud respuesta original:', geminiResponse.length);
+      // console.log('Longitud respuesta limpia:', cleanedResponse.length);
+      // console.log('Contenido limpio:', cleanedResponse);
+      // console.log('=== FIN JSON A PARSEAR ===');
 
       // Parsear JSON
       const data = JSON.parse(cleanedResponse);
@@ -46,6 +46,9 @@ export class ExerciseParser {
         data.blanks.forEach((blank: any, index: number) => {
           if (typeof blank.id !== 'number' || typeof blank.correctAnswer !== 'string') {
             throw new Error(`Blank ${index} inválido: debe tener "id" (número) y "correctAnswer" (string)`);
+          }
+          if (!Array.isArray(blank.incorrectAnswers) || blank.incorrectAnswers.length === 0) {
+            throw new Error(`Blank ${index} inválido: debe tener "incorrectAnswers" (array de strings)`);
           }
         });
         break;

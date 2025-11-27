@@ -10,7 +10,7 @@ export interface PromptParams {
 
 export class PromptBuilder {
   private static readonly TYPE_DESCRIPTIONS: Record<ExerciseType, string> = {
-    fill_blank: 'Ejercicio de llenar espacios en blanco. El texto debe tener espacios marcados con _____ que el estudiante debe completar.',
+    fill_blank: 'Ejercicio de llenar espacios en blanco. El texto debe tener espacios marcados con _____ que el estudiante debe completar. Para cada espacio, proporciona la respuesta correcta y 4 respuestas incorrectas que sirvan como distractores verosímiles.',
     multiple_choice: 'Ejercicio de opción múltiple con una pregunta y 4 opciones, donde solo una es correcta.',
     code_completion: 'Ejercicio de completar código. Proporciona código inicial y el estudiante debe completarlo para que funcione correctamente.',
     true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar.',
@@ -22,9 +22,21 @@ export class PromptBuilder {
 {
   "text": "En JavaScript, las variables se declaran con _____ o _____. Para constantes se usa _____.",
   "blanks": [
-    { "id": 1, "correctAnswer": "var" },
-    { "id": 2, "correctAnswer": "let" },
-    { "id": 3, "correctAnswer": "const" }
+    { 
+      "id": 1, 
+      "correctAnswer": "var",
+      "incorrectAnswers": ["int", "string", "dim", "function"]
+    },
+    { 
+      "id": 2, 
+      "correctAnswer": "let",
+      "incorrectAnswers": ["const", "static", "final", "public"]
+    },
+    { 
+      "id": 3, 
+      "correctAnswer": "const",
+      "incorrectAnswers": ["let", "var", "final", "immutable"]
+    }
   ]
 }`,
     multiple_choice: `Ejemplo de respuesta JSON:

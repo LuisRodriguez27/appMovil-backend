@@ -25,6 +25,15 @@ export class Progress {
     return new Progress(newCourses);
   }
 
+  initializeCourseProgress(courseId: string, firstLessonId: string): Progress {
+    if (this.courses.has(courseId)) {
+      return this; // Already initialized
+    }
+    const newCourses = new Map(this.courses);
+    newCourses.set(courseId, CourseProgress.create({ nextLessonId: firstLessonId }));
+    return new Progress(newCourses);
+  }
+
   completeLesson(courseId: string, lessonId: string, nextLessonId: string, totalLessons: number): Progress {
     const currentProgress = this.courses.get(courseId) || CourseProgress.create();
     const updatedProgress = currentProgress.markLessonCompleted(lessonId, nextLessonId, totalLessons);

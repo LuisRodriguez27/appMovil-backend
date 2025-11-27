@@ -10,7 +10,10 @@ export class FindLessonsBySubtopicController {
 
       const lessons = await this.findLessonsBySubtopicUseCase.execute(topicId, subtopicId);
 
-      res.status(200).json(lessons);
+      // Convertir a primitivos para serialización correcta
+      const lessonsPrimitives = lessons.map(lesson => lesson.toPrimitives());
+
+      res.status(200).json(lessonsPrimitives);
       
     } catch (error) {
       if (error instanceof Error) {

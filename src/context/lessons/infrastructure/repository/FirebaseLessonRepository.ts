@@ -59,26 +59,28 @@ export class FirebaseLessonRepository implements LessonRepository {
   }
 
   async findByTopicId(topicId: string): Promise<Lesson[]> {
+    // Firebase guarda los campos en snake_case
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('topicId', '==', topicId)
+      .where('topic_id', '==', topicId)
       .get();
 
     return snapshot.docs.map((doc) => {
-      const data = doc.data() as LessonDocument;
+      const data = doc.data();
       return this.toDomainEntity(data);
     });
   }
 
   async findBySubtopicId(topicId: string, subtopicId: string): Promise<Lesson[]> {
+    // Firebase guarda los campos en snake_case
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('topicId', '==', topicId)
-      .where('subtopicId', '==', subtopicId)
+      .where('topic_id', '==', topicId)
+      .where('subtopic_id', '==', subtopicId)
       .get();
 
     return snapshot.docs.map((doc) => {
-      const data = doc.data() as LessonDocument;
+      const data = doc.data();
       return this.toDomainEntity(data);
     });
   }
@@ -101,13 +103,14 @@ export class FirebaseLessonRepository implements LessonRepository {
 
     for (let i = 0; i < topicIds.length; i += batchSize) {
       const batch = topicIds.slice(i, i + batchSize);
+      // Firebase guarda los campos en snake_case
       const snapshot = await firestore()
         .collection(this.collection)
-        .where('topicId', 'in', batch)
+        .where('topic_id', 'in', batch)
         .get();
 
       const batchLessons = snapshot.docs.map((doc) => {
-        const data = doc.data() as LessonDocument;
+        const data = doc.data();
         return this.toDomainEntity(data);
       });
 
@@ -118,10 +121,11 @@ export class FirebaseLessonRepository implements LessonRepository {
   }
 
   async findFinalLessonByTopicId(topicId: string): Promise<Lesson | null> {
+    // Firebase guarda los campos en snake_case
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('topicId', '==', topicId)
-      .where('subtopicId', '==', null)
+      .where('topic_id', '==', topicId)
+      .where('subtopic_id', '==', null)
       .limit(1)
       .get();
 
@@ -129,7 +133,7 @@ export class FirebaseLessonRepository implements LessonRepository {
       return null;
     }
 
-    const data = snapshot.docs[0].data() as LessonDocument;
+    const data = snapshot.docs[0].data();
     return this.toDomainEntity(data);
   }
 
@@ -138,9 +142,10 @@ export class FirebaseLessonRepository implements LessonRepository {
   }
 
   async deleteBySubtopicId(subtopicId: string): Promise<void> {
+    // Firebase guarda los campos en snake_case
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('subtopicId', '==', subtopicId)
+      .where('subtopic_id', '==', subtopicId)
       .get();
 
     const batch = firestore().batch();
@@ -152,9 +157,10 @@ export class FirebaseLessonRepository implements LessonRepository {
   }
 
   async deleteByTopicId(topicId: string): Promise<void> {
+    // Firebase guarda los campos en snake_case
     const snapshot = await firestore()
       .collection(this.collection)
-      .where('topicId', '==', topicId)
+      .where('topic_id', '==', topicId)
       .get();
 
     const batch = firestore().batch();
@@ -172,10 +178,11 @@ export class FirebaseLessonRepository implements LessonRepository {
       ? primitives.exerciseConfig.toPrimitives()
       : primitives.exerciseConfig;
 
+    // Guardar en snake_case para mantener consistencia con Firebase
     const document: any = {
       __id: primitives.id,
-      topicId: primitives.topicId,
-      subtopicId: primitives.subtopicId,
+      topic_id: primitives.topicId,
+      subtopic_id: primitives.subtopicId,
       title: primitives.title,
       content: primitives.content,
       created_at: Timestamp.fromDate(primitives.createdAt),
@@ -186,16 +193,19 @@ export class FirebaseLessonRepository implements LessonRepository {
     return document;
   }
 
-  private toDomainEntity(document: LessonDocument): Lesson {
-    return Lesson.fromPrimitives({
-      id: document.__id,
-      topicId: document.topicId,
-      subtopicId: document.subtopicId,
+  private toDomainEntity(document: any): Lesson {
+    // Firebase guarda los campos en snake_case, necesitamos mapearlos a camelCase
+    const data = {
+      id: document.__id || document.id,
+      topicId: document.topicId || document.topic_id,
+      subtopicId: document.subtopicId || document.subtopic_id,
       title: document.title,
       content: document.content,
-      exerciseConfig: document.exerciseConfig,
+      exerciseConfig: document.exerciseConfig || document.exercise_config,
       description: document.description,
-      createdAt: document.createdAt
-    });
+      createdAt: document.createdAt || document.created_at
+    };
+
+    return Lesson.fromPrimitives(data);
   }
 }

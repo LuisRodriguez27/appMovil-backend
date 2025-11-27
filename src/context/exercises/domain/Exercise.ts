@@ -62,71 +62,8 @@ export class Exercise {
     };
   }
 
-  // Método para obtener el contenido sin la respuesta correcta (para enviar al frontend)
-  getPublicContent(): Omit<ExercisePrimitives, 'content'> & { content: any } {
-    const primitives = this.toPrimitives();
-
-    // Remover respuestas correctas según el tipo
-    switch (this.content.type) {
-      case 'fill_blank':
-        return {
-          ...primitives,
-          content: {
-            type: this.content.type,
-            data: {
-              text: this.content.data.text,
-              blanks: this.content.data.blanks.map(b => ({ id: b.id }))
-            }
-          }
-        };
-
-      case 'multiple_choice':
-        return {
-          ...primitives,
-          content: {
-            type: this.content.type,
-            data: {
-              question: this.content.data.question,
-              options: this.content.data.options
-              // No incluir correctOptionId
-            }
-          }
-        };
-
-      case 'true_false':
-        return {
-          ...primitives,
-          content: {
-            type: this.content.type,
-            data: {
-              statement: this.content.data.statement
-              // No incluir correctAnswer ni explanation
-            }
-          }
-        };
-
-      case 'code_completion':
-      case 'open_ended':
-        // Para estos tipos, enviar todo excepto respuestas/casos de prueba privados
-        return {
-          ...primitives,
-          content: {
-            type: this.content.type,
-            data: this.content.type === 'code_completion'
-              ? {
-                  instruction: this.content.data.instruction,
-                  starterCode: this.content.data.starterCode
-                  // No incluir expectedOutput ni testCases
-                }
-              : {
-                  question: this.content.data.question
-                  // No incluir evaluationCriteria ni sampleAnswer
-                }
-          }
-        };
-
-      default:
-        return primitives;
-    }
+  // Método para obtener el contenido (ahora incluye respuestas para evaluación en frontend)
+  getPublicContent(): ExercisePrimitives {
+    return this.toPrimitives();
   }
 }

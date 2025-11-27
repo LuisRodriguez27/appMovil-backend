@@ -4,8 +4,8 @@ import { CurrentAttempt } from '../../domain/value-objects/CurrentAttempt';
 import { firestore, firebaseAuth } from '../../../../app/config/configureFirebase';
 import { FieldValue } from 'firebase-admin/firestore';
 
-interface UserDocument extends Omit<UserPrimitives, 'id'> {
-  __id: string;
+interface UserDocument extends Omit<UserPrimitives, 'createdAt'> {
+  createdAt: string | Date | { toDate: () => Date };
 }
 
 export class FirebaseUserRepository implements UserRepository {
@@ -70,14 +70,14 @@ export class FirebaseUserRepository implements UserRepository {
       // Si el usuario no existe en Auth, continuar con la eliminación de Firestore
       console.warn(`Usuario ${id} no encontrado en Firebase Auth, continuando con eliminación de Firestore`);
     }
-    
+
     // Eliminar de Firestore
     await firestore().collection(this.collection).doc(id).delete();
   }
 
   async updateXP(id: string, xpToAdd: number): Promise<void> {
     const userRef = firestore().collection(this.collection).doc(id);
-    
+
     await userRef.update({
       xp: FieldValue.increment(xpToAdd),
     });
@@ -112,6 +112,19 @@ export class FirebaseUserRepository implements UserRepository {
   }
 
   private toDomainEntity(document: UserDocument): User {
+    let createdAt = new Date();
+
+    if (document.createdAt) {
+      if (typeof document.createdAt === 'string') {
+        createdAt = new Date(document.createdAt);
+      } else if (document.createdAt instanceof Date) {
+        createdAt = document.createdAt;
+      } else if (typeof (document.createdAt as any).toDate === 'function') {
+        // Handle Firestore Timestamp
+        createdAt = (document.createdAt as any).toDate();
+      }
+    }
+
     return User.fromPrimitives({
       __id: document.__id,
       name: document.name,
@@ -133,7 +146,7 @@ export class FirebaseUserRepository implements UserRepository {
         totalCoursesCompleted: 0,
       },
       currentAttempt: document.currentAttempt,
-      createdAt: document.createdAt,
+      createdAt: createdAt.toISOString(),
     });
   }
 
@@ -141,7 +154,7 @@ export class FirebaseUserRepository implements UserRepository {
     const userRef = firestore().collection(this.collection).doc(userId);
 
     const primitives = attempt.toPrimitives();
-    
+
     await userRef.set({
       currentAttempt: {
         lessonId: primitives.lessonId,
