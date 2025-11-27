@@ -1,7 +1,11 @@
 import { UserRepository } from '../../users/domain/UserRepository';
 import { LessonRepository } from '../../lessons/domain/LessonRepository';
+import { CourseRepository } from '../../courses/domain/CourseRepository';
+import { TopicRepository } from '../../topics/domain/TopicRepository';
+import { SubtopicRepository } from '../../subtopics/domain/SubtopicRepository';
 import { CurrentAttempt } from '../../users/domain/value-objects/CurrentAttempt';
 import { v4 as uuidv4 } from 'uuid';
+import { Subtopic } from '../../subtopics/domain/Subtopic';
 
 export interface SubmitExerciseAnswerRequest {
   userId: string;
@@ -15,12 +19,16 @@ export interface SubmitExerciseAnswerResponse {
   status: 'approvedExcellent' | 'approvedImprove' | 'rejected';
   message: string;
   score: number;
+  nextLessonId?: string;
 }
 
 export class SubmitExerciseAnswerUseCase {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly lessonRepository: LessonRepository
+    private readonly lessonRepository: LessonRepository,
+    private readonly courseRepository: CourseRepository,
+    private readonly topicRepository: TopicRepository,
+    private readonly subtopicRepository: SubtopicRepository
   ) {}
 
   async execute(request: SubmitExerciseAnswerRequest): Promise<SubmitExerciseAnswerResponse> {
@@ -55,9 +63,7 @@ export class SubmitExerciseAnswerUseCase {
     // 5. Generar ID de intento único
     const attemptId = uuidv4();
 
-    // 6. Crear el intento usando el value object CurrentAttempt
-    // Nota: Como la validación ahora es en el front, no tenemos userAnswer.
-    // Usamos un marcador para indicar que fue validado en cliente.
+    // 6. Crear el intento
     const attempt = CurrentAttempt.create({
       lessonId: request.lessonId,
       attemptId,
@@ -72,20 +78,94 @@ export class SubmitExerciseAnswerUseCase {
       }
     });
 
-    // 7. Guardar el intento en Firestore usando el repositorio
-    await this.userRepository.createAttempt(request.userId, attempt);
+    // 7. Actualizar el usuario con el intento
+    user.createAttempt(attempt);
 
-    // 8. Si aprobó, podríamos necesitar actualizar progreso (depende de la implementación de createAttempt o si hay otro caso de uso)
-    // Por ahora, asumimos que createAttempt maneja la lógica básica o que se manejará por separado.
-    // (En el flujo anterior, ValidateExerciseAnswerUseCase no parecía actualizar XP explícitamente, 
-    //  pero UserRepository.updateAttemptWithEvaluation podría haberlo hecho.
-    //  Aquí estamos creando el intento ya evaluado).
+    let nextLessonIdString = '';
+
+    // 8. Si aprobó, actualizar progreso
+    if (status === 'approvedExcellent' || status === 'approvedImprove') {
+      const course = await this.courseRepository.findById(request.courseId);
+      if (!course) {
+        throw new Error(`Curso con ID ${request.courseId} no encontrado`);
+      }
+
+      // Calcular nextLessonId
+      nextLessonIdString = await this.findNextLessonId(request.courseId, request.lessonId);
+
+      // Actualizar lección completada
+      user.completeLesson(
+        request.courseId, 
+        request.lessonId, 
+        nextLessonIdString, 
+        course.getTotalLessons()
+      );
+
+      // Agregar XP (score / 2)
+      user.addXP(Math.floor(request.score / 2));
+      
+      // Actualizar estadísticas generales
+      user.completeExercise(request.score);
+    }
+
+    // 9. Guardar usuario actualizado (cubre createAttempt y updateProgress)
+    await this.userRepository.update(user);
 
     return {
       attemptId,
       status,
       message: status === 'rejected' ? 'Inténtalo de nuevo' : '¡Ejercicio completado!',
-      score: request.score
+      score: request.score,
+      nextLessonId: nextLessonIdString || undefined
     };
+  }
+
+  private async findNextLessonId(courseId: string, currentLessonId: string): Promise<string> {
+    // Obtener todos los datos necesarios para ordenar
+    const topics = await this.topicRepository.findByCourseId(courseId);
+    const lessons = await this.lessonRepository.findByCourseId(courseId);
+    
+    // Obtener subtemas para todos los temas
+    const subtopicsMap = new Map<string, Subtopic[]>();
+    for (const topic of topics) {
+      const subtopics = await this.subtopicRepository.findByTopicId(topic.id);
+      subtopicsMap.set(topic.id, subtopics);
+    }
+
+    // Mapas para búsqueda rápida de orden
+    const topicOrder = new Map(topics.map(t => [t.id, t.getOrder()]));
+    
+    const subtopicOrder = new Map<string, number>();
+    subtopicsMap.forEach((subtopics) => {
+      subtopics.forEach(s => subtopicOrder.set(s.id, s.getOrder()));
+    });
+
+    // Ordenar lecciones
+    lessons.sort((a, b) => {
+      const topicOrderA = topicOrder.get(a.topicId) ?? 999;
+      const topicOrderB = topicOrder.get(b.topicId) ?? 999;
+
+      if (topicOrderA !== topicOrderB) {
+        return topicOrderA - topicOrderB;
+      }
+
+      const subtopicOrderA = a.subtopicId ? (subtopicOrder.get(a.subtopicId) ?? 999) : 999;
+      const subtopicOrderB = b.subtopicId ? (subtopicOrder.get(b.subtopicId) ?? 999) : 999;
+
+      if (subtopicOrderA !== subtopicOrderB) {
+        return subtopicOrderA - subtopicOrderB;
+      }
+
+      // Si están en el mismo subtema (o ambos null), usar createdAt
+      return a.createdAt.getTime() - b.createdAt.getTime();
+    });
+
+    // Encontrar lección actual y siguiente
+    const currentIndex = lessons.findIndex(l => l.id === currentLessonId);
+    if (currentIndex !== -1 && currentIndex < lessons.length - 1) {
+      return lessons[currentIndex + 1].id;
+    }
+
+    return ''; // No hay siguiente lección (fin del curso)
   }
 }

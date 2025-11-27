@@ -35,7 +35,10 @@ export default function registerExercisesDependencies(container: ContainerBuilde
   container
     .register('SubmitExerciseAnswerUseCase', SubmitExerciseAnswerUseCase)
     .addArgument(new Reference('UserRepository'))
-    .addArgument(new Reference('LessonRepository'));
+    .addArgument(new Reference('LessonRepository'))
+    .addArgument(new Reference('CourseRepository'))
+    .addArgument(new Reference('TopicRepository'))
+    .addArgument(new Reference('SubtopicRepository'));
 
   container
     .register('GetAttemptStatusUseCase', GetAttemptStatusUseCase)
