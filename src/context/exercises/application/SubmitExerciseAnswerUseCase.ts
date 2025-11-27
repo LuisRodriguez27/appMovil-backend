@@ -7,13 +7,14 @@ export interface SubmitExerciseAnswerRequest {
   userId: string;
   lessonId: string;
   courseId: string;
-  userAnswer: any;
+  score: number;
 }
 
 export interface SubmitExerciseAnswerResponse {
   attemptId: string;
-  status: 'evaluating';
+  status: 'approvedExcellent' | 'approvedImprove' | 'rejected';
   message: string;
+  score: number;
 }
 
 export class SubmitExerciseAnswerUseCase {
@@ -41,26 +42,50 @@ export class SubmitExerciseAnswerUseCase {
       throw new Error(`La lección ${request.lessonId} no tiene ejercicio configurado`);
     }
 
-    // 4. Generar ID de intento único
+    // 4. Determinar el estado según el score
+    let status: 'approvedExcellent' | 'approvedImprove' | 'rejected';
+    if (request.score >= 90) {
+      status = 'approvedExcellent';
+    } else if (request.score >= 70) {
+      status = 'approvedImprove';
+    } else {
+      status = 'rejected';
+    }
+
+    // 5. Generar ID de intento único
     const attemptId = uuidv4();
 
-    // 5. Crear el intento usando el value object CurrentAttempt
+    // 6. Crear el intento usando el value object CurrentAttempt
+    // Nota: Como la validación ahora es en el front, no tenemos userAnswer.
+    // Usamos un marcador para indicar que fue validado en cliente.
     const attempt = CurrentAttempt.create({
       lessonId: request.lessonId,
       attemptId,
       courseId: request.courseId,
-      status: 'evaluating',
-      userAnswer: request.userAnswer,
-      createdAt: new Date()
+      status: status,
+      userAnswer: '[Evaluated on Client]', 
+      createdAt: new Date(),
+      aiFeedback: {
+        score: request.score,
+        feedback: status === 'rejected' ? 'Inténtalo de nuevo.' : '¡Bien hecho!',
+        suggestions: ''
+      }
     });
 
-    // 6. Guardar el intento en Firestore usando el repositorio
+    // 7. Guardar el intento en Firestore usando el repositorio
     await this.userRepository.createAttempt(request.userId, attempt);
+
+    // 8. Si aprobó, podríamos necesitar actualizar progreso (depende de la implementación de createAttempt o si hay otro caso de uso)
+    // Por ahora, asumimos que createAttempt maneja la lógica básica o que se manejará por separado.
+    // (En el flujo anterior, ValidateExerciseAnswerUseCase no parecía actualizar XP explícitamente, 
+    //  pero UserRepository.updateAttemptWithEvaluation podría haberlo hecho.
+    //  Aquí estamos creando el intento ya evaluado).
 
     return {
       attemptId,
-      status: 'evaluating',
-      message: 'Tu respuesta está siendo evaluada. Por favor espera...'
+      status,
+      message: status === 'rejected' ? 'Inténtalo de nuevo' : '¡Ejercicio completado!',
+      score: request.score
     };
   }
 }

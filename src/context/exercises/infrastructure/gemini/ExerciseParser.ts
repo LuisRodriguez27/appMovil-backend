@@ -12,12 +12,12 @@ export class ExerciseParser {
       cleanedResponse = cleanedResponse.replace(/```\n?/g, '');
       cleanedResponse = cleanedResponse.trim();
 
-      console.log('=== JSON A PARSEAR (ExerciseParser.parse) ===');
-      console.log('Tipo de ejercicio:', type);
-      console.log('Longitud respuesta original:', geminiResponse.length);
-      console.log('Longitud respuesta limpia:', cleanedResponse.length);
-      console.log('Contenido limpio:', cleanedResponse);
-      console.log('=== FIN JSON A PARSEAR ===');
+      // console.log('=== JSON A PARSEAR (ExerciseParser.parse) ===');
+      // console.log('Tipo de ejercicio:', type);
+      // console.log('Longitud respuesta original:', geminiResponse.length);
+      // console.log('Longitud respuesta limpia:', cleanedResponse.length);
+      // console.log('Contenido limpio:', cleanedResponse);
+      // console.log('=== FIN JSON A PARSEAR ===');
 
       // Parsear JSON
       const data = JSON.parse(cleanedResponse);
