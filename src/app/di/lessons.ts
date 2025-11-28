@@ -13,6 +13,8 @@ import { CreateLessonController } from '../../context/lessons/infrastructure/con
 import { UpdateLessonController } from '../../context/lessons/infrastructure/controllers/UpdateLessonController';
 import { DeleteLessonController } from '../../context/lessons/infrastructure/controllers/DeleteLessonController';
 import { FindAllLessonsUseCase } from '../../context/lessons/application/FindAllLessonsUseCase';
+import { FindLessonsByCourseIdUseCase } from '../../context/lessons/application/FindLessonsByCourseIdUseCase';
+import { FindLessonsByCourseIdController } from '../../context/lessons/infrastructure/controllers/FindLessonsByCourseIdController';
 import { FindAllLessonsController } from '../../context/lessons/infrastructure/controllers/FindAllLessonsController';
 
 export default function registerLessonsDependencies(container: ContainerBuilder) {
@@ -24,10 +26,15 @@ export default function registerLessonsDependencies(container: ContainerBuilder)
   container
     .register('FindAllLessonsUseCase', FindAllLessonsUseCase)
     .addArgument(new Reference('LessonRepository'));
+  
+  container
+    .register('FindLessonsByCourseIdUseCase', FindLessonsByCourseIdUseCase)
+    .addArgument(new Reference('LessonRepository'));
 
   container
     .register('FindLessonByIdUseCase', FindLessonByIdUseCase)
     .addArgument(new Reference('LessonRepository'));
+
 
   container
     .register('FindLessonsBySubtopicUseCase', FindLessonsBySubtopicUseCase)
@@ -82,5 +89,9 @@ export default function registerLessonsDependencies(container: ContainerBuilder)
   container
     .register('DeleteLessonController', DeleteLessonController)
     .addArgument(new Reference('DeleteLessonUseCase'));
+
+  container
+    .register('FindLessonsByCourseIdController', FindLessonsByCourseIdController)
+    .addArgument(new Reference('FindLessonsByCourseIdUseCase'));
 
 }
