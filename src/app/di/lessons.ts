@@ -39,7 +39,9 @@ export default function registerLessonsDependencies(container: ContainerBuilder)
 
   container
     .register('CreateLessonUseCase', CreateLessonUseCase)
-    .addArgument(new Reference('LessonRepository'));
+    .addArgument(new Reference('LessonRepository'))
+    .addArgument(new Reference('TopicRepository'))
+    .addArgument(new Reference('CourseRepository'));
 
   container
     .register('UpdateLessonUseCase', UpdateLessonUseCase)
@@ -47,7 +49,9 @@ export default function registerLessonsDependencies(container: ContainerBuilder)
 
   container
     .register('DeleteLessonUseCase', DeleteLessonUseCase)
-    .addArgument(new Reference('LessonRepository'));
+    .addArgument(new Reference('LessonRepository'))
+    .addArgument(new Reference('TopicRepository'))
+    .addArgument(new Reference('CourseRepository'));
 
 
   // Controllers

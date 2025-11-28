@@ -65,13 +65,19 @@ export class CourseProgress {
   }
 
   toPrimitives(): CourseProgressPrimitives {
-    return {
+    const primitives: CourseProgressPrimitives = {
       lastLessonCompletedId: this.lastLessonCompletedId,
       nextLessonId: this.nextLessonId,
       completedCount: this.completedCount,
       percentage: this.percentage,
-      completedAt: this.completedAt
     };
+
+    // Solo incluir completedAt si tiene un valor (evitar undefined en Firestore)
+    if (this.completedAt !== undefined) {
+      primitives.completedAt = this.completedAt;
+    }
+
+    return primitives;
   }
 }
 

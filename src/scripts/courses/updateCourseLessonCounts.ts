@@ -46,44 +46,23 @@ async function updateCourseLessonCounts() {
       console.log(`  ├─ Topics encontrados: ${topicsCount}`);
 
       // Contar todas las lecciones del curso
-      // Opción 1: Contar lessons directamente si tienen courseId
-      const lessonsDirectSnapshot = await firestore()
-        .collection('lessons')
-        .where('courseId', '==', courseId)
-        .get();
+      let lessonsCount = 0;
 
-      let lessonsCount = lessonsDirectSnapshot.size;
+      console.log('  ├─ Contando lecciones...');
+
+      for (const topicDoc of topicsSnapshot.docs) {
+        const topicId = topicDoc.id;
+
+        // Contar lecciones de este topic
+        const lessonsSnapshot = await firestore()
+          .collection('lessons')
+          .where('topicId', '==', topicId)
+          .get();
+
+        lessonsCount += lessonsSnapshot.size;
+      }
 
       console.log(`  ├─ Lecciones encontradas: ${lessonsCount}`);
-
-      // Si no hay lecciones directas, intentar contar por topics
-      if (lessonsCount === 0 && topicsCount > 0) {
-        console.log('  ├─ Buscando lecciones por topics...');
-
-        for (const topicDoc of topicsSnapshot.docs) {
-          const topicId = topicDoc.id;
-
-          // Buscar subtopics
-          const subtopicsSnapshot = await firestore()
-            .collection('subtopics')
-            .where('topicId', '==', topicId)
-            .get();
-
-          // Para cada subtopic, contar lecciones
-          for (const subtopicDoc of subtopicsSnapshot.docs) {
-            const subtopicId = subtopicDoc.id;
-
-            const lessonsSnapshot = await firestore()
-              .collection('lessons')
-              .where('subtopicId', '==', subtopicId)
-              .get();
-
-            lessonsCount += lessonsSnapshot.size;
-          }
-        }
-
-        console.log(`  ├─ Lecciones por topics: ${lessonsCount}`);
-      }
 
       // 3. Actualizar el curso con los contadores
       const updateData: any = {
