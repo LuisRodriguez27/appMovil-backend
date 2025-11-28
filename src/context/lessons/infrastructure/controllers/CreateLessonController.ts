@@ -12,6 +12,7 @@ export class CreateLessonController {
         subtopicId,
         title,
         content,
+        order,
         exerciseConfig,
         description,
       } = req.body;
@@ -21,6 +22,7 @@ export class CreateLessonController {
         subtopicId,
         title,
         content,
+        order,
         exerciseConfig,
         description,
       );

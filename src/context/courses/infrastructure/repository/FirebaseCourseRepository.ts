@@ -74,11 +74,11 @@ export class FirebaseCourseRepository implements CourseRepository {
     const updateData: any = {};
 
     if (totalTopics !== undefined) {
-      updateData.total_topics = totalTopics;
+      updateData.totalTopics = totalTopics;
     }
 
     if (totalLessons !== undefined) {
-      updateData.total_lessons = totalLessons;
+      updateData.totalLessons = totalLessons;
     }
 
     if (Object.keys(updateData).length > 0) {
