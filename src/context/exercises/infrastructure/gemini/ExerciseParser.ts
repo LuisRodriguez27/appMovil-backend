@@ -86,15 +86,6 @@ export class ExerciseParser {
         }
         break;
 
-      case 'open_ended':
-        if (!data.question || typeof data.question !== 'string') {
-          throw new Error('Campo "question" requerido para open_ended');
-        }
-        if (!Array.isArray(data.evaluationCriteria)) {
-          throw new Error('Campo "evaluationCriteria" debe ser un array');
-        }
-        break;
-
       default:
         throw new Error(`Tipo de ejercicio no soportado: ${type}`);
     }

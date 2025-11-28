@@ -8,15 +8,13 @@ export interface ExerciseDTO {
 
   // Common fields, standardized
   title: string;
-  question?: string; // For multiple_choice, true_false, open_ended
+  question?: string; // For multiple_choice, true_false
   options?: { id: string; text: string }[];
   correctOptionId?: string; // For multiple_choice, true_false
   textWithBlanks?: string; // For fill_blank
   blanks?: { id: number; correctAnswer: string; incorrectAnswers: string[] }[]; // For fill_blank
   starterCode?: string; // For code_completion
   expectedOutput?: string; // For code_completion
-  evaluationCriteria?: string[]; // For open_ended
-  sampleAnswer?: string; // For open_ended
   explanation?: string; // for true_false
   correctAnswer?: boolean; // for true_false
   statement?: string; // for true_false

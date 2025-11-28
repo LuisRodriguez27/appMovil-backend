@@ -14,8 +14,7 @@ export class PromptBuilder {
     fill_blank: 'Ejercicio de llenar espacios en blanco. El texto debe tener espacios marcados con _____ que el estudiante debe completar. Para cada espacio, proporciona la respuesta correcta y 4 respuestas incorrectas que sirvan como distractores verosímiles.',
     multiple_choice: 'Ejercicio de opción múltiple con una pregunta y 4 opciones, donde solo una es correcta.',
     code_completion: 'Ejercicio de completar código. Proporciona código inicial y el estudiante debe completarlo para que funcione correctamente.',
-    true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar.',
-    open_ended: 'Pregunta abierta que requiere una respuesta elaborada del estudiante.'
+    true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar.'
   };
 
   private static readonly TYPE_EXAMPLES: Record<ExerciseType, string> = {
@@ -66,17 +65,7 @@ export class PromptBuilder {
   "statement": "JavaScript es un lenguaje de programación compilado",
   "correctAnswer": false,
   "explanation": "JavaScript es un lenguaje interpretado, no compilado. El código se ejecuta directamente por el navegador o runtime como Node.js"
-}`,
-    open_ended: `Ejemplo de respuesta JSON:
-{
-  "question": "Explica la diferencia entre let y var en JavaScript",
-  "evaluationCriteria": [
-    "Menciona el scope de bloque vs function scope",
-    "Explica el hoisting",
-    "Da ejemplos prácticos"
-  ],
-  "sampleAnswer": "let tiene scope de bloque mientras que var tiene scope de función. var sufre de hoisting que puede causar bugs. let es más predecible y es la forma recomendada en JavaScript moderno."
-}`,
+}`
   };
 
   static build(params: PromptParams): string {
@@ -146,7 +135,6 @@ Evalúa la respuesta del estudiante y proporciona:
 Criterios de evaluación:
 - Para ejercicios con respuestas exactas (fill_blank, multiple_choice, true_false): verifica coincidencia exacta
 - Para code_completion: evalúa si el código funciona y cumple los requisitos
-- Para open_ended: evalúa profundidad, claridad y cumplimiento de criterios
 
 FORMATO DE RESPUESTA (JSON puro, sin markdown):
 {

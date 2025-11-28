@@ -3,8 +3,7 @@ import {
   FillBlankContent,
   MultipleChoiceContent,
   TrueFalseContent,
-  CodeCompletionContent,
-  OpenEndedContent
+  CodeCompletionContent
 } from '../domain/value-objects/ExerciseContent';
 import { Exercise } from '../domain/Exercise';
 
@@ -59,17 +58,6 @@ export class ExerciseMapper {
           title: instructions,
           starterCode: data.starterCode,
           expectedOutput: data.expectedOutput,
-          data: data
-        } as ExerciseDTO;
-      }
-      case 'open_ended': {
-        const data = content.data as OpenEndedContent;
-        return {
-          ...baseDTO,
-          title: instructions,
-          question: data.question,
-          evaluationCriteria: data.evaluationCriteria,
-          sampleAnswer: data.sampleAnswer,
           data: data
         } as ExerciseDTO;
       }

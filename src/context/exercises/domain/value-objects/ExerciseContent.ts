@@ -44,8 +44,7 @@ export type ExerciseContent =
   | { type: 'fill_blank'; data: FillBlankContent }
   | { type: 'multiple_choice'; data: MultipleChoiceContent }
   | { type: 'code_completion'; data: CodeCompletionContent }
-  | { type: 'true_false'; data: TrueFalseContent }
-  | { type: 'open_ended'; data: OpenEndedContent };
+  | { type: 'true_false'; data: TrueFalseContent };
 
 export function createExerciseContent(type: ExerciseType, data: any): ExerciseContent {
   switch (type) {
@@ -57,8 +56,6 @@ export function createExerciseContent(type: ExerciseType, data: any): ExerciseCo
       return { type, data: data as CodeCompletionContent };
     case 'true_false':
       return { type, data: data as TrueFalseContent };
-    case 'open_ended':
-      return { type, data: data as OpenEndedContent };
     default:
       throw new Error(`Tipo de ejercicio no soportado: ${type}`);
   }
