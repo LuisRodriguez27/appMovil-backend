@@ -38,7 +38,7 @@ export class ValidateExerciseAnswerUseCase {
     // 4. Evaluar la respuesta con Gemini
     const evaluation = await this.geminiGenerator.evaluateAnswer(
       exercise.type,
-      exercise.content,
+      exercise.data,
       request.userAnswer
     );
 

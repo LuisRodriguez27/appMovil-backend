@@ -19,12 +19,9 @@ export class GenerateExerciseController {
       // Generar el ejercicio
       const exercise = await this.generateExerciseUseCase.execute({ lessonId });
 
-      // Enviar solo el contenido público (sin respuestas correctas)
-      const publicExercise = exercise.getPublicContent();
-
       res.status(200).json({
         success: true,
-        data: publicExercise
+        data: exercise
       });
     } catch (error) {
       console.error('Error en GenerateExerciseController:', error);

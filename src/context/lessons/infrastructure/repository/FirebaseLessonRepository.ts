@@ -185,6 +185,7 @@ export class FirebaseLessonRepository implements LessonRepository {
       subtopic_id: primitives.subtopicId,
       title: primitives.title,
       content: primitives.content,
+      order: primitives.order, // Añadido
       created_at: Timestamp.fromDate(primitives.createdAt),
       ...(exerciseConfig !== undefined ? { exerciseConfig: exerciseConfig } : {}),
       ...(primitives.description !== undefined ? { description: primitives.description } : {})
@@ -195,15 +196,21 @@ export class FirebaseLessonRepository implements LessonRepository {
 
   private toDomainEntity(document: any): Lesson {
     // Firebase guarda los campos en snake_case, necesitamos mapearlos a camelCase
+    const createdAtTimestamp = document.createdAt || document.created_at;
+    const createdAtDate = createdAtTimestamp && typeof createdAtTimestamp.toDate === 'function' 
+      ? createdAtTimestamp.toDate() 
+      : new Date();
+
     const data = {
       id: document.__id || document.id,
       topicId: document.topicId || document.topic_id,
       subtopicId: document.subtopicId || document.subtopic_id,
       title: document.title,
       content: document.content,
+      order: document.order ?? 0, // Añadido
       exerciseConfig: document.exerciseConfig || document.exercise_config,
       description: document.description,
-      createdAt: document.createdAt || document.created_at
+      createdAt: createdAtDate
     };
 
     return Lesson.fromPrimitives(data);

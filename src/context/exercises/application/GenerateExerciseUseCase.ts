@@ -3,9 +3,11 @@ import { SubtopicRepository } from '../../subtopics/domain/SubtopicRepository';
 import { Exercise } from '../domain/Exercise';
 import { GeminiExerciseGenerator } from '../infrastructure/gemini/GeminiExerciseGenerator';
 import { GenerateExerciseRequest } from './requests/GenerateExerciseRequest';
+import { ExerciseDTO } from './dtos/ExerciseDTO';
+import { ExerciseMapper } from './ExerciseMapper';
 
 // Cache simple en memoria (TTL de 1 hora)
-const exerciseCache = new Map<string, { exercise: Exercise; timestamp: number }>();
+const exerciseCache = new Map<string, { exercise: ExerciseDTO; timestamp: number }>();
 const CACHE_TTL = 60 * 60 * 1000; // 1 hora en milisegundos
 
 export class GenerateExerciseUseCase {
@@ -15,7 +17,7 @@ export class GenerateExerciseUseCase {
     private readonly geminiGenerator: GeminiExerciseGenerator
   ) {}
 
-  async execute(request: GenerateExerciseRequest): Promise<Exercise> {
+  async execute(request: GenerateExerciseRequest): Promise<ExerciseDTO> {
     // 1. Verificar si existe en caché
     const cached = exerciseCache.get(request.lessonId);
     if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
@@ -60,14 +62,16 @@ export class GenerateExerciseUseCase {
           maxPoints: lessonPrimitives.exerciseConfig.maxPoints
         });
 
+        const exerciseDTO = ExerciseMapper.toDTO(exercise);
+
         // Guardar en caché
         exerciseCache.set(request.lessonId, {
-          exercise,
+          exercise: exerciseDTO,
           timestamp: Date.now()
         });
 
         console.log(`✅ Ejercicio generado y guardado en caché para lección ${request.lessonId}`);
-        return exercise;
+        return exerciseDTO;
 
       } catch (error: any) {
         attempts++;

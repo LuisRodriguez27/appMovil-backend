@@ -85,20 +85,17 @@ export class SubmitExerciseAnswerUseCase {
 
     // 8. Si aprobó, actualizar progreso
     if (status === 'approvedExcellent' || status === 'approvedImprove') {
-      const course = await this.courseRepository.findById(request.courseId);
-      if (!course) {
-        throw new Error(`Curso con ID ${request.courseId} no encontrado`);
-      }
+      const allLessonsForCourse = await this.lessonRepository.findByCourseId(request.courseId);
 
       // Calcular nextLessonId
-      nextLessonIdString = await this.findNextLessonId(request.courseId, request.lessonId);
+      nextLessonIdString = await this.findNextLessonId(request.courseId, request.lessonId, allLessonsForCourse);
 
       // Actualizar lección completada
       user.completeLesson(
         request.courseId, 
         request.lessonId, 
         nextLessonIdString, 
-        course.getTotalLessons()
+        allLessonsForCourse.length // Usar el número real de lecciones
       );
 
       // Agregar XP (score / 2)
@@ -120,10 +117,9 @@ export class SubmitExerciseAnswerUseCase {
     };
   }
 
-  private async findNextLessonId(courseId: string, currentLessonId: string): Promise<string> {
+  private async findNextLessonId(courseId: string, currentLessonId: string, lessons: Lesson[]): Promise<string> {
     // Obtener todos los datos necesarios para ordenar
     const topics = await this.topicRepository.findByCourseId(courseId);
-    const lessons = await this.lessonRepository.findByCourseId(courseId);
     
     // Obtener subtemas para todos los temas
     const subtopicsMap = new Map<string, Subtopic[]>();
@@ -156,16 +152,24 @@ export class SubmitExerciseAnswerUseCase {
         return subtopicOrderA - subtopicOrderB;
       }
 
-      // Si están en el mismo subtema (o ambos null), usar createdAt
-      return a.createdAt.getTime() - b.createdAt.getTime();
+      // Si están en el mismo subtema, usar el orden de la lección
+      const lessonOrderA = a.toPrimitives().order;
+      const lessonOrderB = b.toPrimitives().order;
+      return lessonOrderA - lessonOrderB;
     });
 
-    // Encontrar lección actual y siguiente
+    console.log('Sorted lessons:', lessons.map(l => ({ id: l.id, topic: l.topicId, subtopic: l.subtopicId, created: l.createdAt }) ));
+    
     const currentIndex = lessons.findIndex(l => l.id === currentLessonId);
+    console.log(`Current lesson ID: ${currentLessonId}, Found at index: ${currentIndex}`);
+
+    // Encontrar lección actual y siguiente
     if (currentIndex !== -1 && currentIndex < lessons.length - 1) {
+      console.log(`Next lesson ID: ${lessons[currentIndex + 1].id}`);
       return lessons[currentIndex + 1].id;
     }
 
+    console.log('No next lesson found.');
     return ''; // No hay siguiente lección (fin del curso)
   }
 }

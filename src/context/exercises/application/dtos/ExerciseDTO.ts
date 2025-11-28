@@ -1,0 +1,24 @@
+import { ExerciseType } from '../../domain/value-objects/ExerciseType';
+
+export interface ExerciseDTO {
+  lessonId: string;
+  type: ExerciseType;
+  instructions: string;
+  maxPoints: number;
+
+  // Common fields, standardized
+  title: string;
+  question?: string; // For multiple_choice, true_false, open_ended
+  options?: { id: string; text: string }[];
+  correctOptionId?: string; // For multiple_choice, true_false
+  textWithBlanks?: string; // For fill_blank
+  blanks?: { id: number; correctAnswer: string; incorrectAnswers: string[] }[]; // For fill_blank
+  starterCode?: string; // For code_completion
+  expectedOutput?: string; // For code_completion
+  evaluationCriteria?: string[]; // For open_ended
+  sampleAnswer?: string; // For open_ended
+  explanation?: string; // for true_false
+  correctAnswer?: boolean; // for true_false
+  statement?: string; // for true_false
+  data?: any;
+}

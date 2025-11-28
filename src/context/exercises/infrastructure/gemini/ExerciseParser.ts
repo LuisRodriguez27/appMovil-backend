@@ -11,13 +11,9 @@ export class ExerciseParser {
       cleanedResponse = cleanedResponse.replace(/```json\n?/g, '');
       cleanedResponse = cleanedResponse.replace(/```\n?/g, '');
       cleanedResponse = cleanedResponse.trim();
-
-      // console.log('=== JSON A PARSEAR (ExerciseParser.parse) ===');
-      // console.log('Tipo de ejercicio:', type);
-      // console.log('Longitud respuesta original:', geminiResponse.length);
-      // console.log('Longitud respuesta limpia:', cleanedResponse.length);
-      // console.log('Contenido limpio:', cleanedResponse);
-      // console.log('=== FIN JSON A PARSEAR ===');
+      
+      // Intentar remover comas flotantes (trailing commas) que son un error común de la IA
+      cleanedResponse = cleanedResponse.replace(/,\s*([}\]])/g, '$1');
 
       // Parsear JSON
       const data = JSON.parse(cleanedResponse);
@@ -30,6 +26,7 @@ export class ExerciseParser {
     } catch (error) {
       console.error('Error parsing Gemini response:', error);
       console.error('Raw response:', geminiResponse);
+      console.error('Cleaned response attempt:', cleanedResponse);
       throw new Error(`Error al parsear la respuesta de Gemini: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
