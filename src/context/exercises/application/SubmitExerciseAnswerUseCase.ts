@@ -1,11 +1,11 @@
 import { UserRepository } from '../../users/domain/UserRepository';
 import { LessonRepository } from '../../lessons/domain/LessonRepository';
-import { CourseRepository } from '../../courses/domain/CourseRepository';
 import { TopicRepository } from '../../topics/domain/TopicRepository';
 import { SubtopicRepository } from '../../subtopics/domain/SubtopicRepository';
 import { CurrentAttempt } from '../../users/domain/value-objects/CurrentAttempt';
 import { v4 as uuidv4 } from 'uuid';
 import { Subtopic } from '../../subtopics/domain/Subtopic';
+import { Lesson } from '../../lessons/domain/Lesson';
 
 export interface SubmitExerciseAnswerRequest {
   userId: string;
@@ -26,7 +26,6 @@ export class SubmitExerciseAnswerUseCase {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly lessonRepository: LessonRepository,
-    private readonly courseRepository: CourseRepository,
     private readonly topicRepository: TopicRepository,
     private readonly subtopicRepository: SubtopicRepository
   ) {}

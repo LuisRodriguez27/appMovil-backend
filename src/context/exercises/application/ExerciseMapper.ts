@@ -1,4 +1,3 @@
-import { Exercise } from '../../domain/Exercise';
 import { ExerciseDTO } from './dtos/ExerciseDTO';
 import {
   FillBlankContent,
@@ -6,7 +5,8 @@ import {
   TrueFalseContent,
   CodeCompletionContent,
   OpenEndedContent
-} from '../../domain/value-objects/ExerciseContent';
+} from '../domain/value-objects/ExerciseContent';
+import { Exercise } from '../domain/Exercise';
 
 export class ExerciseMapper {
   public static toDTO(exercise: Exercise): ExerciseDTO {
@@ -74,7 +74,7 @@ export class ExerciseMapper {
         } as ExerciseDTO;
       }
       default:
-        throw new Error(`Unsupported exercise type for DTO mapping: ${content.type}`);
+        throw new Error(`Unsupported exercise type for DTO mapping: ${(content as any).type}`);
     }
   }
 }

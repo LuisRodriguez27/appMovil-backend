@@ -3,9 +3,10 @@ import { ExerciseContent, createExerciseContent } from '../../domain/value-objec
 
 export class ExerciseParser {
   static parse(type: ExerciseType, geminiResponse: string): ExerciseContent {
+    let cleanedResponse = '';
     try {
       // Limpiar la respuesta de posibles artifacts
-      let cleanedResponse = geminiResponse.trim();
+      cleanedResponse = geminiResponse.trim();
 
       // Remover bloques de código markdown si existen
       cleanedResponse = cleanedResponse.replace(/```json\n?/g, '');
