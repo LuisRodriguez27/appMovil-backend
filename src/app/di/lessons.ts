@@ -47,6 +47,7 @@ export default function registerLessonsDependencies(container: ContainerBuilder)
   container
     .register('CreateLessonUseCase', CreateLessonUseCase)
     .addArgument(new Reference('LessonRepository'))
+    .addArgument(new Reference('SubtopicRepository'))
     .addArgument(new Reference('TopicRepository'))
     .addArgument(new Reference('CourseRepository'));
 

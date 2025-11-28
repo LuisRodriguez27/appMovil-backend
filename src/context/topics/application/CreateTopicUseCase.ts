@@ -36,6 +36,8 @@ export class CreateTopicUseCase {
 
     await this.topicRepository.create(topic);
 
+    await this.courseRepository.updateCounters(request.courseId, course.getTotalTopics() + 1);
+
     return topic;
   }
 }

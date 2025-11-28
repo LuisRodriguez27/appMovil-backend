@@ -6,6 +6,7 @@ export class CreateLessonRequest {
     public readonly subtopicId: string,
     public readonly title: string,
     public readonly content: string,
+    public readonly order: number,
     public readonly exerciseConfig?: ExerciseConfigProps,
     public readonly description?: string,
   ) {
