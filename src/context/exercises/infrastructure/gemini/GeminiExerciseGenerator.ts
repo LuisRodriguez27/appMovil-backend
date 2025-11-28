@@ -12,6 +12,7 @@ export interface ExerciseGeneratorParams {
   instructions: string;
   type: ExerciseType;
   maxPoints: number;
+  requestId: string;
 }
 
 export class GeminiExerciseGenerator {
@@ -39,7 +40,8 @@ export class GeminiExerciseGenerator {
         lessonContent: params.lessonContent,
         instructions: params.instructions,
         type: params.type,
-        maxPoints: params.maxPoints
+        maxPoints: params.maxPoints,
+        requestId: params.requestId
       });
 
       // Llamar a Gemini

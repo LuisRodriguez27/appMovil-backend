@@ -6,6 +6,7 @@ export interface PromptParams {
   instructions: string;
   type: ExerciseType;
   maxPoints: number;
+  requestId: string; // New parameter for variation
 }
 
 export class PromptBuilder {
@@ -79,7 +80,7 @@ export class PromptBuilder {
   };
 
   static build(params: PromptParams): string {
-    const { subtopicTitle, lessonContent, instructions, type, maxPoints } = params;
+    const { subtopicTitle, lessonContent, instructions, type, maxPoints, requestId } = params;
 
     const typeDescription = this.TYPE_DESCRIPTIONS[type];
     const typeExample = this.TYPE_EXAMPLES[type];
@@ -115,6 +116,8 @@ IMPORTANTE:
 - Responde SOLO con el objeto JSON puro
 - Asegúrate de escapar correctamente los caracteres especiales en el JSON
 - Todas las propiedades deben estar en el idioma español
+
+Pista de variación: ${requestId}
 
 Genera el ejercicio ahora:`;
   }

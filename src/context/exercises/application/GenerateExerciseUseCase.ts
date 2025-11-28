@@ -6,9 +6,7 @@ import { GenerateExerciseRequest } from './requests/GenerateExerciseRequest';
 import { ExerciseDTO } from './dtos/ExerciseDTO';
 import { ExerciseMapper } from './ExerciseMapper';
 
-// Cache simple en memoria (TTL de 1 hora)
-const exerciseCache = new Map<string, { exercise: ExerciseDTO; timestamp: number }>();
-const CACHE_TTL = 60 * 60 * 1000; // 1 hora en milisegundos
+
 
 export class GenerateExerciseUseCase {
   constructor(
@@ -18,12 +16,7 @@ export class GenerateExerciseUseCase {
   ) {}
 
   async execute(request: GenerateExerciseRequest): Promise<ExerciseDTO> {
-    // 1. Verificar si existe en caché
-    const cached = exerciseCache.get(request.lessonId);
-    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
-      console.log(`📦 Usando ejercicio en caché para lección ${request.lessonId}`);
-      return cached.exercise;
-    }
+
 
     // 2. Obtener la lección
     const lesson = await this.lessonRepository.findById(request.lessonId);
@@ -53,22 +46,20 @@ export class GenerateExerciseUseCase {
 
     while (attempts < maxAttempts) {
       try {
+        const requestId = new Date().toISOString(); // Generate a unique ID for variation
         exercise = await this.geminiGenerator.generateExercise({
           lessonId: lesson.id,
           subtopicTitle: subtopicTitle,
           lessonContent: lessonPrimitives.content,
           instructions: lessonPrimitives.exerciseConfig.instructions,
           type: lessonPrimitives.exerciseConfig.type,
-          maxPoints: lessonPrimitives.exerciseConfig.maxPoints
+          maxPoints: lessonPrimitives.exerciseConfig.maxPoints,
+          requestId: requestId // Pass the unique ID
         });
 
         const exerciseDTO = ExerciseMapper.toDTO(exercise);
 
-        // Guardar en caché
-        exerciseCache.set(request.lessonId, {
-          exercise: exerciseDTO,
-          timestamp: Date.now()
-        });
+
 
         console.log(`✅ Ejercicio generado y guardado en caché para lección ${request.lessonId}`);
         return exerciseDTO;
