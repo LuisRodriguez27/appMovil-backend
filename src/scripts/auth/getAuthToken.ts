@@ -36,18 +36,9 @@ async function getAuthToken(credentials: LoginCredentials) {
   try {
     if (FIREBASE_API_KEY === 'YOUR_FIREBASE_API_KEY_HERE') {
       console.error('\n❌ ERROR: Debes configurar tu Firebase API Key');
-      console.log('\n📋 Pasos para obtener tu API Key:');
-      console.log('1. Ve a: https://console.firebase.google.com/');
-      console.log('2. Selecciona tu proyecto: plataforma-estudio');
-      console.log('3. Haz clic en ⚙️ Project Settings');
-      console.log('4. En la pestaña General, busca "Web API Key"');
-      console.log('5. Copia la clave y reemplázala en este archivo (línea 20)');
-      console.log('\nAlternativamente, agrégala a tu .env:');
-      console.log('FIREBASE_API_KEY=AIzaSyC...\n');
       process.exit(1);
     }
 
-    console.log('\n🔐 Obteniendo token para:', credentials.email);
 
     const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`;
 
@@ -59,26 +50,8 @@ async function getAuthToken(credentials: LoginCredentials) {
 
     const { idToken, email, localId, expiresIn } = response.data;
 
-    console.log('\n✅ Token obtenido exitosamente!\n');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📧 Email:', email);
-    console.log('🆔 User ID:', localId);
-    console.log('⏰ Expira en:', expiresIn, 'segundos (1 hora)');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-    console.log('🎫 TOKEN JWT (idToken):\n');
-    console.log(idToken);
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-    console.log('📋 Para usar en Postman:');
-    console.log('1. Copia el token de arriba');
-    console.log('2. En Postman, agrega el header:');
-    console.log('   Key: Authorization');
-    console.log('   Value: Bearer <pega_el_token_aquí>');
-    console.log('\nO usa una variable en Postman:');
-    console.log('   Key: Authorization');
-    console.log('   Value: Bearer {{authToken}}');
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     process.exit(0);
   } catch (error: any) {
@@ -132,7 +105,5 @@ const USER_TYPE: 'admin' | 'student' = 'admin';
 
 const credentials = USER_TYPE === 'admin' ? ADMIN_CREDENTIALS : STUDENT_CREDENTIALS;
 
-console.log('\n🎯 Obteniendo token para:', USER_TYPE.toUpperCase());
-console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
 getAuthToken(credentials);

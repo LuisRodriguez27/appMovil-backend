@@ -36,10 +36,6 @@ async function createAdminUser() {
       .doc(adminUserData.__id)
       .set(adminUserData);
 
-    console.log('✅ Usuario administrador creado exitosamente en Firestore');
-    console.log('📧 Email:', adminUserData.email);
-    console.log('🆔 ID:', adminUserData.__id);
-    console.log('👤 Rol:', adminUserData.role);
 
     // Ahora crear el usuario en Firebase Authentication
     try {
@@ -50,15 +46,8 @@ async function createAdminUser() {
         displayName: adminUserData.name,
       });
 
-      console.log('✅ Usuario creado en Firebase Authentication');
-      console.log('🔑 UID:', userRecord.uid);
-      console.log('🔐 Password temporal: Admin123!');
-      console.log('\n🎯 Para obtener el token, usa este endpoint:');
-      console.log('POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=YOUR_API_KEY');
-      console.log('Body: { "email": "admin@test.com", "password": "Admin123!", "returnSecureToken": true }');
     } catch (authError: any) {
       if (authError.code === 'auth/email-already-exists') {
-        console.log('⚠️  Usuario ya existe en Firebase Auth, solo se actualizó Firestore');
       } else {
         console.error('❌ Error creando usuario en Firebase Auth:', authError.message);
       }

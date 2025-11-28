@@ -36,7 +36,6 @@ export class GenerateTokenUseCase {
     // Paso 1: Verificar si el usuario existe, si no, crearlo
     try {
       await firebaseAuth().getUser(userCreds.uid);
-      console.log(`Usuario ya existe: ${userCreds.uid}`);
     } catch (error: any) {
       if (error.code === 'auth/user-not-found') {
         await firebaseAuth().createUser({
@@ -46,7 +45,6 @@ export class GenerateTokenUseCase {
           displayName: userCreds.displayName,
           password: userCreds.password,
         });
-        console.log(`Usuario creado: ${userCreds.uid}`);
       } else {
         throw error;
       }
@@ -58,7 +56,6 @@ export class GenerateTokenUseCase {
       email: userCreds.email,
     });
 
-    console.log(`Custom token generado para ${request.userType}`);
 
     // Paso 3: Intercambiar custom token por ID token
     const apiKey = process.env.FIREBASE_API_KEY;
@@ -82,7 +79,6 @@ export class GenerateTokenUseCase {
 
     const { idToken, refreshToken, expiresIn } = signInResponse.data;
 
-    console.log(`ID token generado para ${request.userType}`);
 
     return {
       idToken,

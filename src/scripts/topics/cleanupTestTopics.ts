@@ -5,25 +5,20 @@ async function cleanupTestTopics() {
   try {
     configureFirebase();
 
-    console.log('\n🧹 Limpiando topics de prueba...\n');
 
     // Obtener todos los topics
     const snapshot = await firestore().collection('topics').get();
 
     if (snapshot.empty) {
-      console.log('✅ No hay topics para eliminar.');
       process.exit(0);
     }
 
-    console.log(`📊 Encontrados ${snapshot.size} topics:\n`);
 
     // Listar topics antes de eliminar
     snapshot.forEach(doc => {
       const data = doc.data();
-      console.log(`  - ${data.title} (ID: ${doc.id})`);
     });
 
-    console.log('\n🗑️  Eliminando topics...');
 
     // Eliminar todos los topics usando batch
     const batch = firestore().batch();
@@ -33,7 +28,6 @@ async function cleanupTestTopics() {
 
     await batch.commit();
 
-    console.log(`✅ ${snapshot.size} topics eliminados exitosamente.\n`);
 
     process.exit(0);
   } catch (error) {

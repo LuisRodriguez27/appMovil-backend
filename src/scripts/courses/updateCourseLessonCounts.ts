@@ -15,18 +15,15 @@ import configureFirebase, { firestore } from '../../app/config/configureFirebase
 configureFirebase();
 
 async function updateCourseLessonCounts() {
-  console.log('🚀 Iniciando actualización de contadores de lecciones...\n');
 
   try {
     // 1. Obtener todos los cursos
     const coursesSnapshot = await firestore().collection('courses').get();
 
     if (coursesSnapshot.empty) {
-      console.log('⚠️  No se encontraron cursos en Firestore');
       return;
     }
 
-    console.log(`📚 Encontrados ${coursesSnapshot.size} cursos\n`);
 
     // 2. Para cada curso, contar las lecciones
     for (const courseDoc of coursesSnapshot.docs) {
@@ -34,7 +31,6 @@ async function updateCourseLessonCounts() {
       const courseData = courseDoc.data();
       const courseTitle = courseData.title || 'Sin título';
 
-      console.log(`\n📖 Procesando: ${courseTitle} (${courseId})`);
 
       // Contar topics del curso
       const topicsSnapshot = await firestore()
@@ -43,12 +39,10 @@ async function updateCourseLessonCounts() {
         .get();
 
       const topicsCount = topicsSnapshot.size;
-      console.log(`  ├─ Topics encontrados: ${topicsCount}`);
 
       // Contar todas las lecciones del curso
       let lessonsCount = 0;
 
-      console.log('  ├─ Contando lecciones...');
 
       for (const topicDoc of topicsSnapshot.docs) {
         const topicId = topicDoc.id;
@@ -62,7 +56,6 @@ async function updateCourseLessonCounts() {
         lessonsCount += lessonsSnapshot.size;
       }
 
-      console.log(`  ├─ Lecciones encontradas: ${lessonsCount}`);
 
       // 3. Actualizar el curso con los contadores
       const updateData: any = {
@@ -72,11 +65,8 @@ async function updateCourseLessonCounts() {
 
       await firestore().collection('courses').doc(courseId).update(updateData);
 
-      console.log(`  └─ ✅ Actualizado: ${topicsCount} topics, ${lessonsCount} lecciones`);
     }
 
-    console.log('\n\n✅ Actualización completada exitosamente!');
-    console.log('═══════════════════════════════════════════════════════\n');
 
   } catch (error) {
     console.error('❌ Error al actualizar contadores:', error);
@@ -87,7 +77,6 @@ async function updateCourseLessonCounts() {
 // Ejecutar el script
 updateCourseLessonCounts()
   .then(() => {
-    console.log('Script finalizado');
     process.exit(0);
   })
   .catch((error) => {

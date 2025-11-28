@@ -61,12 +61,10 @@ export class GenerateExerciseUseCase {
 
 
 
-        console.log(`✅ Ejercicio generado y guardado en caché para lección ${request.lessonId}`);
         return exerciseDTO;
 
       } catch (error: any) {
         attempts++;
-        console.log(`⚠️ Intento ${attempts}/${maxAttempts} falló para lección ${request.lessonId}`);
 
         if (attempts >= maxAttempts) {
           console.error(`❌ Todos los intentos fallaron para lección ${request.lessonId}`);
@@ -75,7 +73,6 @@ export class GenerateExerciseUseCase {
 
         // Esperar antes de reintentar (backoff exponencial)
         const delay = Math.min(1000 * Math.pow(2, attempts - 1), 5000);
-        console.log(`⏳ Esperando ${delay}ms antes de reintentar...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }

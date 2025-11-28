@@ -108,11 +108,6 @@ export class ExerciseParser {
       cleanedResponse = cleanedResponse.replace(/```\n?/g, '');
       cleanedResponse = cleanedResponse.trim();
 
-      console.log('=== JSON A PARSEAR (ExerciseParser.parseEvaluation) ===');
-      console.log('Longitud respuesta original:', geminiResponse.length);
-      console.log('Longitud respuesta limpia:', cleanedResponse.length);
-      console.log('Contenido limpio:', cleanedResponse);
-      console.log('=== FIN JSON A PARSEAR ===');
 
       const data = JSON.parse(cleanedResponse);
 

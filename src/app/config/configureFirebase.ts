@@ -20,8 +20,6 @@ export default function configureFirebase() {
             credential: applicationDefault(), // Usa Application Default Credentials
         }, 'firebase-app');
 
-        console.log("✅ Firebase app initialized with GOOGLE_APPLICATION_CREDENTIALS");
-        console.log(`📁 Credentials file: ${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
     }
     // Opción 2: Usar SERVICE_ACCOUNT_JSON_BASE64 (Fallback para producción)
     else if (FirebaseConfig.serviceAccountBase64) {
@@ -33,7 +31,6 @@ export default function configureFirebase() {
             credential: cert(serviceAccount),
         }, 'firebase-app');
 
-        console.log("✅ Firebase app initialized with Base64 credentials");
     }
     // Opción 3: Error si no hay credenciales
     else {
@@ -44,7 +41,6 @@ export default function configureFirebase() {
         );
     }
 
-    console.log(`🔥 Firestore Database: ${FirebaseConfig.databaseId}`);
     return firebaseApp;
 }
 

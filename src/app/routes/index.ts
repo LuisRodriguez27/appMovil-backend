@@ -20,7 +20,6 @@ export async function registerRouteFiles(router: Router, container: ContainerBui
 }
 
 async function register(routePath: string, app: Router, container: ContainerBuilder) {
-    console.log('Registering route:', routePath);
 
     try {
         if (!fs.existsSync(routePath)) {

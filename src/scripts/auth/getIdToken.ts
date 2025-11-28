@@ -38,10 +38,8 @@ async function createTestUser(options: TokenOptions): Promise<void> {
       emailVerified: true,
       displayName: options.role === 'admin' ? 'Test Admin' : 'Test Student',
     });
-    console.log(`✅ Usuario creado en Firebase Auth: ${options.uid}`);
   } catch (error: any) {
     if (error.code === 'auth/uid-already-exists') {
-      console.log(`ℹ️  Usuario ya existe en Firebase Auth: ${options.uid}`);
     } else {
       throw error;
     }
@@ -87,7 +85,6 @@ async function main() {
   const args = process.argv.slice(2);
 
   if (args.length < 2) {
-    console.log(`
 ❌ Error: Faltan argumentos
 
 Uso:
@@ -109,7 +106,6 @@ Roles disponibles: student, admin
     process.exit(1);
   }
 
-  console.log('🔥 Inicializando Firebase...\n');
   configureFirebase();
 
   const options: TokenOptions = {
@@ -118,48 +114,20 @@ Roles disponibles: student, admin
     email,
   };
 
-  console.log('📝 Configuración:');
-  console.log(`   UID:   ${options.uid}`);
-  console.log(`   Role:  ${options.role}`);
-  console.log(`   Email: ${options.email || `${options.uid}@test.com`}\n`);
 
   // Paso 1: Crear usuario en Firebase Auth
   await createTestUser(options);
 
   // Paso 2: Generar custom token
-  console.log('\n🔑 Generando custom token...');
   const customToken = await generateCustomToken(options);
-  console.log('✅ Custom token generado');
 
   // Paso 3: Intercambiar por ID token
-  console.log('\n🔄 Intercambiando por ID token...');
   const tokenData = await exchangeCustomToken(customToken);
-  console.log('✅ ID token obtenido\n');
 
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🎉 TOKEN LISTO PARA USAR EN POSTMAN');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-  console.log('📋 ID TOKEN (copia esto):');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-  console.log(tokenData.idToken);
-  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-  console.log('📝 Información adicional:');
-  console.log(`   Expira en: ${tokenData.expiresIn} segundos (${Math.floor(Number(tokenData.expiresIn) / 60)} minutos)`);
-  console.log(`   Refresh Token: ${tokenData.refreshToken.substring(0, 50)}...\n`);
 
-  console.log('🚀 Cómo usar en Postman:');
-  console.log('   1. Abre Postman');
-  console.log('   2. Selecciona la pestaña "Authorization"');
-  console.log('   3. Type: Bearer Token');
-  console.log('   4. Pega el ID TOKEN de arriba en el campo "Token"');
-  console.log('   5. Haz tu request! 🎯\n');
 
-  console.log('💡 Endpoints de prueba:');
-  console.log('   GET  http://localhost:3000/api/users          (Solo admin)');
-  console.log('   GET  http://localhost:3000/api/users/:id      (Dueño o admin)');
-  console.log('   GET  http://localhost:3000/api/courses        (Student o admin)\n');
 
   process.exit(0);
 }

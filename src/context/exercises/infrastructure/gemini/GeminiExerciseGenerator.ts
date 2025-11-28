@@ -32,7 +32,6 @@ export class GeminiExerciseGenerator {
 
   async generateExercise(params: ExerciseGeneratorParams): Promise<Exercise> {
     try {
-      console.log(`Generando ejercicio de tipo ${params.type} para lección ${params.lessonId}`);
 
       // Construir el prompt
       const prompt = PromptBuilder.build({
@@ -56,10 +55,6 @@ export class GeminiExerciseGenerator {
 
       const text = result.text || '';
 
-      // console.log('=== RESPUESTA COMPLETA DE GEMINI (generateExercise) ===');
-      // console.log('Longitud:', text.length);
-      // console.log('Contenido:', text);
-      // console.log('=== FIN RESPUESTA ===');
 
       // Parsear la respuesta
       const exerciseContent = ExerciseParser.parse(params.type, text);
@@ -73,7 +68,6 @@ export class GeminiExerciseGenerator {
         params.maxPoints
       );
 
-      console.log(`Ejercicio generado exitosamente para lección ${params.lessonId}`);
 
       return exercise;
     } catch (error) {
@@ -90,7 +84,6 @@ export class GeminiExerciseGenerator {
     userAnswer: any
   ): Promise<{ score: number; feedback: string; suggestions?: string }> {
     try {
-      console.log(`Evaluando respuesta para ejercicio de tipo ${exerciseType}`);
 
       // Construir el prompt de evaluación
       const prompt = PromptBuilder.buildEvaluationPrompt(
@@ -111,12 +104,10 @@ export class GeminiExerciseGenerator {
 
       const text = result.text || '';
 
-      console.log('Respuesta de evaluación recibida:', text);
 
       // Parsear la respuesta
       const evaluation = ExerciseParser.parseEvaluation(text);
 
-      console.log(`Evaluación completada: ${evaluation.score}/100`);
 
       return evaluation;
     } catch (error) {

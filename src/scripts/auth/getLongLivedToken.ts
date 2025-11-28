@@ -44,7 +44,6 @@ const CREDENTIALS = {
 };
 
 async function getNewToken(email: string, password: string): Promise<TokenData> {
-  console.log('🔐 Obteniendo nuevo token para:', email);
 
   const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`;
 
@@ -66,7 +65,6 @@ async function getNewToken(email: string, password: string): Promise<TokenData> 
 }
 
 async function refreshIdToken(refreshToken: string): Promise<TokenData> {
-  console.log('🔄 Renovando token con refresh token...');
 
   const url = `https://securetoken.googleapis.com/v1/token?key=${FIREBASE_API_KEY}`;
 
@@ -121,12 +119,9 @@ async function main() {
 
   if (FIREBASE_API_KEY === 'YOUR_FIREBASE_API_KEY_HERE') {
     console.error('\n❌ ERROR: Debes configurar tu Firebase API Key en el archivo .env');
-    console.log('FIREBASE_API_KEY=AIzaSy...\n');
     process.exit(1);
   }
 
-  console.log('\n🎯 Obteniendo token para:', userType.toUpperCase());
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
   let tokens = loadTokens();
   let tokenData = tokens[userType];
@@ -136,53 +131,25 @@ async function main() {
     const now = Date.now();
     if (tokenData && tokenData.expiresAt > now + 5 * 60 * 1000) {
       // Token aún válido (más de 5 minutos restantes)
-      console.log('✅ Token existente aún válido');
-      console.log('⏰ Expira en:', formatExpiryTime(tokenData.expiresAt));
     } else if (tokenData && tokenData.refreshToken) {
       // Token expirado, renovar con refresh token
-      console.log('⏰ Token expirado o por expirar, renovando...');
       tokenData = await refreshIdToken(tokenData.refreshToken);
       tokenData.email = tokens[userType]!.email;
       tokens[userType] = tokenData;
       saveTokens(tokens);
-      console.log('✅ Token renovado exitosamente!');
     } else {
       // No hay token guardado, obtener uno nuevo
       const credentials = CREDENTIALS[userType];
       tokenData = await getNewToken(credentials.email, credentials.password);
       tokens[userType] = tokenData;
       saveTokens(tokens);
-      console.log('✅ Nuevo token obtenido!');
     }
 
     // Mostrar información del token
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📋 INFORMACIÓN DEL TOKEN');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📧 Email:', tokenData.email || CREDENTIALS[userType].email);
-    console.log('🆔 User ID:', tokenData.localId);
-    console.log('⏰ Expira en:', formatExpiryTime(tokenData.expiresAt));
-    console.log('🔄 Refresh Token guardado: SÍ (se renovará automáticamente)');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-    console.log('🎫 ID TOKEN (copia esto):');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    console.log(tokenData.idToken);
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-    console.log('📝 PARA USAR EN POSTMAN:');
-    console.log('1. Copia el token de arriba');
-    console.log('2. En Postman, pestaña Authorization');
-    console.log('3. Type: Bearer Token');
-    console.log('4. Token: <pega_el_token_aquí>\n');
 
-    console.log('💡 TIPS:');
-    console.log('• Cuando el token expire, solo vuelve a ejecutar este comando');
-    console.log('• El refresh token se guarda automáticamente');
-    console.log('• No necesitas hacer login cada vez');
-    console.log('• El refresh token dura mucho más (no expira fácilmente)\n');
 
-    console.log(`🔄 Para renovar: npm run get:long:token ${userType}\n`);
 
     process.exit(0);
   } catch (error: any) {
@@ -193,12 +160,10 @@ async function main() {
       console.error('Mensaje:', errorData.message);
 
       if (errorData.message === 'TOKEN_EXPIRED') {
-        console.log('\n💡 El refresh token también expiró. Generando nuevo token...');
         const credentials = CREDENTIALS[userType];
         tokenData = await getNewToken(credentials.email, credentials.password);
         tokens[userType] = tokenData;
         saveTokens(tokens);
-        console.log('\n✅ Nuevo token generado. Ejecuta el comando de nuevo.\n');
       }
     }
 

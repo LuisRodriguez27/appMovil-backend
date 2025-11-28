@@ -10,6 +10,7 @@ import { FindCourseByIdController } from "../../context/courses/infrastructure/c
 import { CreateCourseController } from "../../context/courses/infrastructure/controllers/CreateCourseController";
 import { UpdateCourseController } from "../../context/courses/infrastructure/controllers/UpdateCourseController";
 import { DeleteCourseController } from "../../context/courses/infrastructure/controllers/DeleteCourseController";
+import { NextLessonCalculator } from "../../context/courses/application/NextLessonCalculator";
 
 export default function registerCoursesDependencies(container: ContainerBuilder) {
   container.register("CourseRepository", FirebaseCourseRepository);
@@ -42,6 +43,12 @@ export default function registerCoursesDependencies(container: ContainerBuilder)
     .register("DeleteCourseUseCase", DeleteCourseUseCase)
     .addArgument(new Reference("CourseRepository"))
     .addArgument(new Reference("TopicRepository")); // Necesita TopicRepository para cascada
+
+  container
+    .register("NextLessonCalculator", NextLessonCalculator)
+    .addArgument(new Reference("TopicRepository"))
+    .addArgument(new Reference("SubtopicRepository"))
+    .addArgument(new Reference("LessonRepository"));
 
   container
     .register("CreateCourseController", CreateCourseController)

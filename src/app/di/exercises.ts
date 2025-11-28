@@ -37,8 +37,7 @@ export default function registerExercisesDependencies(container: ContainerBuilde
     .addArgument(new Reference('UserRepository'))
     .addArgument(new Reference('LessonRepository'))
     .addArgument(new Reference('CourseRepository'))
-    .addArgument(new Reference('TopicRepository'))
-    .addArgument(new Reference('SubtopicRepository'));
+    .addArgument(new Reference('NextLessonCalculator'));
 
   container
     .register('GetAttemptStatusUseCase', GetAttemptStatusUseCase)
