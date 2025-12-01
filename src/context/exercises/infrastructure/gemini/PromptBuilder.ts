@@ -14,8 +14,7 @@ export class PromptBuilder {
     fill_blank: 'Ejercicio de llenar espacios en blanco. El texto debe tener espacios marcados con _____ que el estudiante debe completar. Para cada espacio, proporciona la respuesta correcta y 4 respuestas incorrectas que sirvan como distractores verosímiles. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
     multiple_choice: 'Ejercicio de opción múltiple con una pregunta y 4 opciones, donde solo una es correcta. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
     code_completion: 'Ejercicio de completar código. Proporciona código inicial con espacios marcados como "______" (6 guiones bajos) que el estudiante debe completar. Para cada espacio en blanco, proporciona la respuesta correcta y 3 opciones incorrectas adicionales (total 4 opciones) que sean verosímiles en el contexto del código. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
-    true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
-    open_ended: 'Pregunta abierta que requiere una respuesta elaborada del estudiante.'
+    true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.'
   };
 
   private static readonly TYPE_EXAMPLES: Record<ExerciseType, string> = {
@@ -155,7 +154,6 @@ Evalúa la respuesta del estudiante y proporciona:
 Criterios de evaluación:
 - Para ejercicios con respuestas exactas (fill_blank, multiple_choice, true_false): verifica coincidencia exacta
 - Para code_completion: evalúa si el código funciona y cumple los requisitos
-- Para open_ended: evalúa profundidad, claridad y cumplimiento de criterios
 
 FORMATO DE RESPUESTA (JSON puro, sin markdown):
 {
