@@ -6,11 +6,33 @@ import helmet from 'helmet';
 import http from 'http';
 import morgan from 'morgan';
 import multer from "multer";
+import os from 'os';
 import { ServerOptions } from "./config/config";
 import configureFirebase from "./config/configureFirebase";
 import container from "./di/container";
 import { logger } from './middleware/logger';
 import { registerRouteFiles } from './routes';
+
+/**
+ * Obtiene la dirección IP local de la red
+ */
+function getLocalNetworkIP(): string {
+  const interfaces = os.networkInterfaces();
+  
+  for (const name of Object.keys(interfaces)) {
+    const networkInterface = interfaces[name];
+    if (!networkInterface) continue;
+    
+    for (const net of networkInterface) {
+      // Buscar IPv4 no interna (no localhost)
+      if (net.family === 'IPv4' && !net.internal) {
+        return net.address;
+      }
+    }
+  }
+  
+  return 'localhost';
+}
 
 class ApplicationServer {
   readonly app: Express;
@@ -57,8 +79,10 @@ class ApplicationServer {
     try {
       // Listen on all network interfaces (0.0.0.0) to allow connections from local network
       this.server.listen(ServerOptions.PORT, '0.0.0.0', () => {
+        const localIP = getLocalNetworkIP();
         logger.info(`Server is running on ${ServerOptions.HOST}:${ServerOptions.PORT}`);
-        logger.info(`Server is accessible from local network at http://192.168.0.245:${ServerOptions.PORT}`);
+        logger.info(`Server is accessible from local network at http://${localIP}:${ServerOptions.PORT}`);
+        logger.info(`Use this IP in your mobile device: ${localIP}`);
       });
     } catch (error) {
       logger.error('Failed to start server:', error);

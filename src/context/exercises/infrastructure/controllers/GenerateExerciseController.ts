@@ -19,7 +19,10 @@ export class GenerateExerciseController {
       // Generar el ejercicio
       const exercise = await this.generateExerciseUseCase.execute({ lessonId });
 
-      res.status(200).json(exercise);
+      res.status(200).json({
+        success: true,
+        data: exercise
+      });
     } catch (error) {
       console.error('Error en GenerateExerciseController:', error);
 
