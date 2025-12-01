@@ -58,7 +58,7 @@ class ApplicationServer {
       // Listen on all network interfaces (0.0.0.0) to allow connections from local network
       this.server.listen(ServerOptions.PORT, '0.0.0.0', () => {
         logger.info(`Server is running on ${ServerOptions.HOST}:${ServerOptions.PORT}`);
-        logger.info(`Server is accessible from local network at http://192.168.0.142:${ServerOptions.PORT}`);
+        logger.info(`Server is accessible from local network at http://192.168.0.245:${ServerOptions.PORT}`);
       });
     } catch (error) {
       logger.error('Failed to start server:', error);
