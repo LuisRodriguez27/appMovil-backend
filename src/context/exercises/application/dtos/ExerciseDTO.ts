@@ -14,6 +14,7 @@ export interface ExerciseDTO {
   textWithBlanks?: string; // For fill_blank
   blanks?: { id: number; correctAnswer: string; incorrectAnswers: string[] }[]; // For fill_blank
   starterCode?: string; // For code_completion
+  correctCode?: string; // For code_completion
   expectedOutput?: string; // For code_completion
   explanation?: string; // for true_false
   correctAnswer?: boolean; // for true_false

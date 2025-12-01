@@ -21,6 +21,7 @@ export interface MultipleChoiceContent {
 export interface CodeCompletionContent {
   instruction: string;
   starterCode: string;
+  correctCode: string;
   expectedOutput?: string;
   testCases?: {
     input: string;

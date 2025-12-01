@@ -55,6 +55,7 @@ export class ExerciseMapper {
           title: instructions,
           starterCode: data.starterCode,
           expectedOutput: data.expectedOutput,
+          correctCode: data.correctCode,
         } as ExerciseDTO;
       }
       default:

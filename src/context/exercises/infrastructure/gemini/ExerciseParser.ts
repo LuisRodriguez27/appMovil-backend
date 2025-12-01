@@ -75,6 +75,9 @@ export class ExerciseParser {
         if (!data.starterCode || typeof data.starterCode !== 'string') {
           throw new Error('Campo "starterCode" requerido');
         }
+        if (!data.correctCode || typeof data.correctCode !== 'string') {
+          throw new Error('Campo "correctCode" requerido para code_completion');
+        }
         break;
 
       case 'true_false':
