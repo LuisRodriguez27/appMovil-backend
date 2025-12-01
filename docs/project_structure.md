@@ -82,7 +82,7 @@ notifications
 #### Ejercicios
 - Los ejercicios están embebidos dentro de cada lección (`lessons.exercises[]`)
 - Cada ejercicio tiene: id, pregunta, tipo, plantilla de código (opcional) y puntos máximos
-- Tipos: `fill_blank`, `multiple_choice`, `code_completion`, `true_false`, `open_ended`
+- Tipos: `fill_blank`, `multiple_choice`, `code_completion`, `true_false`
 - El sistema de submissions para tracking de intentos está pendiente de implementación
 
 #### Progreso del Curso
