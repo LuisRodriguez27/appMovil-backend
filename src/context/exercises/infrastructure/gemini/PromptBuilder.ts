@@ -13,8 +13,9 @@ export class PromptBuilder {
   private static readonly TYPE_DESCRIPTIONS: Record<ExerciseType, string> = {
     fill_blank: 'Ejercicio de llenar espacios en blanco. El texto debe tener espacios marcados con _____ que el estudiante debe completar. Para cada espacio, proporciona la respuesta correcta y 4 respuestas incorrectas que sirvan como distractores verosímiles. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
     multiple_choice: 'Ejercicio de opción múltiple con una pregunta y 4 opciones, donde solo una es correcta. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
-    code_completion: 'Ejercicio de completar código. Proporciona código inicial y el estudiante debe completarlo para que funcione correctamente. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
-    true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.'
+    code_completion: 'Ejercicio de completar código. Proporciona código inicial con espacios marcados como "______" (6 guiones bajos) que el estudiante debe completar. Para cada espacio en blanco, proporciona la respuesta correcta y 3 opciones incorrectas adicionales (total 4 opciones) que sean verosímiles en el contexto del código. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
+    true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
+    open_ended: 'Pregunta abierta que requiere una respuesta elaborada del estudiante.'
   };
 
   private static readonly TYPE_EXAMPLES: Record<ExerciseType, string> = {
@@ -53,13 +54,32 @@ export class PromptBuilder {
     code_completion: `Ejemplo de respuesta JSON:
 {
   "instruction": "Completa la función para que sume dos números",
-  "starterCode": "function suma(a, b) {\\n  // Tu código aquí\\n  \\n}",
+  "starterCode": "function suma(a, b) {\\n  return ______ + ______;\\n}",
   "expectedOutput": "function suma(a, b) {\\n  return a + b;\\n}",
+  "blanks": [
+    {
+      "id": 0,
+      "correctAnswer": "a",
+      "options": ["a", "b", "suma", "result"]
+    },
+    {
+      "id": 1,
+      "correctAnswer": "b",
+      "options": ["b", "a", "suma", "total"]
+    }
+  ],
   "testCases": [
     { "input": "suma(2, 3)", "expectedOutput": "5" },
     { "input": "suma(-1, 1)", "expectedOutput": "0" }
   ]
-}`,
+}
+
+IMPORTANTE para code_completion:
+- Usa "______" (6 guiones bajos) para marcar los espacios en blanco en el código
+- Para cada espacio en blanco, proporciona exactamente 4 opciones (incluida la correcta)
+- Las opciones deben ser verosímiles y relevantes al contexto del código
+- El campo "blanks" es OBLIGATORIO y debe contener un objeto por cada "______" que aparezca en el starterCode
+- Los IDs de los blanks deben empezar en 0 y ser consecutivos en el orden que aparecen en el código`,
     true_false: `Ejemplo de respuesta JSON:
 {
   "statement": "JavaScript es un lenguaje de programación compilado",
@@ -135,6 +155,7 @@ Evalúa la respuesta del estudiante y proporciona:
 Criterios de evaluación:
 - Para ejercicios con respuestas exactas (fill_blank, multiple_choice, true_false): verifica coincidencia exacta
 - Para code_completion: evalúa si el código funciona y cumple los requisitos
+- Para open_ended: evalúa profundidad, claridad y cumplimiento de criterios
 
 FORMATO DE RESPUESTA (JSON puro, sin markdown):
 {
