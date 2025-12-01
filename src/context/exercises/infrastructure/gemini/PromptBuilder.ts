@@ -11,10 +11,10 @@ export interface PromptParams {
 
 export class PromptBuilder {
   private static readonly TYPE_DESCRIPTIONS: Record<ExerciseType, string> = {
-    fill_blank: 'Ejercicio de llenar espacios en blanco. El texto debe tener espacios marcados con _____ que el estudiante debe completar. Para cada espacio, proporciona la respuesta correcta y 4 respuestas incorrectas que sirvan como distractores verosímiles.',
-    multiple_choice: 'Ejercicio de opción múltiple con una pregunta y 4 opciones, donde solo una es correcta.',
-    code_completion: 'Ejercicio de completar código. Proporciona código inicial y el estudiante debe completarlo para que funcione correctamente.',
-    true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar.'
+    fill_blank: 'Ejercicio de llenar espacios en blanco. El texto debe tener espacios marcados con _____ que el estudiante debe completar. Para cada espacio, proporciona la respuesta correcta y 4 respuestas incorrectas que sirvan como distractores verosímiles. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
+    multiple_choice: 'Ejercicio de opción múltiple con una pregunta y 4 opciones, donde solo una es correcta. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
+    code_completion: 'Ejercicio de completar código. Proporciona código inicial y el estudiante debe completarlo para que funcione correctamente. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
+    true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.'
   };
 
   private static readonly TYPE_EXAMPLES: Record<ExerciseType, string> = {
