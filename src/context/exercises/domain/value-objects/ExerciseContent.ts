@@ -7,6 +7,7 @@ export interface FillBlankContent {
     correctAnswer: string;
     incorrectAnswers: string[];
   }[];
+  tip?: string;
 }
 
 export interface MultipleChoiceContent {
@@ -16,6 +17,7 @@ export interface MultipleChoiceContent {
     text: string;
   }[];
   correctOptionId: string;
+  tip?: string;
 }
 
 export interface CodeCompletionContent {
@@ -27,18 +29,21 @@ export interface CodeCompletionContent {
     input: string;
     expectedOutput: string;
   }[];
+  tip?: string;
 }
 
 export interface TrueFalseContent {
   statement: string;
   correctAnswer: boolean;
   explanation?: string;
+  tip?: string;
 }
 
 export interface OpenEndedContent {
   question: string;
   evaluationCriteria: string[];
   sampleAnswer?: string;
+  tip?: string;
 }
 
 export type ExerciseContent =

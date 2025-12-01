@@ -33,6 +33,11 @@ export class ExerciseParser {
   }
 
   private static validateExerciseData(type: ExerciseType, data: any): void {
+    // Validar campo tip si existe
+    if (data.tip && typeof data.tip !== 'string') {
+      throw new Error('Campo "tip" debe ser un string');
+    }
+
     switch (type) {
       case 'fill_blank':
         if (!data.text || typeof data.text !== 'string') {

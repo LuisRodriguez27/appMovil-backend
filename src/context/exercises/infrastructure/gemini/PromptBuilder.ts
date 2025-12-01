@@ -37,7 +37,8 @@ export class PromptBuilder {
       "correctAnswer": "const",
       "incorrectAnswers": ["let", "var", "final", "immutable"]
     }
-  ]
+  ],
+  "tip": "En JavaScript moderno (ES6+), tenemos tres formas principales de declarar variables. 'var' es la forma antigua y tiene alcance de función. 'let' se introdujo para variables que pueden cambiar de valor y tiene alcance de bloque (como dentro de un if o loop). Por último, 'const' se utiliza para valores que no deberían ser reasignados una vez definidos. Recuerda qué palabras clave se usan específicamente para estos propósitos."
 }`,
     multiple_choice: `Ejemplo de respuesta JSON:
 {
@@ -48,7 +49,8 @@ export class PromptBuilder {
     { "id": "c", "text": "def myFunc() {}" },
     { "id": "d", "text": "fn myFunc() {}" }
   ],
-  "correctOptionId": "a"
+  "correctOptionId": "a",
+  "tip": "La declaración de funciones en JavaScript utiliza una palabra clave específica y completa. A diferencia de lenguajes como Python que usa 'def' o Rust que usa 'fn', JavaScript es más explícito. Busca la palabra clave reservada estándar que define un bloque de código reutilizable."
 }`,
     code_completion: `Ejemplo de respuesta JSON:
 {
@@ -70,7 +72,8 @@ export class PromptBuilder {
   "testCases": [
     { "input": "suma(2, 3)", "expectedOutput": "5" },
     { "input": "suma(-1, 1)", "expectedOutput": "0" }
-  ]
+  ],
+  "tip": "Analiza los parámetros que recibe la función 'suma'. Para obtener el resultado de la adición, necesitas utilizar los nombres exactos de estos parámetros en tu sentencia de retorno. Recuerda que el operador '+' se usa para sumar valores numéricos."
 }
 
 IMPORTANTE para code_completion:
@@ -83,7 +86,8 @@ IMPORTANTE para code_completion:
 {
   "statement": "JavaScript es un lenguaje de programación compilado",
   "correctAnswer": false,
-  "explanation": "JavaScript es un lenguaje interpretado, no compilado. El código se ejecuta directamente por el navegador o runtime como Node.js"
+  "explanation": "JavaScript es un lenguaje interpretado, no compilado. El código se ejecuta directamente por el navegador o runtime como Node.js",
+  "tip": "Distingue entre lenguajes compilados (como C++ o Java) donde el código se transforma en binario antes de ejecutarse, y lenguajes interpretados o JIT (Just-In-Time) como los scripts web. Piensa en cómo el navegador lee y ejecuta el código línea por línea."
 }`
   };
 
@@ -113,6 +117,7 @@ REQUISITOS:
 3. El nivel de dificultad debe ser apropiado para estudiantes
 4. Debe ser claro, sin ambigüedades
 5. Para ejercicios con respuestas, asegúrate de que las respuestas correctas sean verificables
+6. Incluye un campo "tip". Este debe ser una ayuda sustancial y educativa, NO solo una línea breve. Debe funcionar como un mini repaso del concepto necesario para resolver el ejercicio, explicando el contexto o la sintaxis relacionada SIN dar la respuesta directa.
 
 FORMATO DE RESPUESTA:
 Responde ÚNICAMENTE con un objeto JSON válido que siga esta estructura:

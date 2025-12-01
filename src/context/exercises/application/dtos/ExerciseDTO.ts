@@ -20,4 +20,5 @@ export interface ExerciseDTO {
   correctAnswer?: boolean; // for true_false
   statement?: string; // for true_false
   data?: any;
+  tip?: string;
 }
