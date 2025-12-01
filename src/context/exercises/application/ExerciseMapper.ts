@@ -26,7 +26,6 @@ export class ExerciseMapper {
           title: instructions,
           textWithBlanks: data.text,
           blanks: data.blanks,
-          data: data
         } as ExerciseDTO;
       }
       case 'multiple_choice': {
@@ -37,7 +36,6 @@ export class ExerciseMapper {
           question: data.question,
           options: data.options,
           correctOptionId: data.correctOptionId,
-          data: data
         } as ExerciseDTO;
       }
       case 'true_false': {
@@ -48,7 +46,6 @@ export class ExerciseMapper {
           statement: data.statement,
           correctAnswer: data.correctAnswer,
           explanation: data.explanation,
-          data: data
         } as ExerciseDTO;
       }
       case 'code_completion': {
@@ -58,7 +55,6 @@ export class ExerciseMapper {
           title: instructions,
           starterCode: data.starterCode,
           expectedOutput: data.expectedOutput,
-          data: data
         } as ExerciseDTO;
       }
       default:
