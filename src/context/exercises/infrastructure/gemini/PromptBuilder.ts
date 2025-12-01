@@ -13,7 +13,7 @@ export class PromptBuilder {
   private static readonly TYPE_DESCRIPTIONS: Record<ExerciseType, string> = {
     fill_blank: 'Ejercicio de llenar espacios en blanco. El texto debe tener espacios marcados con _____ que el estudiante debe completar. Para cada espacio, proporciona la respuesta correcta y 4 respuestas incorrectas que sirvan como distractores verosímiles. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
     multiple_choice: 'Ejercicio de opción múltiple con una pregunta y 4 opciones, donde solo una es correcta. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
-    code_completion: 'Ejercicio de completar código. Proporciona código inicial con espacios marcados como "______" (6 guiones bajos) que el estudiante debe completar. También proporciona el código completo y correcto en el campo "correctCode". Para cada espacio en blanco, proporciona la respuesta correcta y 3 opciones incorrectas adicionales (total 4 opciones) que sean verosímiles en el contexto del código. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
+    code_completion: 'Ejercicio de completar código Java ejecutable. IMPORTANTE: Los espacios en blanco "______" (6 guiones bajos) deben ser ÚNICAMENTE para código ejecutable válido (variables, métodos, operadores, etc.), NUNCA para comentarios. El código debe ser sintácticamente correcto cuando se completen los blanks. Proporciona el código inicial con espacios marcados y el código completo correcto en "correctCode". Para cada espacio en blanco, proporciona la respuesta correcta y 3 opciones incorrectas adicionales (total 4 opciones) que sean verosímiles. NO uses acentos en las palabras.',
     true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.'
   };
 
@@ -52,33 +52,33 @@ export class PromptBuilder {
   "correctOptionId": "a",
   "tip": "La declaración de funciones en JavaScript utiliza una palabra clave específica y completa. A diferencia de lenguajes como Python que usa 'def' o Rust que usa 'fn', JavaScript es más explícito. Busca la palabra clave reservada estándar que define un bloque de código reutilizable."
 }`,
-    code_completion: `Ejemplo de respuesta JSON:
+    code_completion: `Ejemplo de respuesta JSON válida en JAVA:
 {
-  "instruction": "Completa la función para que sume dos números",
-  "starterCode": "function suma(a, b) {\\n  return ______ + ______;\\n}",
-    "correctCode": "function suma(a, b){\\n  return a + b;\\n}",
+  "instruction": "Completa el programa Java para imprimir un mensaje",
+  "starterCode": "public class Main {\\n  public static void main(String[] args) {\\n    ______.out.println(______)\\n  }\\n}",
+  "correctCode": "public class Main {\\n  public static void main(String[] args) {\\n    System.out.println(\\"Hola Mundo\\")\\n  }\\n}",
   "blanks": [
     {
       "id": 0,
-      "correctAnswer": "a",
-      "options": ["a", "b", "suma", "result"]
+      "correctAnswer": "System",
+      "options": ["System", "Console", "Output", "Print"]
     },
     {
       "id": 1,
-      "correctAnswer": "b",
-      "options": ["b", "a", "suma", "total"]
+      "correctAnswer": "\\"Hola Mundo\\"",
+      "options": ["\\"Hola Mundo\\"", "'Hola Mundo'", "Hola Mundo", "hola()"]
     }
   ],
-  "testCases": [
-    { "input": "suma(2, 3)", "expectedOutput": "5" },
-    { "input": "suma(-1, 1)", "expectedOutput": "0" }
-  ],
-  "tip": "Analiza los parámetros que recibe la función 'suma'. Para obtener el resultado de la adición, necesitas utilizar los nombres exactos de estos parámetros en tu sentencia de retorno. Recuerda que el operador '+' se usa para sumar valores numéricos."
+  "tip": "En Java, System es la clase para operaciones de entrada/salida estandar, y los strings van entre comillas dobles."
 }
 
-IMPORTANTE para code_completion:
-- Usa "______" (6 guiones bajos) para marcar los espacios en blanco en el código
-- Para cada espacio en blanco, proporciona exactamente 4 opciones (incluida la correcta)
+REGLAS CRITICAS para code_completion:
+- Los "______" (6 guiones bajos) SOLO pueden reemplazar codigo EJECUTABLE (variables, metodos, operadores)
+- NUNCA uses "______" para comentarios o texto no ejecutable
+- El correctCode debe ser codigo Java VALIDO y COMPILABLE
+- Cada blank debe tener exactamente 4 opciones
+- starterCode y correctCode deben tener la MISMA estructura, solo difieren en los "______"
+- NO incluyas comentarios en el codigo a menos que sean parte del ejercicio educativo
 - Las opciones deben ser verosímiles y relevantes al contexto del código
 - El campo "blanks" es OBLIGATORIO y debe contener un objeto por cada "______" que aparezca en el starterCode
 - Los IDs de los blanks deben empezar en 0 y ser consecutivos en el orden que aparecen en el código`,
