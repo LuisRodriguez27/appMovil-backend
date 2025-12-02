@@ -12,6 +12,7 @@ import configureFirebase from "./config/configureFirebase";
 import container from "./di/container";
 import { logger } from './middleware/logger';
 import { registerRouteFiles } from './routes';
+import { VoiceWebSocketServer } from './websocket/VoiceWebSocketServer';
 
 /**
  * Obtiene la dirección IP local de la red
@@ -38,6 +39,7 @@ class ApplicationServer {
   readonly app: Express;
   public server: http.Server;
   // public websocket: WebSocket;
+  public voiceWebSocket?: VoiceWebSocketServer;
   readonly upload: multer.Multer;
 
   constructor() {
@@ -84,6 +86,14 @@ class ApplicationServer {
         logger.info(`Server is accessible from local network at http://${localIP}:${ServerOptions.PORT}`);
         logger.info(`Use this IP in your mobile device: ${localIP}`);
       });
+
+      // Iniciar WebSocket Server para Voice AI
+      const VOICE_WS_PORT = parseInt(process.env.VOICE_WS_PORT || '3001');
+      this.voiceWebSocket = new VoiceWebSocketServer(VOICE_WS_PORT);
+      const localIP = getLocalNetworkIP();
+      logger.info(`🎙️ Voice WebSocket Server accessible at ws://${localIP}:${VOICE_WS_PORT}`);
+      logger.info(`🤖 Gemini Live API ready for voice interactions`);
+
     } catch (error) {
       logger.error('Failed to start server:', error);
       process.exit(1);
@@ -91,6 +101,9 @@ class ApplicationServer {
   }
 
   async stop(callback: any): Promise<void> {
+    if (this.voiceWebSocket) {
+      this.voiceWebSocket.close();
+    }
     if (this.server) {
       this.server.close(callback);
     }
