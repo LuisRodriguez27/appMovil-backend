@@ -19,6 +19,18 @@ export interface ExerciseDTO {
   explanation?: string; // for true_false
   correctAnswer?: boolean; // for true_false
   statement?: string; // for true_false
+  nodes?: { // For flowchart
+    id: string;
+    type: 'oval' | 'rectangle' | 'diamond' | 'parallelogram';
+    position: { x: number; y: number };
+    correctLabel: string;
+    incorrectLabels: string[];
+  }[];
+  connections?: { // For flowchart
+    from: string;
+    to: string;
+    label?: string;
+  }[];
   data?: any;
   tip?: string;
 }

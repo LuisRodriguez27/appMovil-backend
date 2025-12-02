@@ -2,7 +2,8 @@ const VALID_EXERCISE_TYPES = [
   'fill_blank',
   'multiple_choice',
   'code_completion',
-  'true_false'
+  'true_false',
+  'flowchart'
 ] as const;
 
 export type ExerciseType = typeof VALID_EXERCISE_TYPES[number];

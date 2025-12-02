@@ -94,6 +94,30 @@ export class ExerciseParser {
         }
         break;
 
+      case 'flowchart':
+        if (!data.title || typeof data.title !== 'string') {
+          throw new Error('Campo "title" requerido para flowchart');
+        }
+        if (!Array.isArray(data.nodes) || data.nodes.length === 0) {
+          throw new Error('Campo "nodes" debe ser un array no vacío');
+        }
+        
+        // Para flowcharts: NO se requieren incorrectLabels
+        // El banco de etiquetas será SOLO las correctas de todos los nodos vacíos
+        data.nodes.forEach((node: any, index: number) => {
+          if (!node.id || !node.type || !node.position || !node.correctLabel) {
+            throw new Error(`Nodo ${index} inválido: debe tener "id", "type", "position" y "correctLabel"`);
+          }
+          
+          // Asegurar que incorrectLabels sea un array vacío para flowcharts
+          node.incorrectLabels = [];
+        });
+        
+        if (!Array.isArray(data.connections)) {
+          throw new Error('Campo "connections" debe ser un array');
+        }
+        break;
+
       default:
         throw new Error(`Tipo de ejercicio no soportado: ${type}`);
     }

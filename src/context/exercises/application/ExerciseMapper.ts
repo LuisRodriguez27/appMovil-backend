@@ -3,7 +3,8 @@ import {
   FillBlankContent,
   MultipleChoiceContent,
   TrueFalseContent,
-  CodeCompletionContent
+  CodeCompletionContent,
+  FlowchartContent
 } from '../domain/value-objects/ExerciseContent';
 import { Exercise } from '../domain/Exercise';
 
@@ -59,6 +60,16 @@ export class ExerciseMapper {
           starterCode: data.starterCode,
           expectedOutput: data.expectedOutput,
           correctCode: data.correctCode,
+          tip: data.tip,
+        } as ExerciseDTO;
+      }
+      case 'flowchart': {
+        const data = content.data as FlowchartContent;
+        return {
+          ...baseDTO,
+          title: data.title,
+          nodes: data.nodes,
+          connections: data.connections,
           tip: data.tip,
         } as ExerciseDTO;
       }

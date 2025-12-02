@@ -14,7 +14,8 @@ export class PromptBuilder {
     fill_blank: 'Ejercicio de llenar espacios en blanco. El texto debe tener espacios marcados con _____ que el estudiante debe completar. Para cada espacio, proporciona la respuesta correcta y EXACTAMENTE 2 respuestas incorrectas ÚNICAS y VARIADAS que sirvan como distractores verosímiles. IMPORTANTE: Las respuestas incorrectas deben ser DIFERENTES entre sí y NO deben repetirse en otros blanks del mismo ejercicio. Usa conceptos relacionados pero distintos para cada blank. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
     multiple_choice: 'Ejercicio de opción múltiple con una pregunta y 4 opciones, donde solo una es correcta. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
     code_completion: 'Ejercicio de completar código Java ejecutable. IMPORTANTE: Los espacios en blanco "______" (6 guiones bajos) deben ser ÚNICAMENTE para código ejecutable válido (variables, métodos, operadores, etc.), NUNCA para comentarios. El código debe ser sintácticamente correcto cuando se completen los blanks. Proporciona el código inicial con espacios marcados y el código completo correcto en "correctCode". Para cada espacio en blanco, proporciona la respuesta correcta y 3 opciones incorrectas adicionales (total 4 opciones) que sean verosímiles. NO uses acentos en las palabras.',
-    true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.'
+    true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
+    flowchart: 'Ejercicio de diagrama de flujo interactivo. El estudiante debe completar un diagrama arrastrando las etiquetas correctas. IMPORTANTE: 1) Solo proporciona "correctLabel" (la respuesta correcta), NO incluyas "incorrectLabels" (el sistema generará distractores automáticamente). 2) Puedes marcar algunos nodos intermedios como "isComplete: true" para dar pistas (no solo inicio/fin). 3) Usa nodos tipo "diamond" para decisiones con 2 salidas (Si/No). 4) Crea diagramas de 6-10 nodos. NO uses acentos.'
   };
 
   private static readonly TYPE_EXAMPLES: Record<ExerciseType, string> = {
@@ -97,7 +98,85 @@ REGLAS CRITICAS para code_completion:
   "correctAnswer": false,
   "explanation": "JavaScript es un lenguaje interpretado, no compilado. El código se ejecuta directamente por el navegador o runtime como Node.js",
   "tip": "Distingue entre lenguajes compilados (como C++ o Java) donde el código se transforma en binario antes de ejecutarse, y lenguajes interpretados o JIT (Just-In-Time) como los scripts web. Piensa en cómo el navegador lee y ejecuta el código línea por línea."
-}`
+}`,
+    flowchart: `Ejemplo de respuesta JSON para diagrama de flujo:
+{
+  "title": "Algoritmo: Determinar mayor de dos numeros",
+  "nodes": [
+    {
+      "id": "node1",
+      "type": "oval",
+      "position": { "x": 200, "y": 50 },
+      "correctLabel": "Inicio",
+      "isComplete": true
+    },
+    {
+      "id": "node2",
+      "type": "parallelogram",
+      "position": { "x": 200, "y": 140 },
+      "correctLabel": "Leer num1, num2",
+      "isComplete": false
+    },
+    {
+      "id": "node3",
+      "type": "diamond",
+      "position": { "x": 200, "y": 240 },
+      "correctLabel": "num1 > num2",
+      "isComplete": false
+    },
+    {
+      "id": "node4",
+      "type": "rectangle",
+      "position": { "x": 100, "y": 350 },
+      "correctLabel": "mayor = num1",
+      "isComplete": true
+    },
+    {
+      "id": "node5",
+      "type": "rectangle",
+      "position": { "x": 300, "y": 350 },
+      "correctLabel": "mayor = num2",
+      "isComplete": false
+    },
+    {
+      "id": "node6",
+      "type": "parallelogram",
+      "position": { "x": 200, "y": 460 },
+      "correctLabel": "Imprimir mayor",
+      "isComplete": false
+    },
+    {
+      "id": "node7",
+      "type": "oval",
+      "position": { "x": 200, "y": 560 },
+      "correctLabel": "Fin",
+      "isComplete": true
+    }
+  ],
+  "connections": [
+    { "from": "node1", "to": "node2" },
+    { "from": "node2", "to": "node3" },
+    { "from": "node3", "to": "node4", "label": "Si" },
+    { "from": "node3", "to": "node5", "label": "No" },
+    { "from": "node4", "to": "node6" },
+    { "from": "node5", "to": "node6" },
+    { "from": "node6", "to": "node7" }
+  ],
+  "tip": "Los rombos representan decisiones con dos caminos posibles. Observa como el flujo se divide en Si/No y luego vuelve a unirse."
+}
+
+REGLAS CRITICAS para flowchart:
+- SOLO incluye "correctLabel" en cada nodo, NO incluyas "incorrectLabels" (el sistema los genera automaticamente)
+- Tipos de nodos: "oval" (inicio/fin), "rectangle" (proceso/asignacion), "diamond" (decision if-else), "parallelogram" (entrada/salida)
+- "isComplete: true" puede estar en CUALQUIER nodo para dar pistas (no solo inicio/fin). Ejemplo: marca 2-3 nodos intermedios como completos
+- IMPORTANTE: Cada "diamond" debe tener EXACTAMENTE 2 conexiones salientes con "label": "Si" y "label": "No"
+- Para decisiones con "diamond": posiciona los nodos Si/No horizontalmente (x diferentes, misma y), luego reunelos abajo
+- Posiciones sugeridas: Incrementa Y en 100-110 pixeles entre niveles, X base en 200 (centro), desplaza +/-100 para ramas
+- Incluye minimo 1 decision (diamond), maximo 2 decisiones para complejidad media
+- El diagrama debe ser un algoritmo LOGICO y COHERENTE
+- Etiquetas breves, claras, SIN acentos
+- Minimo 6 nodos, maximo 10 nodos
+- La propiedad "label" en connections es opcional (solo usala en decisiones para "Si"/"No")`
   };
 
   static build(params: PromptParams): string {

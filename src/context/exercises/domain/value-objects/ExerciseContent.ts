@@ -39,6 +39,23 @@ export interface TrueFalseContent {
   tip?: string;
 }
 
+export interface FlowchartContent {
+  title: string;
+  nodes: {
+    id: string;
+    type: 'oval' | 'rectangle' | 'diamond' | 'parallelogram';
+    position: { x: number; y: number };
+    correctLabel: string;
+    incorrectLabels: string[];
+  }[];
+  connections: {
+    from: string;
+    to: string;
+    label?: string;
+  }[];
+  tip?: string;
+}
+
 export interface OpenEndedContent {
   question: string;
   evaluationCriteria: string[];
@@ -50,7 +67,8 @@ export type ExerciseContent =
   | { type: 'fill_blank'; data: FillBlankContent }
   | { type: 'multiple_choice'; data: MultipleChoiceContent }
   | { type: 'code_completion'; data: CodeCompletionContent }
-  | { type: 'true_false'; data: TrueFalseContent };
+  | { type: 'true_false'; data: TrueFalseContent }
+  | { type: 'flowchart'; data: FlowchartContent };
 
 export function createExerciseContent(type: ExerciseType, data: any): ExerciseContent {
   switch (type) {
@@ -62,6 +80,8 @@ export function createExerciseContent(type: ExerciseType, data: any): ExerciseCo
       return { type, data: data as CodeCompletionContent };
     case 'true_false':
       return { type, data: data as TrueFalseContent };
+    case 'flowchart':
+      return { type, data: data as FlowchartContent };
     default:
       throw new Error(`Tipo de ejercicio no soportado: ${type}`);
   }
