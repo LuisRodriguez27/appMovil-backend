@@ -8,7 +8,8 @@
     "build": "rimraf dist && tsc -p tsconfig.prod.json",
     "start": "node dist/index.js",
     "generate:token": "ts-node src/scripts/auth/generateAuthToken.ts",
-    "get:token": "ts-node src/scripts/auth/getIdToken.ts"
+    "get:token": "ts-node src/scripts/auth/getIdToken.ts",
+    "CreateLessons": "ts-node src/scripts/lessons/createLessonsForSubtopics.ts"
   },
   "keywords": [],
   "author": "",
