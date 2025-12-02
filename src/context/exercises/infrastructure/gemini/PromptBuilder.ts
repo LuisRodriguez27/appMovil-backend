@@ -15,7 +15,7 @@ export class PromptBuilder {
     multiple_choice: 'Ejercicio de opción múltiple con una pregunta y 4 opciones, donde solo una es correcta. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
     code_completion: 'Ejercicio de completar código Java ejecutable. IMPORTANTE: Los espacios en blanco "______" (6 guiones bajos) deben ser ÚNICAMENTE para código ejecutable válido (variables, métodos, operadores, etc.), NUNCA para comentarios. El código debe ser sintácticamente correcto cuando se completen los blanks. Proporciona el código inicial con espacios marcados y el código completo correcto en "correctCode". Para cada espacio en blanco, proporciona la respuesta correcta y 3 opciones incorrectas adicionales (total 4 opciones) que sean verosímiles. NO uses acentos en las palabras.',
     true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
-    flowchart: 'Ejercicio de diagrama de flujo interactivo. El estudiante debe completar un diagrama arrastrando las etiquetas correctas. IMPORTANTE: 1) Solo proporciona "correctLabel" (la respuesta correcta), NO incluyas "incorrectLabels" (el sistema generará distractores automáticamente). 2) Puedes marcar algunos nodos intermedios como "isComplete: true" para dar pistas (no solo inicio/fin). 3) Usa nodos tipo "diamond" para decisiones con 2 salidas (Si/No). 4) Crea diagramas de 6-10 nodos. NO uses acentos.'
+    flowchart: 'Ejercicio de diagrama de flujo interactivo. El estudiante debe completar un diagrama arrastrando las etiquetas correctas. IMPORTANTE: 1) Solo proporciona "correctLabel" (la respuesta correcta), NO incluyas "incorrectLabels" (el sistema generará distractores automáticamente). 2) Puedes marcar algunos nodos intermedios como "isComplete: true" para dar pistas (no solo inicio/fin). 3) VARIA LA COMPLEJIDAD: Alterna entre diagramas básicos (lineales con 1 decisión) y avanzados (con 2-3 decisiones anidadas o en secuencia). 4) USA VARIEDAD DE NODOS: No todos los diagramas deben usar todos los tipos, varía según el algoritmo (algunos solo proceso/flujo, otros con decisiones/entrada-salida). 5) Tipos disponibles: "oval" (inicio/fin), "rectangle" (proceso/cálculo), "diamond" (decisión if-else), "parallelogram" (entrada/salida de datos). 6) Crea diagramas de 6-12 nodos. NO uses acentos.'
   };
 
   private static readonly TYPE_EXAMPLES: Record<ExerciseType, string> = {
@@ -167,16 +167,36 @@ REGLAS CRITICAS para code_completion:
 
 REGLAS CRITICAS para flowchart:
 - SOLO incluye "correctLabel" en cada nodo, NO incluyas "incorrectLabels" (el sistema los genera automaticamente)
-- Tipos de nodos: "oval" (inicio/fin), "rectangle" (proceso/asignacion), "diamond" (decision if-else), "parallelogram" (entrada/salida)
-- "isComplete: true" puede estar en CUALQUIER nodo para dar pistas (no solo inicio/fin). Ejemplo: marca 2-3 nodos intermedios como completos
+- Tipos de nodos disponibles:
+  * "oval": Inicio/Fin del algoritmo (obligatorios)
+  * "rectangle": Procesos, calculos, asignaciones (ej: "suma = a + b", "i = i + 1")
+  * "diamond": Decisiones binarias if-else (ej: "edad >= 18", "numero % 2 == 0")
+  * "parallelogram": Entrada/Salida de datos (ej: "Leer nombre", "Imprimir resultado")
+- VARIA LA COMPLEJIDAD segun el tema:
+  * BASICO (40%): Diagramas lineales simples con 0-1 decision, enfoque en secuencia y procesos
+  * INTERMEDIO (40%): 1-2 decisiones, combina procesos con entrada/salida
+  * AVANZADO (20%): 2-3 decisiones (anidadas o en cadena), bucles implicitos, flujos complejos
+- NO todos los diagramas deben usar todos los tipos de nodos, adapta segun el algoritmo:
+  * Algoritmos matematicos: Mas "rectangle" (calculos), menos "parallelogram"
+  * Validaciones: Mas "diamond" (decisiones), balance de "rectangle"
+  * Interactivos: Mas "parallelogram" (entrada/salida), combinado con decisiones
+- "isComplete: true" puede estar en CUALQUIER nodo para dar pistas. Sugerencia: 30-40% de nodos completos
 - IMPORTANTE: Cada "diamond" debe tener EXACTAMENTE 2 conexiones salientes con "label": "Si" y "label": "No"
-- Para decisiones con "diamond": posiciona los nodos Si/No horizontalmente (x diferentes, misma y), luego reunelos abajo
-- Posiciones sugeridas: Incrementa Y en 100-110 pixeles entre niveles, X base en 200 (centro), desplaza +/-100 para ramas
-- Incluye minimo 1 decision (diamond), maximo 2 decisiones para complejidad media
-- El diagrama debe ser un algoritmo LOGICO y COHERENTE
-- Etiquetas breves, claras, SIN acentos
-- Minimo 6 nodos, maximo 10 nodos
-- La propiedad "label" en connections es opcional (solo usala en decisiones para "Si"/"No")`
+- Para decisiones con "diamond": posiciona los nodos Si/No horizontalmente separados, luego reunelos
+- Posiciones sugeridas:
+  * Incrementa Y en 100-120 pixeles entre niveles verticales
+  * X base en 200 (centro del diagrama)
+  * Para bifurcaciones: desplaza +/-100 a +/-150 en X
+  * Para diagramas anchos: usa rango X de 50 a 400
+- Etiquetas: Breves (max 5-7 palabras), claras, SIN acentos, usa simbolos (=, +, >, <, ==, !=)
+- Tamaño del diagrama: Minimo 6 nodos, maximo 12 nodos
+- El diagrama debe representar un algoritmo LOGICO, EJECUTABLE y EDUCATIVO
+- Ejemplos de buenos algoritmos:
+  * Par o impar (basico): Leer numero → Decision (num%2==0) → Imprimir resultado
+  * Mayor de tres numeros (intermedio): 3 entradas → 2 decisiones anidadas → Salida
+  * Validar rango (intermedio): Entrada → Decision (n>=10 AND n<=20) → Mensajes
+  * Factorial iterativo (avanzado): Inicializar → Bucle (decision+proceso) → Salida
+  * Busqueda lineal (avanzado): Recorrer → Decisiones anidadas → Resultado`
   };
 
   static build(params: PromptParams): string {
