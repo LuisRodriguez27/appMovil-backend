@@ -11,7 +11,7 @@ export interface PromptParams {
 
 export class PromptBuilder {
   private static readonly TYPE_DESCRIPTIONS: Record<ExerciseType, string> = {
-    fill_blank: 'Ejercicio de llenar espacios en blanco. El texto debe tener espacios marcados con _____ que el estudiante debe completar. Para cada espacio, proporciona la respuesta correcta y 4 respuestas incorrectas que sirvan como distractores verosímiles. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
+    fill_blank: 'Ejercicio de llenar espacios en blanco. El texto debe tener espacios marcados con _____ que el estudiante debe completar. Para cada espacio, proporciona la respuesta correcta y EXACTAMENTE 2 respuestas incorrectas ÚNICAS y VARIADAS que sirvan como distractores verosímiles. IMPORTANTE: Las respuestas incorrectas deben ser DIFERENTES entre sí y NO deben repetirse en otros blanks del mismo ejercicio. Usa conceptos relacionados pero distintos para cada blank. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
     multiple_choice: 'Ejercicio de opción múltiple con una pregunta y 4 opciones, donde solo una es correcta. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
     code_completion: 'Ejercicio de completar código Java ejecutable. IMPORTANTE: Los espacios en blanco "______" (6 guiones bajos) deben ser ÚNICAMENTE para código ejecutable válido (variables, métodos, operadores, etc.), NUNCA para comentarios. El código debe ser sintácticamente correcto cuando se completen los blanks. Proporciona el código inicial con espacios marcados y el código completo correcto en "correctCode". Para cada espacio en blanco, proporciona la respuesta correcta y 3 opciones incorrectas adicionales (total 4 opciones) que sean verosímiles. NO uses acentos en las palabras.',
     true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.'
@@ -25,21 +25,30 @@ export class PromptBuilder {
     { 
       "id": 1, 
       "correctAnswer": "var",
-      "incorrectAnswers": ["int", "string", "dim", "function"]
+      "incorrectAnswers": ["int", "string"]
     },
     { 
       "id": 2, 
       "correctAnswer": "let",
-      "incorrectAnswers": ["const", "static", "final", "public"]
+      "incorrectAnswers": ["define", "variable"]
     },
     { 
       "id": 3, 
       "correctAnswer": "const",
-      "incorrectAnswers": ["let", "var", "final", "immutable"]
+      "incorrectAnswers": ["final", "immutable"]
     }
   ],
   "tip": "En JavaScript moderno (ES6+), tenemos tres formas principales de declarar variables. 'var' es la forma antigua y tiene alcance de función. 'let' se introdujo para variables que pueden cambiar de valor y tiene alcance de bloque (como dentro de un if o loop). Por último, 'const' se utiliza para valores que no deberían ser reasignados una vez definidos. Recuerda qué palabras clave se usan específicamente para estos propósitos."
-}`,
+}
+
+REGLAS IMPORTANTES para fill_blank:
+- Cada blank debe tener EXACTAMENTE 2 respuestas incorrectas (no más, no menos)
+- Las respuestas incorrectas deben ser ÚNICAS y VARIADAS entre diferentes blanks
+- NO repitas las mismas respuestas incorrectas en diferentes blanks del mismo ejercicio
+- Las respuestas incorrectas deben ser conceptos relacionados pero DISTINTOS
+- Ejemplo: Si blank 1 tiene "while" como correcta, usa incorrectas como: "until", "repeat"
+- Si blank 2 también es sobre bucles, usa DIFERENTES opciones: "foreach", "loop"
+- Mantén las opciones breves y relevantes al contexto`,
     multiple_choice: `Ejemplo de respuesta JSON:
 {
   "question": "¿Cuál es la forma correcta de declarar una función en JavaScript?",
