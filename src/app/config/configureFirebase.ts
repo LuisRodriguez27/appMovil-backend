@@ -36,7 +36,7 @@ export default function configureFirebase() {
     else {
         throw new Error(
             '❌ No Firebase credentials found. Please set either:\n' +
-            '  - GOOGLE_APPLICATION_CREDENTIALS (path to serviceAccountKey.json)\n' +
+            '  - GOOGLE_APPLICATION_CREDENTIALS (path to serviceAccountKey-firebase.json)\n' +
             '  - SERVICE_ACCOUNT_JSON_BASE64 (base64 encoded credentials)'
         );
     }

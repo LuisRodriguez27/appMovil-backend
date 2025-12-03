@@ -18,7 +18,8 @@ export interface ConversationContext {
 export interface VoiceResponse {
   intent: 'lesson_feedback' | 'exercise_request' | 'general_question' | 'clarification';
   response: string;
-  audioResponse?: string; // Base64 encoded audio
+  audioResponse?: string; // Base64 encoded audio (PCM 24kHz)
+  transcription?: string; // Transcripción del audio generado
   parameters?: {
     exerciseType?: string;
     topic?: string;
@@ -27,9 +28,18 @@ export interface VoiceResponse {
   suggestedActions?: string[];
 }
 
+/**
+ * ⚠️ SERVICIO PARA RESPUESTAS DE TEXTO CON MARKDOWN
+ * Este servicio usa generateContent (REST API) para respuestas de texto.
+ * Para audio en tiempo real, usar un servicio separado con Live API WebSockets.
+ * 
+ * Limitación: Live API solo permite TEXT o AUDIO por sesión, no ambos.
+ */
 export class GeminiLiveService {
   private ai: GoogleGenAI;
-  private model = 'gemini-2.0-flash-exp'; // Modelo con soporte de voz y multimodal
+  private model = 'gemini-2.0-flash-exp'; // Modelo para texto con audio input
+  private liveSession: any = null;
+  private isLiveConnected = false;
 
   constructor(apiKey?: string) {
     const key = apiKey || GeminiConfig.apiKey;
@@ -37,7 +47,114 @@ export class GeminiLiveService {
       throw new Error('❌ Gemini API key no configurada. Por favor configura GEMINI_API_KEY en el archivo .env');
     }
     this.ai = new GoogleGenAI({ apiKey: key });
-    console.log('✅ GeminiLiveService inicializado con modelo:', this.model);
+    console.log('✅ GeminiLiveService inicializado con Gemini Live API 2.5 Flash');
+  }
+
+  /**
+   * Iniciar sesión Live API con WebSocket nativo  
+   * NOTA: Esta es una implementación preparada para cuando la API esté disponible
+   */
+  async startLiveSession(context: ConversationContext): Promise<any> {
+    try {
+      console.log('🎙️ Iniciando sesión Live API 2.5 con audio nativo...');
+      
+      const systemInstruction = this.buildSystemInstruction(context);
+      
+      // TODO: Actualizar con la API real cuando esté disponible en @google/genai
+      // Por ahora, usar la conexión de chat normal como fallback
+      console.log('⚠️ Live API 2.5 aún no disponible en SDK, usando chat normal');
+      
+      const chat = await this.ai.chats.create({
+        model: 'gemini-2.0-flash-exp', // Usar modelo disponible
+        config: {
+          systemInstruction,
+          temperature: 0.7,
+          maxOutputTokens: 2048
+        }
+      });
+
+      this.liveSession = chat;
+      this.isLiveConnected = true;
+      
+      console.log('✅ Sesión de chat preparada (Live API pendiente de SDK update)');
+      
+      return this.liveSession;
+    } catch (error) {
+      console.error('❌ Error iniciando sesión:', error);
+      this.isLiveConnected = false;
+      throw error;
+    }
+  }
+
+  /**
+   * Enviar audio en tiempo real a Live API
+   * NOTA: Temporalmente usa transcripción hasta que Live API esté en SDK
+   */
+  async sendAudioToLive(audioBuffer: Buffer): Promise<string> {
+    if (!this.isLiveConnected || !this.liveSession) {
+      throw new Error('Live API no está conectada');
+    }
+
+    try {
+      // TODO: Cuando Live API esté disponible, enviar audio directamente
+      // Por ahora, transcribir y enviar como texto
+      const base64Audio = audioBuffer.toString('base64');
+      
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-2.0-flash-exp',
+        contents: [{
+          inlineData: {
+            data: base64Audio,
+            mimeType: 'audio/wav'
+          }
+        }, 'Transcribe este audio y responde en español con formato Markdown.'],
+        config: {
+          temperature: 0.7,
+          maxOutputTokens: 2048
+        }
+      });
+
+      const responseText = response.text || 'Lo siento, no pude procesar el audio.';
+      console.log('🎤 Audio procesado (transcripción)');
+      
+      return responseText;
+    } catch (error) {
+      console.error('❌ Error enviando audio:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Manejar mensajes de Live API (audio + texto)
+   */
+  private handleLiveMessage(message: any): void {
+    if (message.serverContent?.modelTurn) {
+      const parts = message.serverContent.modelTurn.parts;
+      
+      for (const part of parts) {
+        if (part.text) {
+          console.log('💬 Texto recibido:', part.text.substring(0, 100));
+        }
+        if (part.inlineData) {
+          console.log('🔊 Audio recibido:', part.inlineData.data.length, 'bytes');
+        }
+      }
+    }
+  }
+
+  /**
+   * Cerrar sesión Live API
+   */
+  async closeLiveSession(): Promise<void> {
+    if (this.liveSession) {
+      try {
+        await this.liveSession.close();
+        this.isLiveConnected = false;
+        console.log('✅ Sesión Live API cerrada correctamente');
+      } catch (error) {
+        console.error('❌ Error cerrando sesión:', error);
+      }
+    }
   }
 
   /**

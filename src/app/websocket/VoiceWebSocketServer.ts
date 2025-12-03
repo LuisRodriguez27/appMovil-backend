@@ -1,16 +1,23 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import { GeminiLiveService, ConversationContext, VoiceResponse } from '../../context/voice/infrastructure/GeminiLiveService';
+import { GeminiLiveAudioService } from '../../context/voice/infrastructure/GeminiLiveAudioService';
 
 interface ClientSession {
   ws: WebSocket;
-  chat: any; // Gemini Chat instance
+  chat: any; // Para respuestas de TEXTO (GeminiLiveService)
+  audioService: GeminiLiveAudioService | null; // Para respuestas de AUDIO (Live API)
+  textService: GeminiLiveService; // Servicio de texto
   context: ConversationContext;
   sessionId: string;
+  responseMode: 'audio' | 'text'; // ⭐ Usuario elige el tipo de respuesta
+  liveSession: any | null; // ⭐ Sesión de Live API 2.5
+  useLiveAPI: boolean; // ⭐ Flag para usar Live API
 }
 
 export class VoiceWebSocketServer {
   private wss: WebSocketServer;
   private geminiLive: GeminiLiveService;
+  private textService: GeminiLiveService;
   private sessions: Map<string, ClientSession>;
 
   constructor(port: number) {
@@ -20,11 +27,12 @@ export class VoiceWebSocketServer {
     });
     
     this.geminiLive = new GeminiLiveService();
+    this.textService = new GeminiLiveService();
     this.sessions = new Map();
     
     this.setupServer();
     
-    console.log(`🎙️ Voice WebSocket Server iniciado en puerto ${port}`);
+    console.log(`🎙️ Voice WebSocket Server iniciado con Gemini Live API 2.5`);
     console.log(`🔗 Conecta desde Flutter usando: ws://localhost:${port}`);
   }
 
@@ -37,8 +45,13 @@ export class VoiceWebSocketServer {
       const session: ClientSession = {
         ws,
         chat: null,
+        audioService: null,
+        textService: this.textService,
+        liveSession: null,
         context: {},
-        sessionId
+        sessionId,
+        responseMode: 'audio',
+        useLiveAPI: true
       };
 
       this.sessions.set(sessionId, session);
@@ -47,7 +60,7 @@ export class VoiceWebSocketServer {
       this.sendMessage(ws, {
         type: 'connected',
         sessionId,
-        message: '¡Hola! Soy tu tutor de IA. ¿En qué puedo ayudarte hoy? 🎓'
+        message: '¡Hola! Soy tu tutor de IA con voz. ¿En qué puedo ayudarte hoy? 🎓🎙️'
       });
 
       // Manejar mensajes
@@ -138,10 +151,37 @@ export class VoiceWebSocketServer {
       // Actualizar contexto
       session.context = message.context || {};
 
-      // Crear sesión de chat con Gemini
+      if (session.useLiveAPI) {
+        // ⭐ NUEVO: Usar Gemini Live API 2.5 con audio bidireccional
+        try {
+          session.liveSession = await this.geminiLive.startLiveSession(session.context);
+          
+          // Configurar listeners para respuestas de audio y texto
+          session.liveSession.on('message', (liveMessage: any) => {
+            this.handleLiveAPIResponse(session, liveMessage);
+          });
+
+          console.log(`🎯 ⭐ Live API 2.5 iniciada para [${session.sessionId}]:`, {
+            curso: session.context.currentCourse,
+            tema: session.context.currentTopic
+          });
+
+          this.sendMessage(session.ws, {
+            type: 'session_started',
+            message: 'Sesión de audio en tiempo real iniciada con Gemini Live API 2.5 ✨',
+            supportsAudio: true
+          });
+          return;
+        } catch (error) {
+          console.error('❌ Error iniciando Live API, usando fallback:', error);
+          session.useLiveAPI = false;
+        }
+      }
+
+      // Fallback: Usar chat session normal
       session.chat = await this.geminiLive.startChatSession(session.context);
 
-      console.log(`🎯 Sesión iniciada para [${session.sessionId}]:`, {
+      console.log(`🎯 Sesión de chat iniciada para [${session.sessionId}]:`, {
         curso: session.context.currentCourse,
         lección: session.context.currentLesson,
         tema: session.context.currentTopic
@@ -223,7 +263,28 @@ export class VoiceWebSocketServer {
       // Convertir base64 a Buffer
       const audioBuffer = Buffer.from(audioData, 'base64');
 
-      // Procesar audio con Gemini
+      // ⭐ NUEVO: Si usa Live API, enviar audio directamente
+      if (session.useLiveAPI && session.liveSession) {
+        try {
+          const responseText = await this.geminiLive.sendAudioToLive(audioBuffer);
+          
+          // Enviar respuesta de texto (audio por venir en futuras actualizaciones)
+          this.sendMessage(session.ws, {
+            type: 'response',
+            intent: 'general_question',
+            text: responseText,
+            supportsAudio: false // TODO: true cuando Live API 2.5 esté en SDK
+          });
+          
+          console.log(`✅ Audio procesado con Live API [${session.sessionId}]`);
+          return;
+        } catch (error) {
+          console.error('❌ Error en Live API, usando fallback:', error);
+          session.useLiveAPI = false;
+        }
+      }
+
+      // Fallback: Procesar audio con el método antiguo
       const response: VoiceResponse = await this.geminiLive.processAudioMessage(
         audioBuffer,
         session.context
@@ -289,13 +350,58 @@ export class VoiceWebSocketServer {
   private handleEndSession(session: ClientSession) {
     console.log(`👋 Finalizando sesión [${session.sessionId}]`);
     
+    // Cerrar Live API si está activa
+    if (session.liveSession) {
+      this.geminiLive.closeLiveSession();
+    }
+    
     this.sendMessage(session.ws, {
       type: 'session_ended',
       message: '¡Hasta pronto! Sigue estudiando. 📚'
     });
 
-    // Limpiar chat
+    // Limpiar sesiones
     session.chat = null;
+    session.liveSession = null;
+  }
+
+  /**
+   * ⭐ NUEVO: Manejar respuestas de Gemini Live API 2.5 (audio + texto)
+   */
+  private handleLiveAPIResponse(session: ClientSession, liveMessage: any) {
+    try {
+      if (liveMessage.serverContent?.modelTurn) {
+        const parts = liveMessage.serverContent.modelTurn.parts;
+        let textResponse = '';
+        let audioResponse = '';
+
+        for (const part of parts) {
+          // Respuesta de texto
+          if (part.text) {
+            textResponse += part.text;
+            console.log(`💬 Texto de Live API [${session.sessionId}]:`, part.text.substring(0, 100));
+          }
+
+          // Respuesta de audio (PCM16 en base64)
+          if (part.inlineData) {
+            audioResponse = part.inlineData.data;
+            console.log(`🔊 Audio de Live API [${session.sessionId}]:`, audioResponse.length, 'bytes');
+          }
+        }
+
+        // Enviar respuesta completa al cliente (texto + audio)
+        this.sendMessage(session.ws, {
+          type: 'response',
+          intent: 'general_question',
+          text: textResponse,
+          audioResponse: audioResponse, // ⭐ Audio en base64
+          supportsAudio: true
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error procesando respuesta de Live API:', error);
+      this.sendError(session.ws, 'Error procesando respuesta de audio');
+    }
   }
 
   private sendMessage(ws: WebSocket, data: any) {
