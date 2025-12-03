@@ -43,7 +43,7 @@ export class SubmitExerciseAnswerUseCase {
 
     // 3. Verificar que la lección tiene ejercicio
     const lessonPrimitives = lesson.toPrimitives();
-    if (!lessonPrimitives.exerciseConfig) {
+    if (!lessonPrimitives.exerciseConfigs || lessonPrimitives.exerciseConfigs.length === 0) {
       throw new Error(`La lección ${request.lessonId} no tiene ejercicio configurado`);
     }
 

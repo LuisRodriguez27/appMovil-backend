@@ -19,7 +19,7 @@ export class UpdateLessonUseCase {
     lesson.update({
       title: request.title,
       content: request.content,
-      exerciseConfig: request.exerciseConfig,
+      exerciseConfigs: request.exerciseConfigs,
       description: request.description,
     });
 
