@@ -14,7 +14,7 @@ httpRequests/http-client.env.json
 .env.production
 
 # Firebase credentials (NUNCA subir a Git)
-serviceAccountKey.json
+serviceAccountKey*.json
 firebase-adminsdk-*.json
 
 # Auth tokens para testing (contienen refresh tokens)

@@ -24,7 +24,6 @@ declare global {
  *
  * Uso en rutas:
  * app.get('/protected', verifyFirebaseToken, (req, res) => {
- *   console.log(req.user.uid); // UID del usuario autenticado
  * });
  */
 export const verifyFirebaseToken = (userRepository: UserRepository) => {

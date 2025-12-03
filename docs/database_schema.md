@@ -160,7 +160,7 @@
 
   exerciseConfig?: {
     instructions: string;  // Que sea en español
-    type: 'fill_blank' | 'multiple_choice' | 'code_completion' | 'true_false' | 'open_ended';
+    type: 'fill_blank' | 'multiple_choice' | 'code_completion' | 'true_false';
     maxPoints: number;   // 50
   };
 

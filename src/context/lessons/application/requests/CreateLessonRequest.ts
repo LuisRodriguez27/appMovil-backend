@@ -6,6 +6,7 @@ export class CreateLessonRequest {
     public readonly subtopicId: string,
     public readonly title: string,
     public readonly content: string,
+    public readonly order: number,
     public readonly exerciseConfig?: ExerciseConfigProps,
     public readonly description?: string,
   ) {
@@ -34,7 +35,7 @@ export class CreateLessonRequest {
     }
 
     if(!ExerciseConfig.isValid(this.exerciseConfig?.type || '')) {
-      throw new Error('Configuración de ejercicio inválida. Debe de ser fill_blank, multiple_choice, code_completion, true_false, open_ended');
+      throw new Error('Configuración de ejercicio inválida. Debe de ser fill_blank, multiple_choice, code_completion, true_false');
     }
 
     if (this.exerciseConfig?.maxPoints && (this.exerciseConfig.maxPoints < 0 || this.exerciseConfig.maxPoints > 50)) {

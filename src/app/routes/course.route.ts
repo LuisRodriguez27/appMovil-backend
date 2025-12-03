@@ -5,6 +5,7 @@ import { FindAllCoursesController } from "../../context/courses/infrastructure/c
 import { CreateCourseController } from "../../context/courses/infrastructure/controllers/CreateCourseController";
 import { UpdateCourseController } from "../../context/courses/infrastructure/controllers/UpdateCourseController";
 import { DeleteCourseController } from "../../context/courses/infrastructure/controllers/DeleteCourseController";
+import { FindLessonsByCourseIdController } from "../../context/lessons/infrastructure/controllers/FindLessonsByCourseIdController";
 import { UserRepository } from "../../context/users/domain/UserRepository";
 import { verifyFirebaseToken, requireRole } from "../middleware/auth.middleware";
 
@@ -16,6 +17,8 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   const updateCourseController = container.get<UpdateCourseController>("UpdateCourseController");
   const deleteCourseController = container.get<DeleteCourseController>("DeleteCourseController");
 
+  const findLessonsByCourseIdController = container.get<FindLessonsByCourseIdController>("FindLessonsByCourseIdController");
+
   const userRepository = container.get<UserRepository>("UserRepository");
 
   const authMiddleware = verifyFirebaseToken(userRepository);
@@ -24,6 +27,8 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   app.get("/courses", authMiddleware, requireRole(['student', 'admin']), (req, res) => findAllCoursesController.run(req, res));
 
   app.get("/courses/:id", authMiddleware, requireRole(['student', 'admin']), (req, res) => findCourseByIdController.run(req, res));
+
+  app.get("/courses/:courseId/lessons", authMiddleware, requireRole(['student', 'admin']), (req, res) => findLessonsByCourseIdController.run(req, res));
 
   app.post("/courses", authMiddleware, requireRole(['admin']), (req, res) => createCourseController.run(req, res));
 

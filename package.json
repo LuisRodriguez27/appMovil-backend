@@ -8,7 +8,8 @@
     "build": "rimraf dist && tsc -p tsconfig.prod.json",
     "start": "node dist/index.js",
     "generate:token": "ts-node src/scripts/auth/generateAuthToken.ts",
-    "get:token": "ts-node src/scripts/auth/getIdToken.ts"
+    "get:token": "ts-node src/scripts/auth/getIdToken.ts",
+    "CreateLessons": "ts-node src/scripts/lessons/createLessonsForSubtopics.ts"
   },
   "keywords": [],
   "author": "",
@@ -25,9 +26,11 @@
     "errorhandler": "^1.5.1",
     "express": "^4.21.2",
     "express-promise-router": "^4.1.1",
+    "express-ws": "^5.0.2",
     "fast-glob": "^3.3.3",
     "firebase-admin": "^13.5.0",
     "form-data": "^4.0.4",
+    "google-auth-library": "^10.5.0",
     "helmet": "^8.1.0",
     "http-status": "^2.1.0",
     "jsonwebtoken": "^9.0.2",
@@ -48,6 +51,7 @@
     "uid": "^2.0.2",
     "uuid": "^13.0.0",
     "winston": "^3.18.3",
+    "ws": "^8.18.3",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -56,6 +60,7 @@
     "@types/cors": "^2.8.19",
     "@types/errorhandler": "^1.5.3",
     "@types/express": "^4.17.23",
+    "@types/express-ws": "^3.0.6",
     "@types/helmet": "^0.0.48",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
@@ -65,6 +70,7 @@
     "@types/supertest": "^6.0.3",
     "@types/uuid": "^10.0.0",
     "@types/winston": "^2.4.4",
+    "@types/ws": "^8.18.1",
     "cross-env": "^10.1.0",
     "jest": "^30.2.0",
     "supertest": "^7.1.4",

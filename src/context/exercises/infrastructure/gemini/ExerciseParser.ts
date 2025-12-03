@@ -3,21 +3,18 @@ import { ExerciseContent, createExerciseContent } from '../../domain/value-objec
 
 export class ExerciseParser {
   static parse(type: ExerciseType, geminiResponse: string): ExerciseContent {
+    let cleanedResponse = '';
     try {
       // Limpiar la respuesta de posibles artifacts
-      let cleanedResponse = geminiResponse.trim();
+      cleanedResponse = geminiResponse.trim();
 
       // Remover bloques de código markdown si existen
       cleanedResponse = cleanedResponse.replace(/```json\n?/g, '');
       cleanedResponse = cleanedResponse.replace(/```\n?/g, '');
       cleanedResponse = cleanedResponse.trim();
-
-      // console.log('=== JSON A PARSEAR (ExerciseParser.parse) ===');
-      // console.log('Tipo de ejercicio:', type);
-      // console.log('Longitud respuesta original:', geminiResponse.length);
-      // console.log('Longitud respuesta limpia:', cleanedResponse.length);
-      // console.log('Contenido limpio:', cleanedResponse);
-      // console.log('=== FIN JSON A PARSEAR ===');
+      
+      // Intentar remover comas flotantes (trailing commas) que son un error común de la IA
+      cleanedResponse = cleanedResponse.replace(/,\s*([}\]])/g, '$1');
 
       // Parsear JSON
       const data = JSON.parse(cleanedResponse);
@@ -30,11 +27,17 @@ export class ExerciseParser {
     } catch (error) {
       console.error('Error parsing Gemini response:', error);
       console.error('Raw response:', geminiResponse);
+      console.error('Cleaned response attempt:', cleanedResponse);
       throw new Error(`Error al parsear la respuesta de Gemini: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
 
   private static validateExerciseData(type: ExerciseType, data: any): void {
+    // Validar campo tip si existe
+    if (data.tip && typeof data.tip !== 'string') {
+      throw new Error('Campo "tip" debe ser un string');
+    }
+
     switch (type) {
       case 'fill_blank':
         if (!data.text || typeof data.text !== 'string') {
@@ -77,6 +80,9 @@ export class ExerciseParser {
         if (!data.starterCode || typeof data.starterCode !== 'string') {
           throw new Error('Campo "starterCode" requerido');
         }
+        if (!data.correctCode || typeof data.correctCode !== 'string') {
+          throw new Error('Campo "correctCode" requerido para code_completion');
+        }
         break;
 
       case 'true_false':
@@ -88,12 +94,27 @@ export class ExerciseParser {
         }
         break;
 
-      case 'open_ended':
-        if (!data.question || typeof data.question !== 'string') {
-          throw new Error('Campo "question" requerido para open_ended');
+      case 'flowchart':
+        if (!data.title || typeof data.title !== 'string') {
+          throw new Error('Campo "title" requerido para flowchart');
         }
-        if (!Array.isArray(data.evaluationCriteria)) {
-          throw new Error('Campo "evaluationCriteria" debe ser un array');
+        if (!Array.isArray(data.nodes) || data.nodes.length === 0) {
+          throw new Error('Campo "nodes" debe ser un array no vacío');
+        }
+        
+        // Para flowcharts: NO se requieren incorrectLabels
+        // El banco de etiquetas será SOLO las correctas de todos los nodos vacíos
+        data.nodes.forEach((node: any, index: number) => {
+          if (!node.id || !node.type || !node.position || !node.correctLabel) {
+            throw new Error(`Nodo ${index} inválido: debe tener "id", "type", "position" y "correctLabel"`);
+          }
+          
+          // Asegurar que incorrectLabels sea un array vacío para flowcharts
+          node.incorrectLabels = [];
+        });
+        
+        if (!Array.isArray(data.connections)) {
+          throw new Error('Campo "connections" debe ser un array');
         }
         break;
 
@@ -110,11 +131,6 @@ export class ExerciseParser {
       cleanedResponse = cleanedResponse.replace(/```\n?/g, '');
       cleanedResponse = cleanedResponse.trim();
 
-      console.log('=== JSON A PARSEAR (ExerciseParser.parseEvaluation) ===');
-      console.log('Longitud respuesta original:', geminiResponse.length);
-      console.log('Longitud respuesta limpia:', cleanedResponse.length);
-      console.log('Contenido limpio:', cleanedResponse);
-      console.log('=== FIN JSON A PARSEAR ===');
 
       const data = JSON.parse(cleanedResponse);
 

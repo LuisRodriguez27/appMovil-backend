@@ -48,7 +48,7 @@ export class User {
       data.name,
       data.email,
       data.role,
-      data.xp,
+      data.xp || 0,
       Progress.create(data.progress),
       data.achievements,
       data.streakData ? StreakData.fromPrimitives(data.streakData) : undefined,

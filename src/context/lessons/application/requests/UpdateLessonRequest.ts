@@ -28,7 +28,7 @@ export class UpdateLessonRequest {
     // Exercise config (solo validar si existe)
     if (this.exerciseConfig !== undefined) {
       if (!ExerciseConfig.isValid(this.exerciseConfig?.type || '')) {
-        throw new Error('Configuración de ejercicio inválida. Debe de ser fill_blank, multiple_choice, code_completion, true_false, open_ended');
+        throw new Error('Configuración de ejercicio inválida. Debe de ser fill_blank, multiple_choice, code_completion, true_false');
       }
 
       if (this.exerciseConfig?.maxPoints && (this.exerciseConfig.maxPoints < 0 || this.exerciseConfig.maxPoints > 50)) {

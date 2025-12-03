@@ -33,7 +33,7 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   app.put('/users/:id', authMiddleware, requireOwnershipOrAdmin, updateUserController.run.bind(updateUserController));
   app.delete('/users/:id', authMiddleware, requireRole(['admin']), deleteUserController.run.bind(deleteUserController));
   app.patch('/users/:id/xp', authMiddleware, requireOwnershipOrAdmin, updateUserXPController.run.bind(updateUserXPController));
-  app.post('/users/:userId/enroll', authMiddleware, requireRole(['admin']), enrollUserInCourseController.run.bind(enrollUserInCourseController));
+  app.post('/users/:userId/enroll', authMiddleware, requireRole(['student']), enrollUserInCourseController.run.bind(enrollUserInCourseController));
   app.get('/admin/students-progress', authMiddleware, requireRole(['admin', 'student']), adminUserController.getStudentProgress.bind(adminUserController));
   app.get('/users/:id/courses', authMiddleware, requireOwnershipOrAdmin, getUserCoursesController.run.bind(getUserCoursesController));
   app.post('/users/:id/courses', authMiddleware, requireOwnershipOrAdmin, addCoursesToUserController.run.bind(addCoursesToUserController));

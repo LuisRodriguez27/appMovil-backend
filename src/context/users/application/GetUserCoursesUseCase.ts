@@ -76,7 +76,9 @@ export class GetUserCoursesUseCase {
           progress: {
             completedCount: courseProgress?.completedCount || 0,
             percentage: courseProgress?.percentage || 0,
-            lastLessonCompletedId: courseProgress?.lastLessonCompletedId || '',
+            lastLessonCompletedId: courseProgress?.completedLessons && courseProgress.completedLessons.length > 0 
+              ? courseProgress.completedLessons[courseProgress.completedLessons.length - 1] 
+              : '',
             nextLessonId: courseProgress?.nextLessonId || '',
           },
         });

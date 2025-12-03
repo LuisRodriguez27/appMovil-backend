@@ -1,5 +1,7 @@
 import { UserRepository } from '../../users/domain/UserRepository';
 import { LessonRepository } from '../../lessons/domain/LessonRepository';
+import { CourseRepository } from '../../courses/domain/CourseRepository';
+import { NextLessonCalculator } from '../../courses/application/NextLessonCalculator';
 import { CurrentAttempt } from '../../users/domain/value-objects/CurrentAttempt';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -15,12 +17,15 @@ export interface SubmitExerciseAnswerResponse {
   status: 'approvedExcellent' | 'approvedImprove' | 'rejected';
   message: string;
   score: number;
+  nextLessonId?: string;
 }
 
 export class SubmitExerciseAnswerUseCase {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly lessonRepository: LessonRepository
+    private readonly lessonRepository: LessonRepository,
+    private readonly courseRepository: CourseRepository,
+    private readonly nextLessonCalculator: NextLessonCalculator
   ) {}
 
   async execute(request: SubmitExerciseAnswerRequest): Promise<SubmitExerciseAnswerResponse> {
@@ -55,9 +60,7 @@ export class SubmitExerciseAnswerUseCase {
     // 5. Generar ID de intento único
     const attemptId = uuidv4();
 
-    // 6. Crear el intento usando el value object CurrentAttempt
-    // Nota: Como la validación ahora es en el front, no tenemos userAnswer.
-    // Usamos un marcador para indicar que fue validado en cliente.
+    // 6. Crear el intento
     const attempt = CurrentAttempt.create({
       lessonId: request.lessonId,
       attemptId,
@@ -72,20 +75,42 @@ export class SubmitExerciseAnswerUseCase {
       }
     });
 
-    // 7. Guardar el intento en Firestore usando el repositorio
-    await this.userRepository.createAttempt(request.userId, attempt);
+    // 7. Actualizar el usuario con el intento
+    user.createAttempt(attempt);
 
-    // 8. Si aprobó, podríamos necesitar actualizar progreso (depende de la implementación de createAttempt o si hay otro caso de uso)
-    // Por ahora, asumimos que createAttempt maneja la lógica básica o que se manejará por separado.
-    // (En el flujo anterior, ValidateExerciseAnswerUseCase no parecía actualizar XP explícitamente, 
-    //  pero UserRepository.updateAttemptWithEvaluation podría haberlo hecho.
-    //  Aquí estamos creando el intento ya evaluado).
+    let nextLessonIdString = '';
+
+    // 8. Si aprobó, actualizar progreso
+    if (status === 'approvedExcellent' || status === 'approvedImprove') {
+      const allLessonsForCourse = await this.lessonRepository.findByCourseId(request.courseId);
+
+      // Calcular nextLessonId usando el nuevo servicio
+      nextLessonIdString = await this.nextLessonCalculator.findNextLessonId(request.courseId, request.lessonId);
+
+      // Actualizar lección completada
+      user.completeLesson(
+        request.courseId, 
+        request.lessonId, 
+        nextLessonIdString, 
+        allLessonsForCourse.length
+      );
+
+      // Agregar XP (score / 2)
+      user.addXP(Math.floor(request.score / 2));
+      
+      // Actualizar estadísticas generales
+      user.completeExercise(request.score);
+    }
+
+    // 9. Guardar usuario actualizado (cubre createAttempt y updateProgress)
+    await this.userRepository.update(user);
 
     return {
       attemptId,
       status,
       message: status === 'rejected' ? 'Inténtalo de nuevo' : '¡Ejercicio completado!',
-      score: request.score
+      score: request.score,
+      nextLessonId: nextLessonIdString || undefined
     };
   }
 }

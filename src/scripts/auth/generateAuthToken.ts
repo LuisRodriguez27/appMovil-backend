@@ -45,10 +45,8 @@ async function createTestUser(options: TokenOptions): Promise<void> {
         emailVerified: true,
         displayName: options.role === 'admin' ? 'Test Admin' : 'Test Student',
       });
-      console.log(`✅ Usuario creado en Firebase Auth: ${options.uid}`);
     } catch (error: any) {
       if (error.code === 'auth/uid-already-exists') {
-        console.log(`ℹ️  Usuario ya existe en Firebase Auth: ${options.uid}`);
       } else {
         throw error;
       }
@@ -64,7 +62,6 @@ async function main() {
   const args = process.argv.slice(2);
 
   if (args.length < 2) {
-    console.log(`
 ❌ Error: Faltan argumentos
 
 Uso:
@@ -87,7 +84,6 @@ Roles disponibles: student, admin
     process.exit(1);
   }
 
-  console.log('🔥 Inicializando Firebase...\n');
   configureFirebase();
 
   const options: TokenOptions = {
@@ -96,35 +92,15 @@ Roles disponibles: student, admin
     email,
   };
 
-  console.log('📝 Configuración:');
-  console.log(`   UID:   ${options.uid}`);
-  console.log(`   Role:  ${options.role}`);
-  console.log(`   Email: ${options.email || `${options.uid}@test.com`}\n`);
 
   // Crear usuario en Firebase Auth si no existe
   await createTestUser(options);
 
   // Generar custom token
-  console.log('\n🔑 Generando custom token...\n');
   const customToken = await generateCustomToken(options);
 
-  console.log('✅ Custom Token generado exitosamente!\n');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('📋 CUSTOM TOKEN (usa este en el siguiente paso):');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-  console.log(customToken);
-  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-  console.log('📌 IMPORTANTE: Este custom token debe intercambiarse por un ID token.');
-  console.log('   Sigue estos pasos:\n');
-  console.log('1️⃣  Copia el custom token de arriba');
-  console.log('2️⃣  Intercámbialo por un ID token usando la API de Firebase:');
-  console.log('    POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=YOUR_API_KEY');
-  console.log('    Body: { "token": "<CUSTOM_TOKEN>", "returnSecureToken": true }');
-  console.log('3️⃣  Usa el "idToken" del response en Postman como:');
-  console.log('    Authorization: Bearer <ID_TOKEN>\n');
 
-  console.log('💡 TIP: También puedes usar el script "exchangeToken.ts" para intercambiar automáticamente.\n');
 
   process.exit(0);
 }

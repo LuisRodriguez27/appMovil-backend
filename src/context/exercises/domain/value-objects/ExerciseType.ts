@@ -1,11 +1,11 @@
-export type ExerciseType = 'fill_blank' | 'multiple_choice' | 'code_completion' | 'true_false' | 'open_ended';
+export type ExerciseType = 'fill_blank' | 'multiple_choice' | 'code_completion' | 'true_false' | 'flowchart';
 
 export const EXERCISE_TYPES: ExerciseType[] = [
   'fill_blank',
   'multiple_choice',
   'code_completion',
   'true_false',
-  'open_ended'
+  'flowchart'
 ];
 
 export function isValidExerciseType(type: string): type is ExerciseType {

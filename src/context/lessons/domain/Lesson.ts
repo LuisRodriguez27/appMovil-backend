@@ -8,6 +8,7 @@ export class Lesson {
     public readonly subtopicId: string | null,
     private title: string,
     private content: string,
+    private order: number, // Añadido
     private exerciseConfig?: ExerciseConfig,
     private description?: string,
     public readonly createdAt: Date = new Date(),
@@ -30,6 +31,7 @@ export class Lesson {
       data.subtopicId,
       data.title,
       data.content,
+      data.order ?? 0, // Añadido
       exerciseConfig,
       data.description,
       now
@@ -51,6 +53,7 @@ export class Lesson {
       data.subtopicId,
       data.title,
       data.content,
+      data.order ?? 0, // Añadido
       exerciseConfig,
       data.description,
       data.createdAt
@@ -64,6 +67,7 @@ export class Lesson {
       subtopicId: this.subtopicId,
       title: this.title,
       content: this.content,
+      order: this.order, // Añadido
       exerciseConfig: this.exerciseConfig?.toPrimitives(),
       description: this.description,
       createdAt: this.createdAt,
@@ -75,6 +79,7 @@ export class Lesson {
     if (data.title !== undefined) this.title = data.title;
     if (data.content !== undefined) this.content = data.content;
     if (data.description !== undefined) this.description = data.description;
+    if (data.order !== undefined) this.order = data.order; // Añadido
 
     if (data.exerciseConfig !== undefined) {
       if (data.exerciseConfig === null) {
@@ -102,6 +107,7 @@ export interface LessonPrimitives {
   subtopicId: string | null;  // null = lección final
   title: string;
   content: string;  // Markdown
+  order: number; // Añadido
   exerciseConfig?: ExerciseConfigProps | ExerciseConfig;
   description?: string;
   createdAt: Date;

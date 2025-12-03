@@ -12,6 +12,7 @@ export interface GoogleAuthResponse {
     profilePicture?: string;
     xp?: number;
     currentCourseId?: string;
+    progress?: any; // Progreso del usuario (lecciones completadas, etc.)
   };
   isNewUser: boolean;
   needsOnboarding: boolean;
@@ -62,6 +63,7 @@ export class GoogleAuthUseCase {
           profilePicture: user.getProfilePicture(),
           xp: user.getXP(),
           currentCourseId: user.getCurrentCourseId(),
+          progress: user.getProgress() ? user.toPrimitives().progress : undefined,
         },
         isNewUser: false,
         needsOnboarding,
@@ -103,6 +105,7 @@ export class GoogleAuthUseCase {
         profilePicture: newUser.getProfilePicture(),
         xp: newUser.getXP(),
         currentCourseId: newUser.getCurrentCourseId(),
+        progress: newUser.getProgress() ? newUser.toPrimitives().progress : undefined,
       },
       isNewUser: true,
       needsOnboarding: true, // Los nuevos usuarios siempre necesitan completar onboarding

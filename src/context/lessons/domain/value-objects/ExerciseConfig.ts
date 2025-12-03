@@ -3,7 +3,7 @@ const VALID_EXERCISE_TYPES = [
   'multiple_choice',
   'code_completion',
   'true_false',
-  'open_ended'
+  'flowchart'
 ] as const;
 
 export type ExerciseType = typeof VALID_EXERCISE_TYPES[number];

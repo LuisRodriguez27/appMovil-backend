@@ -17,15 +17,15 @@ export class UserStats {
     );
   }
 
-  static fromPrimitives(data: {
-    totalLessonsCompleted: number;
-    totalExercisesCompleted: number;
-    totalCoursesCompleted: number;
+  static fromPrimitives(data?: {
+    totalLessonsCompleted?: number;
+    totalExercisesCompleted?: number;
+    totalCoursesCompleted?: number;
   }): UserStats {
     return new UserStats(
-      data.totalLessonsCompleted,
-      data.totalExercisesCompleted,
-      data.totalCoursesCompleted
+      data?.totalLessonsCompleted || 0,
+      data?.totalExercisesCompleted || 0,
+      data?.totalCoursesCompleted || 0
     );
   }
 

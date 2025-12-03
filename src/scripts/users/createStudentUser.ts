@@ -36,10 +36,6 @@ async function createStudentUser() {
       .doc(studentUserData.__id)
       .set(studentUserData);
 
-    console.log('✅ Usuario estudiante creado exitosamente en Firestore');
-    console.log('📧 Email:', studentUserData.email);
-    console.log('🆔 ID:', studentUserData.__id);
-    console.log('👤 Rol:', studentUserData.role);
 
     // Ahora crear el usuario en Firebase Authentication
     try {
@@ -50,15 +46,8 @@ async function createStudentUser() {
         displayName: studentUserData.name,
       });
 
-      console.log('✅ Usuario creado en Firebase Authentication');
-      console.log('🔑 UID:', userRecord.uid);
-      console.log('🔐 Password temporal: Student123!');
-      console.log('\n🎯 Para obtener el token, usa este endpoint:');
-      console.log('POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=YOUR_API_KEY');
-      console.log('Body: { "email": "student@test.com", "password": "Student123!", "returnSecureToken": true }');
     } catch (authError: any) {
       if (authError.code === 'auth/email-already-exists') {
-        console.log('⚠️  Usuario ya existe en Firebase Auth, solo se actualizó Firestore');
       } else {
         console.error('❌ Error creando usuario en Firebase Auth:', authError.message);
       }

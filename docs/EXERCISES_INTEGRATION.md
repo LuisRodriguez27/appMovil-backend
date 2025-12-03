@@ -96,7 +96,6 @@ Valida una respuesta de forma síncrona.
     // Para multiple_choice: { "selectedOptionId": "a" }
     // Para fill_blank: { "answers": ["var", "let", "const"] }
     // Para true_false: { "answer": true }
-    // Para open_ended: { "answer": "texto de respuesta..." }
     // Para code_completion: { "code": "function..." }
   }
 }
@@ -268,30 +267,6 @@ Verdadero o falso.
 ```json
 {
   "answer": false
-}
-```
-
-### 5. open_ended
-
-Pregunta abierta.
-
-**Contenido generado**:
-```json
-{
-  "question": "Explica la diferencia entre let y var",
-  "evaluationCriteria": [
-    "Menciona el scope",
-    "Explica el hoisting",
-    "Da ejemplos"
-  ],
-  "sampleAnswer": "let tiene scope de bloque..."
-}
-```
-
-**Respuesta esperada**:
-```json
-{
-  "answer": "let tiene scope de bloque mientras que var..."
 }
 ```
 
