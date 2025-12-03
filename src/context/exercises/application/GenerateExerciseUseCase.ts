@@ -1,6 +1,5 @@
 import { LessonRepository } from '../../lessons/domain/LessonRepository';
 import { SubtopicRepository } from '../../subtopics/domain/SubtopicRepository';
-import { Exercise } from '../domain/Exercise';
 import { GeminiExerciseGenerator } from '../infrastructure/gemini/GeminiExerciseGenerator';
 import { GenerateExerciseRequest } from './requests/GenerateExerciseRequest';
 import { ExerciseDTO } from './dtos/ExerciseDTO';
@@ -40,7 +39,6 @@ export class GenerateExerciseUseCase {
     }
 
     // 5. Generar ejercicios con Gemini (con reintentos por cada configuración)
-    const exercises: ExerciseDTO[] = [];
     
     let configsToProcess = lessonPrimitives.exerciseConfigs;
     if (request.exerciseIndex !== undefined) {
@@ -50,12 +48,11 @@ export class GenerateExerciseUseCase {
         configsToProcess = [configsToProcess[request.exerciseIndex]];
     }
 
-    for (const config of configsToProcess) {
+    const exercisePromises = configsToProcess.map(async (config) => {
       let attempts = 0;
       const maxAttempts = 3;
-      let success = false;
-
-      while (attempts < maxAttempts && !success) {
+      
+      while (attempts < maxAttempts) {
         try {
           const requestId = new Date().toISOString() + Math.random(); // Generate a unique ID for variation
           const exercise = await this.geminiGenerator.generateExercise({
@@ -65,18 +62,19 @@ export class GenerateExerciseUseCase {
             instructions: config.instructions,
             type: config.type,
             maxPoints: config.maxPoints,
-            requestId: requestId // Pass the unique ID
+            requestId: requestId 
           });
 
-          exercises.push(ExerciseMapper.toDTO(exercise));
-          success = true;
+          return ExerciseMapper.toDTO(exercise);
 
         } catch (error: any) {
           attempts++;
 
           if (attempts >= maxAttempts) {
-            console.error(`❌ Todos los intentos fallaron para lección ${request.lessonId} y configuración ${config.type}`);
-            throw error;
+             console.error(`❌ Todos los intentos fallaron para lección ${request.lessonId} y configuración ${config.type}`);
+             // Si falla después de todos los intentos, lanzamos error para que Promise.all falle
+             // O podríamos retornar null y filtrar después si queremos éxito parcial
+             throw error; 
           }
 
           // Esperar antes de reintentar (backoff exponencial)
@@ -84,7 +82,10 @@ export class GenerateExerciseUseCase {
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
-    }
+      throw new Error('Unexpected error in loop'); // Should not reach here
+    });
+
+    const exercises = await Promise.all(exercisePromises);
 
     return exercises;
   }
