@@ -78,25 +78,35 @@ class ApplicationServer {
     this.configureMiddleware();
     await this.configureRoutes();
 
-    try {
-      // Listen on all network interfaces (0.0.0.0) to allow connections from local network
-      this.server.listen(ServerOptions.PORT, '0.0.0.0', () => {
+    // Start HTTP server
+    this.server.listen(ServerOptions.PORT, '0.0.0.0', () => {
         const localIP = getLocalNetworkIP();
         logger.info(`Server is running on ${ServerOptions.HOST}:${ServerOptions.PORT}`);
         logger.info(`Server is accessible from local network at http://${localIP}:${ServerOptions.PORT}`);
         logger.info(`Use this IP in your mobile device: ${localIP}`);
-      });
+    });
 
-      // Iniciar WebSocket Server para Voice AI
-      const VOICE_WS_PORT = parseInt(process.env.VOICE_WS_PORT || '3001');
-      this.voiceWebSocket = new VoiceWebSocketServer(VOICE_WS_PORT);
-      const localIP = getLocalNetworkIP();
-      logger.info(`🎙️ Voice WebSocket Server accessible at ws://${localIP}:${VOICE_WS_PORT}`);
-      logger.info(`🤖 Gemini Live API ready for voice interactions`);
+    // Iniciar WebSocket Server para Voice AI con mecanismo de reintento
+    let voiceWsPort = parseInt(process.env.VOICE_WS_PORT || '3001');
+    const MAX_PORT_RETRIES = 5; // Max attempts to find a free port
 
-    } catch (error) {
-      logger.error('Failed to start server:', error);
-      process.exit(1);
+    for (let i = 0; i < MAX_PORT_RETRIES; i++) {
+        try {
+            this.voiceWebSocket = new VoiceWebSocketServer(voiceWsPort);
+            const localIP = getLocalNetworkIP();
+            logger.info(`🎙️ Voice WebSocket Server accessible at ws://${localIP}:${voiceWsPort}`);
+            logger.info(`🤖 Gemini Live API ready for voice interactions`);
+            break; // If successful, exit loop
+        } catch (error: any) {
+            if (error.code === 'EADDRINUSE' && i < MAX_PORT_RETRIES - 1) {
+                logger.warn(`Port ${voiceWsPort} is in use. Trying next port...`);
+                voiceWsPort++; // Increment port and try again
+            } else {
+                logger.error(`Failed to start Voice WebSocket Server after ${i + 1} attempts:`, error);
+                // Do not re-throw, allow the HTTP server to continue running
+                break; // Exit the loop if WS server cannot start after retries or other error
+            }
+        }
     }
   }
 

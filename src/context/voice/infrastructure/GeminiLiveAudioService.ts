@@ -1,6 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { GeminiConfig } from '../../../app/config/config';
 import type { ConversationContext } from './GeminiLiveService';
+import { getGeminiLiveConfig } from './GeminiToolsSchema';
 
 /**
  * 🎙️ SERVICIO EXCLUSIVO PARA AUDIO EN TIEMPO REAL
@@ -17,7 +18,7 @@ import type { ConversationContext } from './GeminiLiveService';
  */
 export class GeminiLiveAudioService {
   private ai: GoogleGenAI;
-  private model = 'gemini-2.5-flash-native-audio-preview-09-2025';
+  private model: string;
   private liveSession: any = null;
   private isConnected = false;
   private audioChunks: Buffer[] = [];
@@ -29,6 +30,10 @@ export class GeminiLiveAudioService {
       throw new Error('❌ Gemini API key no configurada');
     }
     this.ai = new GoogleGenAI({ apiKey: key });
+
+    const config = getGeminiLiveConfig();
+    this.model = config.model;
+
     console.log('✅ GeminiLiveAudioService inicializado');
   }
 
@@ -46,6 +51,7 @@ export class GeminiLiveAudioService {
       // Configuración según el tipo de respuesta deseado
       const config = {
         response_modalities: responseType === 'audio' ? ['AUDIO'] : ['TEXT'],
+        enable_affective_dialog: true,
         systemInstruction,
         generationConfig: {
           temperature: 0.7,
