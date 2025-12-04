@@ -34,12 +34,12 @@ export class CreateLessonRequest {
       throw new Error('Contenido es requerido');
     }
 
-    if (this.exerciseConfigs.length > 3) {
-      throw new Error('No se pueden tener más de 3 configuraciones de ejercicios');
+    if (this.exerciseConfigs.length > 5) {
+      throw new Error('No se pueden tener más de 5 configuraciones de ejercicios');
     }
 
     this.exerciseConfigs.forEach((config, index) => {
-      if(!ExerciseConfig.isValid(config.type || '')) {
+      if (!ExerciseConfig.isValid(config.type || '')) {
         throw new Error(`Configuración de ejercicio ${index + 1} inválida. Debe de ser fill_blank, multiple_choice, code_completion, true_false, flowchart`);
       }
 
