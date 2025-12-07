@@ -1,5 +1,7 @@
 import { GoogleAuth } from 'google-auth-library';
+import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 
 /**
  * Servicio para generar tokens de acceso a Gemini Live API
@@ -17,13 +19,43 @@ import * as fs from 'fs';
 export class GeminiLiveTokenService {
   private auth: GoogleAuth;
   private projectId: string;
+  private tempKeyFilePath: string | null = null;
 
   constructor() {
-    // Cargar Service Account para Generative Language API (Google AI Studio)
-    const keyFilePath = process.env.GEMINI_SERVICE_ACCOUNT_KEY;
+    const GEMINI_SERVICE_ACCOUNT_KEY_ENV = process.env.GEMINI_SERVICE_ACCOUNT_KEY;
+    const BASE64_PREFIX = 'BASE64:';
+    let keyFilePath: string;
+    let serviceAccountData: any;
 
-    if (!keyFilePath) {
-      throw new Error('GEMINI_SERVICE_ACCOUNT_KEY no está configurado en .env');
+    if (GEMINI_SERVICE_ACCOUNT_KEY_ENV && GEMINI_SERVICE_ACCOUNT_KEY_ENV.startsWith(BASE64_PREFIX)) {
+      try {
+        const base64Content = GEMINI_SERVICE_ACCOUNT_KEY_ENV.substring(BASE64_PREFIX.length);
+        const decodedContent = Buffer.from(base64Content, 'base64').toString('utf8');
+        serviceAccountData = JSON.parse(decodedContent);
+
+        this.tempKeyFilePath = path.join(os.tmpdir(), `gemini-live-service-account-${Date.now()}.json`);
+        fs.writeFileSync(this.tempKeyFilePath, decodedContent);
+        keyFilePath = this.tempKeyFilePath;
+
+        process.on('exit', () => this.cleanupTempFile());
+        process.on('SIGINT', () => {
+          this.cleanupTempFile();
+          process.exit();
+        });
+
+        console.log('🔑 Using Gemini Live service account key from BASE64 encoded environment variable (GEMINI_SERVICE_ACCOUNT_KEY).');
+      } catch (error) {
+        console.error('Error decoding GEMINI_SERVICE_ACCOUNT_KEY (BASE64), falling back to file path:', error);
+        keyFilePath = GEMINI_SERVICE_ACCOUNT_KEY_ENV; // Fallback
+      }
+    } else if (GEMINI_SERVICE_ACCOUNT_KEY_ENV) {
+      keyFilePath = GEMINI_SERVICE_ACCOUNT_KEY_ENV;
+      serviceAccountData = require(keyFilePath);
+      console.log('🔑 Using Gemini Live service account key from file path in environment variable (GEMINI_SERVICE_ACCOUNT_KEY).');
+    } else {
+      keyFilePath = path.join(process.cwd(), 'serviceAccountKey-gemini-live.json');
+      serviceAccountData = require(keyFilePath);
+      console.warn('⚠️ GEMINI_SERVICE_ACCOUNT_KEY environment variable is not set. Falling back to key file at project root. Consider setting this variable for production environments or using BASE64 encoding.');
     }
 
     this.auth = new GoogleAuth({
@@ -35,13 +67,18 @@ export class GeminiLiveTokenService {
       ],
     });
 
-    // Cargar project ID del service account
-    const serviceAccountContent = fs.readFileSync(keyFilePath, 'utf-8');
-    const serviceAccount = JSON.parse(serviceAccountContent);
-    this.projectId = serviceAccount.project_id;
+    this.projectId = serviceAccountData.project_id;
 
-    console.log(`🔑 Service Account cargado: ${serviceAccount.client_email}`);
+    console.log(`🔑 Service Account cargado: ${serviceAccountData.client_email}`);
     console.log(`📦 Project ID: ${this.projectId}`);
+  }
+
+  private cleanupTempFile() {
+    if (this.tempKeyFilePath && fs.existsSync(this.tempKeyFilePath)) {
+      fs.unlinkSync(this.tempKeyFilePath);
+      console.log(`Cleaned up temporary Gemini Live key file: ${this.tempKeyFilePath}`);
+      this.tempKeyFilePath = null;
+    }
   }
 
   /**
