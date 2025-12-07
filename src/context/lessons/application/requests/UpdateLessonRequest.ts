@@ -4,7 +4,7 @@ export class UpdateLessonRequest {
   constructor(
     public readonly title?: string,
     public readonly content?: string,
-    public readonly exerciseConfig?: ExerciseConfigProps,
+    public readonly exerciseConfigs?: ExerciseConfigProps[],
     public readonly description?: string,
   ) {
     this.validate();
@@ -26,14 +26,20 @@ export class UpdateLessonRequest {
     }
 
     // Exercise config (solo validar si existe)
-    if (this.exerciseConfig !== undefined) {
-      if (!ExerciseConfig.isValid(this.exerciseConfig?.type || '')) {
-        throw new Error('Configuración de ejercicio inválida. Debe de ser fill_blank, multiple_choice, code_completion, true_false');
+    if (this.exerciseConfigs !== undefined) {
+      if (this.exerciseConfigs.length > 3) {
+        throw new Error('No se pueden tener más de 3 configuraciones de ejercicios');
       }
 
-      if (this.exerciseConfig?.maxPoints && (this.exerciseConfig.maxPoints < 0 || this.exerciseConfig.maxPoints > 50)) {
-        throw new Error('Los puntos máximos del ejercicio deben estar entre 0 y 50');
-      }
+      this.exerciseConfigs.forEach((config, index) => {
+        if (!ExerciseConfig.isValid(config.type || '')) {
+          throw new Error(`Configuración de ejercicio ${index + 1} inválida. Debe de ser fill_blank, multiple_choice, code_completion, true_false, flowchart`);
+        }
+
+        if (config.maxPoints && (config.maxPoints < 0 || config.maxPoints > 50)) {
+          throw new Error(`Los puntos máximos del ejercicio ${index + 1} deben estar entre 0 y 50`);
+        }
+      });
     }
 
     if (this.description && this.description.length > 500) {

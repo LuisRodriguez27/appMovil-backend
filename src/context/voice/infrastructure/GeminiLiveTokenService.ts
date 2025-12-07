@@ -21,7 +21,7 @@ export class GeminiLiveTokenService {
   constructor() {
     // Cargar Service Account para Generative Language API (Google AI Studio)
     const keyFilePath = path.join(__dirname, '../../../../serviceAccountKey-gemini-live.json');
-    
+
     this.auth = new GoogleAuth({
       keyFile: keyFilePath,
       scopes: [
@@ -34,7 +34,7 @@ export class GeminiLiveTokenService {
     // Cargar project ID del service account
     const serviceAccount = require(keyFilePath);
     this.projectId = serviceAccount.project_id;
-    
+
     console.log(`🔑 Service Account cargado: ${serviceAccount.client_email}`);
     console.log(`📦 Project ID: ${this.projectId}`);
   }
@@ -54,10 +54,10 @@ export class GeminiLiveTokenService {
     try {
       // Obtener cliente autenticado
       const client = await this.auth.getClient();
-      
+
       // Generar token de acceso
       const tokenResponse = await client.getAccessToken();
-      
+
       if (!tokenResponse.token) {
         throw new Error('No se pudo generar el token de acceso');
       }
@@ -96,7 +96,7 @@ export class GeminiLiveTokenService {
       projectId: this.projectId,
       region: 'us-central1',
       // Gemini 2.5 Flash con audio nativo HD (30 voces, diálogo afectivo)
-      model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+      model: 'models/gemini-live-2.5-flash-preview-native-audio-09-2025',
       wsEndpoint: this.getGeminiLiveEndpoint(),
     };
   }

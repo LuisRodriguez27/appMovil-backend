@@ -7,7 +7,7 @@ export class ValidateExerciseController {
   async run(req: Request, res: Response): Promise<void> {
     try {
       const { lessonId } = req.params;
-      const { userAnswer } = req.body;
+      const { userAnswer, exerciseIndex } = req.body;
 
       if (!lessonId) {
         res.status(400).json({
@@ -28,7 +28,8 @@ export class ValidateExerciseController {
       // Validar la respuesta
       const validation = await this.validateExerciseAnswerUseCase.execute({
         lessonId,
-        userAnswer
+        userAnswer,
+        exerciseIndex: exerciseIndex ?? 0
       });
 
       res.status(200).json({

@@ -85,7 +85,7 @@ async function main() {
   const args = process.argv.slice(2);
 
   if (args.length < 2) {
-❌ Error: Faltan argumentos
+    console.error(`❌ Error: Faltan argumentos
 
 Uso:
   npm run get:token <uid> <role> [email]

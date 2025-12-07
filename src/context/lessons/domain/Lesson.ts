@@ -9,7 +9,7 @@ export class Lesson {
     private title: string,
     private content: string,
     private order: number, // Añadido
-    private exerciseConfig?: ExerciseConfig,
+    private exerciseConfigs: ExerciseConfig[] = [],
     private description?: string,
     public readonly createdAt: Date = new Date(),
   ) {}
@@ -17,12 +17,14 @@ export class Lesson {
   static create(data: Omit<LessonPrimitives, 'id' | 'createdAt'>): Lesson {
     const now = new Date();
 
-    // Convertir exerciseConfig si viene como objeto plano
-    let exerciseConfig: ExerciseConfig | undefined = undefined;
-    if (data.exerciseConfig) {
-      exerciseConfig = data.exerciseConfig instanceof ExerciseConfig
-        ? data.exerciseConfig
-        : ExerciseConfig.fromPrimitives(data.exerciseConfig);
+    // Convertir exerciseConfigs si vienen como objetos planos
+    const exerciseConfigs: ExerciseConfig[] = [];
+    if (data.exerciseConfigs) {
+      data.exerciseConfigs.forEach(config => {
+        exerciseConfigs.push(
+          config instanceof ExerciseConfig ? config : ExerciseConfig.fromPrimitives(config)
+        );
+      });
     }
 
     return new Lesson(
@@ -32,19 +34,21 @@ export class Lesson {
       data.title,
       data.content,
       data.order ?? 0, // Añadido
-      exerciseConfig,
+      exerciseConfigs,
       data.description,
       now
     );
   }
 
   static fromPrimitives(data: LessonPrimitives): Lesson {
-    // Convertir exerciseConfig si existe
-    let exerciseConfig: ExerciseConfig | undefined = undefined;
-    if (data.exerciseConfig) {
-      exerciseConfig = data.exerciseConfig instanceof ExerciseConfig
-        ? data.exerciseConfig
-        : ExerciseConfig.fromPrimitives(data.exerciseConfig);
+    // Convertir exerciseConfigs si existe
+    const exerciseConfigs: ExerciseConfig[] = [];
+    if (data.exerciseConfigs) {
+      data.exerciseConfigs.forEach(config => {
+        exerciseConfigs.push(
+          config instanceof ExerciseConfig ? config : ExerciseConfig.fromPrimitives(config)
+        );
+      });
     }
 
     return new Lesson(
@@ -54,7 +58,7 @@ export class Lesson {
       data.title,
       data.content,
       data.order ?? 0, // Añadido
-      exerciseConfig,
+      exerciseConfigs,
       data.description,
       data.createdAt
     );
@@ -68,7 +72,7 @@ export class Lesson {
       title: this.title,
       content: this.content,
       order: this.order, // Añadido
-      exerciseConfig: this.exerciseConfig?.toPrimitives(),
+      exerciseConfigs: this.exerciseConfigs.map(config => config.toPrimitives()),
       description: this.description,
       createdAt: this.createdAt,
     };
@@ -81,23 +85,29 @@ export class Lesson {
     if (data.description !== undefined) this.description = data.description;
     if (data.order !== undefined) this.order = data.order; // Añadido
 
-    if (data.exerciseConfig !== undefined) {
-      if (data.exerciseConfig === null) {
-        this.exerciseConfig = undefined;
-      } else {
-        this.exerciseConfig = data.exerciseConfig instanceof ExerciseConfig
-          ? data.exerciseConfig
-          : ExerciseConfig.fromPrimitives(data.exerciseConfig);
-      }
+    if (data.exerciseConfigs !== undefined) {
+        this.exerciseConfigs = [];
+        data.exerciseConfigs.forEach(config => {
+            this.exerciseConfigs.push(
+                config instanceof ExerciseConfig ? config : ExerciseConfig.fromPrimitives(config)
+            );
+        });
     }
   }
 
+  public getTotalPoints(): number {
+    if (!this.exerciseConfigs || this.exerciseConfigs.length === 0) {
+      return 0;
+    }
+    return this.exerciseConfigs.reduce((total, config) => total + config.maxPoints, 0);
+  }
+
   // Método para generar prompt de IA (si tiene ejercicio)
-  public generateExercisePrompt(subtopicTitle: string): string | null {
-    if (!this.exerciseConfig) {
+  public generateExercisePrompt(subtopicTitle: string): string[] | null {
+    if (!this.exerciseConfigs || this.exerciseConfigs.length === 0) {
       return null;
     }
-    return this.exerciseConfig.generatePrompt(subtopicTitle);
+    return this.exerciseConfigs.map(config => config.generatePrompt(subtopicTitle));
   }
 }
 
@@ -108,7 +118,7 @@ export interface LessonPrimitives {
   title: string;
   content: string;  // Markdown
   order: number; // Añadido
-  exerciseConfig?: ExerciseConfigProps | ExerciseConfig;
+  exerciseConfigs?: (ExerciseConfigProps | ExerciseConfig)[];
   description?: string;
   createdAt: Date;
 }

@@ -24,11 +24,12 @@ export class FirebaseLessonRepository implements LessonRepository {
     const updateData: any = {
       title: primitives.title,
       content: primitives.content,
+      order: primitives.order,
     };
 
     // Agregar campos opcionales solo si están definidos
-    if (primitives.exerciseConfig !== undefined) {
-      updateData.exerciseConfig = primitives.exerciseConfig;
+    if (primitives.exerciseConfigs !== undefined) {
+      updateData.exercise_configs = primitives.exerciseConfigs;
     }
 
     if (primitives.description !== undefined) {
@@ -174,10 +175,6 @@ export class FirebaseLessonRepository implements LessonRepository {
   private toFirestoreDocument(lesson: LessonPrimitives): LessonDocument {
     const primitives = lesson;
 
-    const exerciseConfig = primitives.exerciseConfig !== undefined && 'toPrimitives' in primitives.exerciseConfig
-      ? primitives.exerciseConfig.toPrimitives()
-      : primitives.exerciseConfig;
-
     // Guardar en snake_case para mantener consistencia con Firebase
     const document: any = {
       __id: primitives.id,
@@ -187,7 +184,7 @@ export class FirebaseLessonRepository implements LessonRepository {
       content: primitives.content,
       order: primitives.order, // Añadido
       created_at: Timestamp.fromDate(primitives.createdAt),
-      ...(exerciseConfig !== undefined ? { exerciseConfig: exerciseConfig } : {}),
+      ...(primitives.exerciseConfigs !== undefined ? { exercise_configs: primitives.exerciseConfigs } : {}),
       ...(primitives.description !== undefined ? { description: primitives.description } : {})
     };
 
@@ -201,6 +198,13 @@ export class FirebaseLessonRepository implements LessonRepository {
       ? createdAtTimestamp.toDate() 
       : new Date();
 
+    // Soporte para estructura antigua (exerciseConfig singular) y nueva (exerciseConfigs array)
+    let exerciseConfigs = document.exerciseConfigs || document.exercise_configs || [];
+    if (exerciseConfigs.length === 0 && (document.exerciseConfig || document.exercise_config)) {
+      const singleConfig = document.exerciseConfig || document.exercise_config;
+      exerciseConfigs = [singleConfig];
+    }
+
     const data = {
       id: document.__id || document.id,
       topicId: document.topicId || document.topic_id,
@@ -208,7 +212,7 @@ export class FirebaseLessonRepository implements LessonRepository {
       title: document.title,
       content: document.content,
       order: document.order ?? 0, // Añadido
-      exerciseConfig: document.exerciseConfig || document.exercise_config,
+      exerciseConfigs: exerciseConfigs,
       description: document.description,
       createdAt: createdAtDate
     };

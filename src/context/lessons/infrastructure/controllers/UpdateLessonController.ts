@@ -11,14 +11,14 @@ export class UpdateLessonController {
       const {
         title,
         content,
-        exerciseConfig,
+        exerciseConfigs,
         description,
       } = req.body;
 
       const request = new UpdateLessonRequest(
         title,
         content,
-        exerciseConfig,
+        exerciseConfigs,
         description
       );
 

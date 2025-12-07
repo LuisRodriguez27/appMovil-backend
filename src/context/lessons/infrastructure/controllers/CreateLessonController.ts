@@ -13,7 +13,7 @@ export class CreateLessonController {
         title,
         content,
         order,
-        exerciseConfig,
+        exerciseConfigs,
         description,
       } = req.body;
 
@@ -23,7 +23,7 @@ export class CreateLessonController {
         title,
         content,
         order,
-        exerciseConfig,
+        exerciseConfigs,
         description,
       );
 

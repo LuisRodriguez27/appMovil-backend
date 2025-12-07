@@ -31,11 +31,12 @@ async function verifyUser(email: string) {
     const userDoc = usersSnapshot.docs[0];
     const userData = userDoc.data();
 
-
-
+    console.log(JSON.stringify({
       email: email,
-      password: userData.role === 'admin' ? 'Admin123!' : 'Student123!',
-      returnSecureToken: true
+      role: userData.role,
+      uid: userDoc.id,
+      auth: 'Exists',
+      firestore: 'Exists'
     }, null, 2));
 
     process.exit(0);

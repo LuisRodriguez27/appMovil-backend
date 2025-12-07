@@ -35,7 +35,7 @@ export class CreateLessonUseCase {
       title: request.title,
       content: request.content,
       order: request.order,
-      exerciseConfig: request.exerciseConfig,
+      exerciseConfigs: request.exerciseConfigs,
       description: request.description,
     });
 

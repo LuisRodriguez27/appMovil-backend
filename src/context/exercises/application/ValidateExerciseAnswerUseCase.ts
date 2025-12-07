@@ -26,14 +26,20 @@ export class ValidateExerciseAnswerUseCase {
 
     // 2. Verificar que la lección tenga configuración de ejercicio
     const lessonPrimitives = lesson.toPrimitives();
-    if (!lessonPrimitives.exerciseConfig) {
+    if (!lessonPrimitives.exerciseConfigs || lessonPrimitives.exerciseConfigs.length === 0) {
       throw new Error(`La lección ${request.lessonId} no tiene configuración de ejercicio`);
     }
 
     // 3. Generar el ejercicio actual (para obtener el contenido con respuestas correctas)
-    const exercise = await this.generateExerciseUseCase.execute({
-      lessonId: request.lessonId
+    const exercises = await this.generateExerciseUseCase.execute({
+      lessonId: request.lessonId,
+      exerciseIndex: request.exerciseIndex ?? 0
     });
+    
+    if (exercises.length === 0) {
+      throw new Error('No se pudo generar el ejercicio para validación');
+    }
+    const exercise = exercises[0];
 
     // 4. Evaluar la respuesta con Gemini
     const evaluation = await this.geminiGenerator.evaluateAnswer(
