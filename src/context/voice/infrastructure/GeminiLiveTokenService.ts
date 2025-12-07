@@ -1,4 +1,5 @@
 import { GoogleAuth } from 'google-auth-library';
+import * as fs from 'fs';
 
 /**
  * Servicio para generar tokens de acceso a Gemini Live API
@@ -35,7 +36,8 @@ export class GeminiLiveTokenService {
     });
 
     // Cargar project ID del service account
-    const serviceAccount = require(keyFilePath);
+    const serviceAccountContent = fs.readFileSync(keyFilePath, 'utf-8');
+    const serviceAccount = JSON.parse(serviceAccountContent);
     this.projectId = serviceAccount.project_id;
 
     console.log(`🔑 Service Account cargado: ${serviceAccount.client_email}`);
