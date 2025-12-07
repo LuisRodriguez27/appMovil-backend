@@ -11,7 +11,6 @@ async function listModels() {
         // @ts-ignore
         for await (const model of result) {
             console.log(`- ${model.name}`);
-            console.log(`  Methods: ${model.supportedGenerationMethods}`);
         }
     }
     catch (error) {

@@ -2,7 +2,6 @@ import { TopicRepository } from '../../topics/domain/TopicRepository';
 import { SubtopicRepository } from '../../subtopics/domain/SubtopicRepository';
 import { LessonRepository } from '../../lessons/domain/LessonRepository';
 import { Subtopic } from '../../subtopics/domain/Subtopic';
-import { Lesson } from '../../lessons/domain/Lesson';
 
 export class NextLessonCalculator {
   constructor(

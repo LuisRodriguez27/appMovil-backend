@@ -127,20 +127,6 @@ export class GeminiLiveService {
   /**
    * Manejar mensajes de Live API (audio + texto)
    */
-  private handleLiveMessage(message: any): void {
-    if (message.serverContent?.modelTurn) {
-      const parts = message.serverContent.modelTurn.parts;
-      
-      for (const part of parts) {
-        if (part.text) {
-          console.log('💬 Texto recibido:', part.text.substring(0, 100));
-        }
-        if (part.inlineData) {
-          console.log('🔊 Audio recibido:', part.inlineData.data.length, 'bytes');
-        }
-      }
-    }
-  }
 
   /**
    * Cerrar sesión Live API

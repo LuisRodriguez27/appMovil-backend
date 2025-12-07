@@ -6,7 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "rimraf dist && tsc -p tsconfig.prod.json",
-    "start": "node dist/index.js",
+    "start": "node dist/src/index.js",
     "generate:token": "ts-node src/scripts/auth/generateAuthToken.ts",
     "get:token": "ts-node src/scripts/auth/getIdToken.ts",
     "CreateLessons": "ts-node src/scripts/lessons/createLessonsForSubtopics.ts"

@@ -1,6 +1,5 @@
 import { UserRepository } from '../../users/domain/UserRepository';
 import { LessonRepository } from '../../lessons/domain/LessonRepository';
-import { CourseRepository } from '../../courses/domain/CourseRepository';
 import { NextLessonCalculator } from '../../courses/application/NextLessonCalculator';
 import { CurrentAttempt } from '../../users/domain/value-objects/CurrentAttempt';
 import { v4 as uuidv4 } from 'uuid';
@@ -24,7 +23,6 @@ export class SubmitExerciseAnswerUseCase {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly lessonRepository: LessonRepository,
-    private readonly courseRepository: CourseRepository,
     private readonly nextLessonCalculator: NextLessonCalculator
   ) {}
 

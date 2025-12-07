@@ -21,6 +21,7 @@ COPY --from=builder /backend/package*.json ./
 
 RUN npm install --only=production
 
-EXPOSE 3000
+# Cloud Run asigna PORT=8080
+EXPOSE 8080
 
 CMD ["npm", "start"]

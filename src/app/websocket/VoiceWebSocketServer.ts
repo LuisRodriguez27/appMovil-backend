@@ -1,5 +1,5 @@
 import WebSocket, { WebSocketServer } from 'ws';
-import { GeminiLiveService, ConversationContext, VoiceResponse } from '../../context/voice/infrastructure/GeminiLiveService';
+import { GeminiLiveService, ConversationContext } from '../../context/voice/infrastructure/GeminiLiveService';
 import { GeminiLiveAudioService } from '../../context/voice/infrastructure/GeminiLiveAudioService';
 import { LessonService, LessonRequest, LessonResponse } from '../../context/voice/infrastructure/LessonService';
 import { VoiceSynthesisService, VoiceRequest } from '../../context/voice/infrastructure/VoiceSynthesisService';
@@ -23,7 +23,6 @@ interface ClientSession {
 
 export class VoiceWebSocketServer {
   private wss: WebSocketServer;
-  private geminiLive: GeminiLiveService;
   private textService: GeminiLiveService;
   private lessonService: LessonService; // ⭐ Nuevo Servicio de Lecciones
   private voiceSynthesisService: VoiceSynthesisService; // ⭐ Nuevo Servicio de Voz
@@ -35,7 +34,6 @@ export class VoiceWebSocketServer {
       perMessageDeflate: false
     });
 
-    this.geminiLive = new GeminiLiveService();
     this.textService = new GeminiLiveService();
     this.lessonService = new LessonService(); // Inicializar
     this.voiceSynthesisService = new VoiceSynthesisService(); // Inicializar
@@ -247,10 +245,6 @@ export class VoiceWebSocketServer {
   }
 
   private handleEndSession(session: ClientSession) {
-    // ...
-  }
-
-  private handleLiveAPIResponse(session: ClientSession, liveMessage: any) {
     // ...
   }
 
