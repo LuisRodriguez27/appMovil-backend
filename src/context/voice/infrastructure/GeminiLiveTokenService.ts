@@ -49,7 +49,11 @@ export class GeminiLiveTokenService {
         keyFilePath = GEMINI_SERVICE_ACCOUNT_KEY_ENV; // Fallback
       }
     } else if (GEMINI_SERVICE_ACCOUNT_KEY_ENV) {
-      keyFilePath = GEMINI_SERVICE_ACCOUNT_KEY_ENV;
+      if (path.isAbsolute(GEMINI_SERVICE_ACCOUNT_KEY_ENV)) {
+        keyFilePath = GEMINI_SERVICE_ACCOUNT_KEY_ENV;
+      } else {
+        keyFilePath = path.resolve(process.cwd(), GEMINI_SERVICE_ACCOUNT_KEY_ENV);
+      }
       serviceAccountData = require(keyFilePath);
       console.log('🔑 Using Gemini Live service account key from file path in environment variable (GEMINI_SERVICE_ACCOUNT_KEY).');
     } else {
