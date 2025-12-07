@@ -1,5 +1,4 @@
 import { GoogleAuth } from 'google-auth-library';
-import * as path from 'path';
 
 /**
  * Servicio para generar tokens de acceso a Gemini Live API
@@ -20,7 +19,11 @@ export class GeminiLiveTokenService {
 
   constructor() {
     // Cargar Service Account para Generative Language API (Google AI Studio)
-    const keyFilePath = path.join(__dirname, '../../../../serviceAccountKey-gemini-live.json');
+    const keyFilePath = process.env.GEMINI_SERVICE_ACCOUNT_KEY;
+
+    if (!keyFilePath) {
+      throw new Error('GEMINI_SERVICE_ACCOUNT_KEY no está configurado en .env');
+    }
 
     this.auth = new GoogleAuth({
       keyFile: keyFilePath,

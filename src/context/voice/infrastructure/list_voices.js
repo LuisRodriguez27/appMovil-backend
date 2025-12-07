@@ -1,9 +1,12 @@
-
 const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
-const path = require('path');
 
 async function listVoices() {
-    const keyFilePath = path.join(__dirname, '../../../../serviceAccountKey-gemini-live.json');
+    const keyFilePath = process.env.GEMINI_SERVICE_ACCOUNT_KEY;
+
+    if (!keyFilePath) {
+        throw new Error('GEMINI_SERVICE_ACCOUNT_KEY no está configurado en .env');
+    }
+
     const client = new TextToSpeechClient({ keyFilename: keyFilePath });
 
     const [result] = await client.listVoices({ languageCode: 'es' });
