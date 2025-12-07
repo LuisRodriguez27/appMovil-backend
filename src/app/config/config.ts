@@ -26,7 +26,7 @@ export const FirebaseConfig = {
     // Método alternativo (Base64)
     serviceAccountBase64: process.env.SERVICE_ACCOUNT_JSON_BASE64,
     // ID de la base de datos en Firestore
-    databaseId: process.env.FIRESTORE_DATABASE_ID || 'chatbot-dev'
+    databaseId: process.env.FIRESTORE_DATABASE_ID
 }
 
 export const GeminiConfig = {

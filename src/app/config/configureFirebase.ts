@@ -53,5 +53,8 @@ export function bucket() {
 }
 
 export function firestore() {
-    return getFirestore(firebaseApp, FirebaseConfig.databaseId);
+    if (FirebaseConfig.databaseId) {
+        return getFirestore(firebaseApp, FirebaseConfig.databaseId);
+    }
+    return getFirestore(firebaseApp);
 }
