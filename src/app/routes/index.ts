@@ -4,13 +4,11 @@ import path from 'path';
 import { ContainerBuilder } from 'node-dependency-injection';
 import fs from 'fs';
 
-const isProd = process.env.NODE_ENV === 'production';
-
 export async function registerRouteFiles(router: Router, container: ContainerBuilder) {
-    const baseDir = isProd ? 'dist' : 'src';
-    const extension = isProd ? 'js' : 'ts';
-
-    const pattern = `${ baseDir }/**/*.route.${ extension }`;
+    const extension = path.extname(__filename).slice(1); // 'ts' or 'js'
+    // Normalize path separators to forward slashes for glob compatibility on Windows
+    const dir = __dirname.replace(/\\/g, '/');
+    const pattern = `${dir}/**/*.route.${extension}`;
 
     const routes = await glob(pattern, { absolute: true });
 
