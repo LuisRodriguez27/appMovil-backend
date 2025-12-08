@@ -23,19 +23,21 @@ export class LessonService {
   }
 
   async generateLessonStream(
-    request: LessonRequest, 
+    request: LessonRequest,
     onChunk: (chunk: string) => void,
     onComplete: (fullResponse: LessonResponse) => void,
     onError: (error: any) => void
   ) {
-    const studentName = request.studentName || "Estudiante";
-    
+    const { CURSO_CONTEXT } = await import('./CourseContext');
+
     const systemInstruction = `
-      Eres un tutor de programación amigable llamado "Profe Gemini".
-      Siempre llamas al estudiante por su nombre: "${studentName}".
+      Eres un tutor de programación experto.
+      
+      ${CURSO_CONTEXT}
       
       TU OBJETIVO:
       Generar una lección estructurada basada en la pregunta del estudiante.
+      Usa el contexto del temario completo para dar respuestas precisas y alineadas con el curso.
       
       FORMATO DE RESPUESTA (OBLIGATORIO JSON):
       Responde SIEMPRE con un objeto JSON válido con esta estructura exacta, sin markdown alrededor:
@@ -50,6 +52,7 @@ export class LessonService {
       - Idioma: Español neutro.
       - Tono: Motivador, claro, para principiantes.
       - No uses bloques de código markdown (triples comillas) dentro del valor JSON de "code", pon el código raw.
+      - Relaciona siempre tu respuesta con los temas del temario cuando sea relevante.
     `;
 
     const userPrompt = `Pregunta: "${request.prompt}". Genera la lección.`;
@@ -85,10 +88,10 @@ export class LessonService {
         // Intentar limpiar markdown si el modelo lo puso
         const cleaned = fullText.replace(/```json/g, "").replace(/```/g, "");
         try {
-            const parsed: LessonResponse = JSON.parse(cleaned);
-            onComplete(parsed);
+          const parsed: LessonResponse = JSON.parse(cleaned);
+          onComplete(parsed);
         } catch (e2) {
-            onError("El modelo no generó un JSON válido. Respuesta raw: " + fullText);
+          onError("El modelo no generó un JSON válido. Respuesta raw: " + fullText);
         }
       }
 

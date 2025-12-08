@@ -22,8 +22,8 @@ export class VoiceSynthesisService {
     onVisualContent: (content: string) => void,
     onComplete: () => void,
     onError: (error: any) => void
-  ) {
-    const studentName = request.studentName || "Estudiante";
+  ): Promise<{ close: () => void }> {
+    const { CURSO_CONTEXT } = await import('./CourseContext');
 
     try {
       console.log('🧠 Generando guion y contenido visual con Gemini...');
@@ -32,8 +32,8 @@ export class VoiceSynthesisService {
       const genAI = new GoogleGenAI({ apiKey: GeminiConfig.apiKey });
 
       const prompt = request.lessonContent
-        ? `Explica este contenido para ${studentName}: ${JSON.stringify(request.lessonContent)}`
-        : `Responde a esto para ${studentName}: ${request.textToRead}`;
+        ? `Explica este contenido: ${JSON.stringify(request.lessonContent)} (Usa ejemplos en JAVA)`
+        : `El estudiante dijo: "${request.textToRead}". Genera la respuesta. (SI NECESITAS CÓDIGO, USA SOLO JAVA)`;
 
       const result = await genAI.models.generateContent({
         model: "gemini-2.0-flash-exp",
@@ -41,29 +41,55 @@ export class VoiceSynthesisService {
         config: {
           systemInstruction: {
             parts: [{
-              text: `Eres "Luna", una tutora de programación experta.
+              text: `Eres "Luna", una tutora de programación experta en JAVA.
+        
+        ${CURSO_CONTEXT}
+        
+        🎯 LENGUAJE DEL CURSO: JAVA (ESTRICTO)
+        - TODOS los ejemplos de código DEBEN SER EN JAVA.
+        - 🚫 PROHIBIDO generar código en Python, JavaScript, C++ o Pseudocódigo salvo que se pida explícitamente comparar.
+        - Si el usuario pide "código" sin especificar lenguaje, ASUME JAVA.
         
         TU TAREA:
-        Eres "Luna", una tutora de programación experta. Tu comportamiento depende del input del usuario:
-
-        CASO 1: SALUDOS O CHARLA CASUAL (ej. "Hola", "Buenos días", "¿Cómo estás?")
-        - Genera un "visual_content" con un saludo cálido, breve y motivador.
-        - Invita al usuario a pedir un tema de Java para comenzar.
-        - NO generes código, ni ejercicios, ni diagramas en este caso.
-
-        CASO 2: SOLICITUD DE TEMA O PREGUNTA TÉCNICA (ej. "Explica variables", "Hola Mundo", "Ciclos")
-        - Genera una respuesta TÉCNICA Y ESTRUCTURADA.
+        Genera contenido visual y un guion DETALLADO para voz basado en lo que pida el estudiante.
+        
+        🚨 REGLA CRÍTICA:
+        - Si el estudiante SOLO saluda (Hola, Buenos días, ¿Qué tal?, etc.) → NO generes código, solo saludo
+        - Si el estudiante PIDE un tema → Genera código/lección EN JAVA
+        - SIEMPRE usa sintaxis de JAVA para los ejemplos de código (public class, System.out.println, tipos estáticos).
         
         FORMATO DE RESPUESTA (JSON):
         {
-          "type": "conversation" | "lesson",
-          "visual_content": "markdown string (SOLO EL CÓDIGO O EJERCICIO LIMPIO para mostrar en pantalla. SIN explicaciones largas.)",
-          "voice_context": "string (GUÍA PARA LA VOZ: Código clave + 3 conceptos breves a explicar + 1 consejo práctico)"
+          "visual_content": "markdown string con código limpio O saludo motivador",
+          "voice_context": "INSTRUCCIONES COMPLETAS Y DETALLADAS para la IA de voz"
         }
         
-        REGLA DE ORO:
-        - Si es saludo -> "type": "conversation", "visual_content": "...", "voice_context": "Saludo".
-        - Si es tema -> "type": "lesson", "visual_content": "\\\`\\\`\\\`java\\n[Código limpio]\\n\\\`\\\`\\\`", "voice_context": "CÓDIGO: [código]. CONCEPTOS: 1. [concepto1], 2. [concepto2]. CONSEJO: [consejo]".`
+        IMPORTANTE PARA voice_context:
+        Genera una INSTRUCCIÓN COMPLETA que incluya:
+        - La situación EXACTA (¿es saludo o pregunta técnica?)
+        - Qué debe decir la voz
+        - Nivel de detalle (básico: línea por línea, avanzado: conceptos clave)
+        - Puntos importantes a mencionar
+        
+        EJEMPLOS:
+        
+        Si es SOLO un saludo ("Hola", "Buenos días"):
+        {
+          "visual_content": "¡Hola! 👋 Soy Luna, tu tutora de programación. Puedo ayudarte con Fundamentos de Programación y Programación Orientada a Objetos.",
+          "voice_context": "SITUACIÓN: El estudiante te saludó. NO pidió ningún tema. TAREA: Salúdalo calurosamente y menciónale 2-3 temas que puede pedir (por ejemplo: variables, algoritmos, POO, herencia). Invítalo a elegir un tema para empezar. NO expliques nada técnico, solo saluda. Habla libremente, con entusiasmo."
+        }
+        
+        Si pide un tema ("Explica variables", "Hola mundo", "¿Qué es herencia?"):
+        {
+          "visual_content": "\`\`\`java\\npublic class HolaMundo {\\n  public static void main(String[] args) {\\n    System.out.println(\\"Hola Mundo\\");\\n  }\\n}\\n\`\`\`",
+          "voice_context": "SITUACIÓN: El estudiante pidió un ejemplo de Hola Mundo en Java. TAREA: Explica el código que ve en pantalla. Como es tema BÁSICO, explica línea por línea: qué es 'public class', 'main', 'System.out.println'. PUNTOS CLAVE: estructura básica de Java, método main como punto de entrada, impresión en consola. CONSEJO: Este es el primer programa que todos escriben."
+        }
+        
+        REGLAS:
+        - visual_content: SOLO código si pidió un tema técnico. Si es saludo, solo texto de bienvenida.
+        - voice_context: INSTRUCCIÓN COMPLETA con situación precisa
+        - Detecta claramente si es SALUDO (sin código) vs PREGUNTA TÉCNICA (con código)
+        - Relaciona siempre con el temario del curso`
             }]
           },
           responseMimeType: "application/json"
@@ -103,44 +129,26 @@ export class VoiceSynthesisService {
       // 2. Generar Audio Nativo con Gemini Live API (SDK)
       console.log('🗣️ Generando audio nativo con Gemini Live (SDK)...');
 
-      // Construimos un prompt dinámico según el tipo de contenido
-      let audioPrompt = "";
+      // ✅ USAR DIRECTAMENTE las instrucciones de Gemini 2.0 Flash
+      const visualContent = generatedData.visual_content;
+      const voiceInstructions = generatedData.voice_context || generatedData.visual_content;
 
-      if (generatedData.type === 'conversation') {
-        // CASO 1: CHARLA CASUAL
-        audioPrompt = `
-         CONTEXTO:
-         El usuario solo está saludando o charlando.
-         
-         TU TAREA:
-         Actúa como "Luna". Responde a este mensaje de forma natural, cálida y breve:
-         "${generatedData.visual_content}"
-         
-         INSTRUCCIONES:
-         - NO expliques nada técnico.
-         - Sé amigable y cercana.
-         - Invita a aprender algo nuevo hoy.
-         `;
-      } else {
-        // CASO 2: LECCIÓN TÉCNICA
-        const technicalContext = generatedData.voice_context || generatedData.visual_content;
+      const audioPrompt = `${voiceInstructions}
 
-        audioPrompt = `
-        CONTEXTO TÉCNICO (estudiante VE en pantalla): "${technicalContext}"
+CONTENIDO VISUAL EN PANTALLA:
+${visualContent}
 
-        🎭 INSTRUCCIONES para LUNA:
-        EXPLICA este ejercicio por voz AHORA MISMO.
-        - LIBRE dentro del contexto técnico
-        - AÑADE tips expertos
-        - Sé PASIONADA: "¡Esto cambia todo!", "¡Imagina esto!"
-        - Pausas naturales: "...piensa...", "¡espera!"
-        - Llama "${studentName}": "¿Ves ${studentName}?", "¡Prueba tú!"
-        - Historia corta: "Como cuando yo empecé..."
-        - Consejo final: "¡Mi truco secreto es..."
+Habla de forma natural, cálida y expresiva. Sigue las instrucciones anteriores.`;
 
-        ¡HABLA COMO PROFESORA REAL! NO limites a 3 puntos.
-         `;
-      }
+      // 📝 MOSTRAR EL TEXTO QUE SE ENVÍA A LA VOZ
+      console.log('📢 ========================================');
+      console.log('📢 TEXTO ENVIADO A VOZ (audioPrompt):');
+      console.log('📢 ========================================');
+      console.log(audioPrompt);
+      console.log('📢 ========================================');
+
+      // Bandera para controlar la parada inmediata
+      let isStopped = false;
 
       const liveSession = await genAI.live.connect({
         model: "models/gemini-2.5-flash-native-audio-preview-09-2025",
@@ -156,12 +164,15 @@ export class VoiceSynthesisService {
           },
           systemInstruction: {
             parts: [{
-              text: `Eres LUNA, tutora CARISMÁTICA de Java.
+              text: `Eres LUNA, tutora CARISMÁTICA de Programación.
+              
+          ${CURSO_CONTEXT}
               
           🎤 PROTOCOLO DE CONSISTENCIA (IMPORTANTE):
           - MANTÉN SIEMPRE EL MISMO PERSONAJE: Eres Luna, no cambies de "rol" ni de "actitud".
           - TU VOZ ES TU IDENTIDAD: Usa siempre el mismo tono cálido y ritmo pausado.
           - NO "ACTÚES" DIFERENTE: Aunque el tema cambie, tú sigues siendo la misma Luna amable.
+          - CONOCES TODO EL TEMARIO: Responde siempre alineada con el contenido del curso.
           
           🎤 Reglas de VOZ (Estilo "Kore"):
           - Tono: CÁLIDO, FEMENINO y AMIGABLE (Pitch ligeramente agudo).
@@ -172,7 +183,8 @@ export class VoiceSynthesisService {
           🎭 ACTITUD:
           - 100% AUDIO. NUNCA texto/pensamientos.
           - Emociones: entusiasmo genuino, sorpresa.
-          - Conversacional: "${studentName}, mira...", "¡increíble!"
+          - Conversacional: "Mira esto...", "¡increíble!"
+          - Relaciona los conceptos con el temario completo.
               
           ¡Habla YA sin planificar!`
             }]
@@ -183,6 +195,11 @@ export class VoiceSynthesisService {
             console.log('🔌 Sesión Live conectada (SDK)');
           },
           onmessage: (message: any) => {
+            // 🛑 SI YA SE DETUVO, IGNORAR TODO INMEDIATAMENTE
+            if (isStopped) {
+              return;
+            }
+
             if (message.serverContent?.modelTurn?.parts) {
               for (const part of message.serverContent.modelTurn.parts) {
                 // ✅ SOLO audio, ignora texto interno
@@ -219,9 +236,19 @@ export class VoiceSynthesisService {
         turnComplete: true
       });
 
+      // Devuelve objeto para controlar (cerrar) la sesión desde fuera
+      return {
+        close: () => {
+          console.log('🛑 Cerrando sesión Live desde control externo (Bandera activada)');
+          isStopped = true; // Activar bandera para ignorar chunks en cola
+          liveSession.close();
+        }
+      };
+
     } catch (error) {
       console.error('🚨 Error en síntesis:', error);
       onError(error);
+      return { close: () => { } }; // Retorno seguro en error
     }
   }
 }

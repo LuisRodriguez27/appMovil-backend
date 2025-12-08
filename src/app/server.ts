@@ -19,11 +19,11 @@ import { VoiceWebSocketServer } from './websocket/VoiceWebSocketServer';
  */
 function getLocalNetworkIP(): string {
   const interfaces = os.networkInterfaces();
-  
+
   for (const name of Object.keys(interfaces)) {
     const networkInterface = interfaces[name];
     if (!networkInterface) continue;
-    
+
     for (const net of networkInterface) {
       // Buscar IPv4 no interna (no localhost)
       if (net.family === 'IPv4' && !net.internal) {
@@ -31,7 +31,7 @@ function getLocalNetworkIP(): string {
       }
     }
   }
-  
+
   return 'localhost';
 }
 
@@ -80,33 +80,21 @@ class ApplicationServer {
 
     // Start HTTP server
     this.server.listen(ServerOptions.PORT, '0.0.0.0', () => {
-        const localIP = getLocalNetworkIP();
-        logger.info(`Server is running on ${ServerOptions.HOST}:${ServerOptions.PORT}`);
-        logger.info(`Server is accessible from local network at http://${localIP}:${ServerOptions.PORT}`);
-        logger.info(`Use this IP in your mobile device: ${localIP}`);
+      const localIP = getLocalNetworkIP();
+      logger.info(`Server is running on ${ServerOptions.HOST}:${ServerOptions.PORT}`);
+      logger.info(`Server is accessible from local network at http://${localIP}:${ServerOptions.PORT}`);
+      logger.info(`Use this IP in your mobile device: ${localIP}`);
     });
 
-    // Iniciar WebSocket Server para Voice AI con mecanismo de reintento
-    let voiceWsPort = parseInt(process.env.VOICE_WS_PORT || '3001');
-    const MAX_PORT_RETRIES = 5; // Max attempts to find a free port
-
-    for (let i = 0; i < MAX_PORT_RETRIES; i++) {
-        try {
-            this.voiceWebSocket = new VoiceWebSocketServer(voiceWsPort);
-            const localIP = getLocalNetworkIP();
-            logger.info(`🎙️ Voice WebSocket Server accessible at ws://${localIP}:${voiceWsPort}`);
-            logger.info(`🤖 Gemini Live API ready for voice interactions`);
-            break; // If successful, exit loop
-        } catch (error: any) {
-            if (error.code === 'EADDRINUSE' && i < MAX_PORT_RETRIES - 1) {
-                logger.warn(`Port ${voiceWsPort} is in use. Trying next port...`);
-                voiceWsPort++; // Increment port and try again
-            } else {
-                logger.error(`Failed to start Voice WebSocket Server after ${i + 1} attempts:`, error);
-                // Do not re-throw, allow the HTTP server to continue running
-                break; // Exit the loop if WS server cannot start after retries or other error
-            }
-        }
+    // ✅ Iniciar WebSocket Server en el MISMO servidor HTTP (Cloud Run compatible)
+    try {
+      this.voiceWebSocket = new VoiceWebSocketServer(this.server, '/ws');
+      const localIP = getLocalNetworkIP();
+      logger.info(`🎙️ Voice WebSocket Server accessible at ws://${localIP}:${ServerOptions.PORT}/ws`);
+      logger.info(`🤖 Gemini Live API ready for voice interactions`);
+    } catch (error: any) {
+      logger.error(`Failed to start Voice WebSocket Server:`, error);
+      // Do not re-throw, allow the HTTP server to continue running
     }
   }
 

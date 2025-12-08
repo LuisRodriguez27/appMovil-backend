@@ -1,4 +1,5 @@
 import WebSocket, { WebSocketServer } from 'ws';
+import { Server as HttpServer } from 'http';
 import { GeminiLiveService, ConversationContext } from '../../context/voice/infrastructure/GeminiLiveService';
 import { GeminiLiveAudioService } from '../../context/voice/infrastructure/GeminiLiveAudioService';
 import { LessonService, LessonRequest, LessonResponse } from '../../context/voice/infrastructure/LessonService';
@@ -28,9 +29,11 @@ export class VoiceWebSocketServer {
   private voiceSynthesisService: VoiceSynthesisService; // ⭐ Nuevo Servicio de Voz
   private sessions: Map<string, ClientSession>;
 
-  constructor(port: number) {
+  constructor(server: HttpServer, path: string = '/ws') {
+    // ✅ Compartir el mismo servidor HTTP (Cloud Run compatible)
     this.wss = new WebSocketServer({
-      port,
+      server,
+      path,
       perMessageDeflate: false
     });
 
@@ -42,7 +45,7 @@ export class VoiceWebSocketServer {
     this.setupServer();
 
     console.log(`🎙️ Voice WebSocket Server iniciado con Gemini Live API 2.5`);
-    console.log(`🔗 Conecta desde Flutter usando: ws://localhost:${port}`);
+    console.log(`🔗 WebSocket path: ${path}`);
   }
 
   private setupServer() {
@@ -139,6 +142,11 @@ export class VoiceWebSocketServer {
         this.handleEndSession(session);
         break;
 
+      // 🛑 NUEVO: Detener generación de audio desde el servidor
+      case 'stop_audio':
+        this.handleStopAudio(session);
+        break;
+
       default:
         console.warn(`Tipo desconocido: ${message.type}`);
     }
@@ -197,7 +205,8 @@ export class VoiceWebSocketServer {
       originalPrompt: session.lastLesson?.originalPrompt // 🎯 Pasar la pregunta original
     };
 
-    await this.voiceSynthesisService.synthesizeAudioStream(
+    // Guardar la sesión activa (controlador) en la sesión del cliente
+    session.liveSession = await this.voiceSynthesisService.synthesizeAudioStream(
       request,
       (audioData) => {
         this.sendMessage(session.ws, {
@@ -217,10 +226,12 @@ export class VoiceWebSocketServer {
       () => {
         console.log("✅ Audio creativo sintetizado completo");
         this.sendMessage(session.ws, { type: 'AUDIO_DONE', sessionId: session.sessionId });
+        session.liveSession = null; // Limpiar cuando termine naturalmente
       },
       (error) => {
         console.error("❌ Error sintetizando audio:", error);
         this.sendError(session.ws, "Error generando el audio.");
+        session.liveSession = null;
       }
     );
   }
@@ -246,6 +257,23 @@ export class VoiceWebSocketServer {
 
   private handleEndSession(session: ClientSession) {
     // ...
+  }
+
+  // 🛑 Detener audio manualmente
+  private handleStopAudio(session: ClientSession) {
+    console.log(`🛑 Recibida solicitud de detener audio [${session.sessionId}]`);
+
+    if (session.liveSession && typeof session.liveSession.close === 'function') {
+      try {
+        session.liveSession.close();
+        console.log(`✅ Sesión de audio cancelada exitosamente.`);
+        session.liveSession = null; // Limpiar referencia
+      } catch (e) {
+        console.error(`⚠️ Error al intentar cerrar sesión de audio:`, e);
+      }
+    } else {
+      console.log(`⚠️ No hay sesión de audio activa para detener.`);
+    }
   }
 
   private sendMessage(ws: WebSocket, data: any) {
