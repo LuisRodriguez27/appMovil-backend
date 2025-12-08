@@ -10,6 +10,8 @@ import { EnrollUserInCourseController } from "../../context/users/infrastructure
 import { AdminUserController } from "../../context/users/infrastructure/controllers/AdminUserController";
 import { GetUserCoursesController } from "../../context/users/infrastructure/controllers/GetUserCoursesController";
 import { AddCoursesToUserController } from "../../context/users/infrastructure/controllers/AddCoursesToUserController";
+import { UnlockAchievementController } from "../../context/users/infrastructure/controllers/UnlockAchievementController";
+import { CompleteLessonController } from "../../context/users/infrastructure/controllers/CompleteLessonController";
 import { UserRepository } from "../../context/users/domain/UserRepository";
 import { verifyFirebaseToken, requireRole, requireOwnershipOrAdmin } from "../middleware/auth.middleware";
 
@@ -24,6 +26,7 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   const adminUserController = container.get<AdminUserController>("AdminUserController");
   const getUserCoursesController = container.get<GetUserCoursesController>("GetUserCoursesController");
   const addCoursesToUserController = container.get<AddCoursesToUserController>("AddCoursesToUserController");
+  const unlockAchievementController = container.get<UnlockAchievementController>("UnlockAchievementController");
   const userRepository = container.get<UserRepository>("UserRepository");
   const authMiddleware = verifyFirebaseToken(userRepository);
 
@@ -37,4 +40,8 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   app.get('/admin/students-progress', authMiddleware, requireRole(['admin', 'student']), adminUserController.getStudentProgress.bind(adminUserController));
   app.get('/users/:id/courses', authMiddleware, requireOwnershipOrAdmin, getUserCoursesController.run.bind(getUserCoursesController));
   app.post('/users/:id/courses', authMiddleware, requireOwnershipOrAdmin, addCoursesToUserController.run.bind(addCoursesToUserController));
+  app.post('/users/:id/achievements', authMiddleware, requireOwnershipOrAdmin, unlockAchievementController.run.bind(unlockAchievementController));
+
+  const completeLessonController = container.get<CompleteLessonController>("CompleteLessonController");
+  app.post('/users/:id/courses/:courseId/lessons/:lessonId/complete', authMiddleware, requireOwnershipOrAdmin, completeLessonController.run.bind(completeLessonController));
 };

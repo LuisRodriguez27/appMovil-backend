@@ -21,7 +21,7 @@ export class User {
     private currentAttempt?: CurrentAttempt,
     private enrolledCourses: string[] = [],
     private readonly createdAt: Date = new Date()
-  ) {}
+  ) { }
 
   static create(data: Omit<UserPrimitives, '__id' | 'createdAt'>): User {
     return new User(
@@ -84,11 +84,19 @@ export class User {
     if (!this.progress) {
       throw new Error('Progress is undefined');
     }
+
+    // Check if already completed preventing double stats count
+    const wasAlreadyCompleted = this.isLessonCompleted(courseId, lessonId);
+
     this.progress = this.progress.completeLesson(courseId, lessonId, nextLessonId, totalLessons);
+
     if (!this.stats) {
       throw new Error('Stats is undefined');
     }
-    this.stats = this.stats.incrementLessonsCompleted();
+
+    if (!wasAlreadyCompleted) {
+      this.stats = this.stats.incrementLessonsCompleted();
+    }
   }
 
   public updateNextLesson(courseId: string, nextLessonId: string): void {

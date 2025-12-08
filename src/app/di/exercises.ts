@@ -12,13 +12,13 @@ import { GetAttemptStatusController } from '../../context/exercises/infrastructu
 import { EvaluationWebhookController } from '../../context/exercises/infrastructure/controllers/EvaluationWebhookController';
 
 export default function registerExercisesDependencies(container: ContainerBuilder) {
-    // Importar la configuración
-    const { GeminiConfig } = require('../config/config');
+  // Importar la configuración
+  const { GeminiConfig } = require('../config/config');
 
-    // Gemini Generator (singleton) - Pasar la API key explícitamente
-    container
-      .register('GeminiExerciseGenerator', GeminiExerciseGenerator)
-      .addArgument(GeminiConfig.apiKey);
+  // Gemini Generator (singleton) - Pasar la API key explícitamente
+  container
+    .register('GeminiExerciseGenerator', GeminiExerciseGenerator)
+    .addArgument(GeminiConfig.apiKey);
   // Use Cases
   container
     .register('GenerateExerciseUseCase', GenerateExerciseUseCase)
@@ -36,8 +36,9 @@ export default function registerExercisesDependencies(container: ContainerBuilde
     .register('SubmitExerciseAnswerUseCase', SubmitExerciseAnswerUseCase)
     .addArgument(new Reference('UserRepository'))
     .addArgument(new Reference('LessonRepository'))
-    .addArgument(new Reference('CourseRepository'))
-    .addArgument(new Reference('NextLessonCalculator'));
+    .addArgument(new Reference('NextLessonCalculator'))
+    .addArgument(new Reference('AchievementRepository'))
+    .addArgument(new Reference('UnlockAchievementUseCase'));
 
   container
     .register('GetAttemptStatusUseCase', GetAttemptStatusUseCase)

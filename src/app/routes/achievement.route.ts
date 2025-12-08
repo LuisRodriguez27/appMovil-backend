@@ -1,4 +1,5 @@
 import { Express } from "express";
+// Routes for achievements
 import { ContainerBuilder } from "node-dependency-injection";
 import { FindAllAchievementController } from "../../context/achievements/infrastructure/controllers/FindAllAchievementsController";
 import { FindAchievementByIdController } from "../../context/achievements/infrastructure/controllers/FindAchievementByIdController";
@@ -18,7 +19,7 @@ export const register = async (app: Express, container: ContainerBuilder) => {
 	const findAchievementsByRarityController = container.get<FindAchievementsByRarityController>("FindAchievementsByRarityController");
 
 	const userRepository = container.get<UserRepository>("UserRepository");
-  const authMiddleware = verifyFirebaseToken(userRepository);
+	const authMiddleware = verifyFirebaseToken(userRepository);
 
 	// ADMIN
 	app.post("/achievements", authMiddleware, requireRole(['admin']), (req, res) => createAchievementController.run(req, res));

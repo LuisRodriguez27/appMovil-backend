@@ -20,6 +20,10 @@ import { EnrollUserInCourseController } from "../../context/users/infrastructure
 import { AdminUserController } from "../../context/users/infrastructure/controllers/AdminUserController";
 import { GetUserCoursesController } from "../../context/users/infrastructure/controllers/GetUserCoursesController";
 import { AddCoursesToUserController } from "../../context/users/infrastructure/controllers/AddCoursesToUserController";
+import { UnlockAchievementUseCase } from "../../context/users/application/UnlockAchievementUseCase";
+import { UnlockAchievementController } from "../../context/users/infrastructure/controllers/UnlockAchievementController";
+import { CompleteLessonUseCase } from "../../context/users/application/CompleteLessonUseCase";
+import { CompleteLessonController } from "../../context/users/infrastructure/controllers/CompleteLessonController";
 
 export default function registerUsersDependencies(container: ContainerBuilder) {
   // Repository
@@ -73,6 +77,12 @@ export default function registerUsersDependencies(container: ContainerBuilder) {
     .addArgument(new Reference("UserRepository"))
     .addArgument(new Reference("CourseRepository"));
 
+  container
+    .register("CompleteLessonUseCase", CompleteLessonUseCase)
+    .addArgument(new Reference("UserRepository"))
+    .addArgument(new Reference("AchievementRepository"))
+    .addArgument(new Reference("UnlockAchievementUseCase"));
+
   // Controllers
   container
     .register("CreateUserController", CreateUserController)
@@ -99,6 +109,10 @@ export default function registerUsersDependencies(container: ContainerBuilder) {
     .addArgument(new Reference("UpdateUserXPUseCase"));
 
   container
+    .register("CompleteLessonController", CompleteLessonController)
+    .addArgument(new Reference("CompleteLessonUseCase"));
+
+  container
     .register("EnrollUserInCourseController", EnrollUserInCourseController)
     .addArgument(new Reference("EnrollUserInCourseUseCase"));
 
@@ -113,6 +127,14 @@ export default function registerUsersDependencies(container: ContainerBuilder) {
   container
     .register("AddCoursesToUserController", AddCoursesToUserController)
     .addArgument(new Reference("AddCoursesToUserUseCase"));
+
+  container
+    .register("UnlockAchievementUseCase", UnlockAchievementUseCase)
+    .addArgument(new Reference("UserRepository"));
+
+  container
+    .register("UnlockAchievementController", UnlockAchievementController)
+    .addArgument(new Reference("UnlockAchievementUseCase"));
 
   return container;
 }

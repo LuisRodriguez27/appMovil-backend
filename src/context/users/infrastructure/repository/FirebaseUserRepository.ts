@@ -145,7 +145,16 @@ export class FirebaseUserRepository implements UserRepository {
         totalExercisesCompleted: 0,
         totalCoursesCompleted: 0,
       },
-      currentAttempt: document.currentAttempt,
+      currentAttempt: document.currentAttempt ? {
+        ...document.currentAttempt,
+        createdAt: (document.currentAttempt.createdAt as any)?.toDate
+          ? (document.currentAttempt.createdAt as any).toDate()
+          : (typeof document.currentAttempt.createdAt === 'string'
+            ? new Date(document.currentAttempt.createdAt)
+            : document.currentAttempt.createdAt instanceof Date
+              ? document.currentAttempt.createdAt
+              : new Date())
+      } : undefined,
       createdAt: createdAt.toISOString(),
     });
   }
