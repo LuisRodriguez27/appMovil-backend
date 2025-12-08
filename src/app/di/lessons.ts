@@ -16,6 +16,8 @@ import { FindAllLessonsUseCase } from '../../context/lessons/application/FindAll
 import { FindLessonsByCourseIdUseCase } from '../../context/lessons/application/FindLessonsByCourseIdUseCase';
 import { FindLessonsByCourseIdController } from '../../context/lessons/infrastructure/controllers/FindLessonsByCourseIdController';
 import { FindAllLessonsController } from '../../context/lessons/infrastructure/controllers/FindAllLessonsController';
+import { GroupLessonsByExerciseTypeUseCase } from '../../context/lessons/application/GroupLessonsByExerciseTypeUseCase';
+import { GroupLessonsByExerciseTypeController } from '../../context/lessons/infrastructure/controllers/GroupLessonsByExerciseTypeController';
 
 export default function registerLessonsDependencies(container: ContainerBuilder) {
   // Repository
@@ -25,6 +27,10 @@ export default function registerLessonsDependencies(container: ContainerBuilder)
   // Use Cases
   container
     .register('FindAllLessonsUseCase', FindAllLessonsUseCase)
+    .addArgument(new Reference('LessonRepository'));
+
+  container
+    .register('GroupLessonsByExerciseTypeUseCase', GroupLessonsByExerciseTypeUseCase)
     .addArgument(new Reference('LessonRepository'));
   
   container
@@ -66,6 +72,10 @@ export default function registerLessonsDependencies(container: ContainerBuilder)
   container
     .register('FindAllLessonsController', FindAllLessonsController)
     .addArgument(new Reference('FindAllLessonsUseCase'));
+
+  container
+    .register('GroupLessonsByExerciseTypeController', GroupLessonsByExerciseTypeController)
+    .addArgument(new Reference('GroupLessonsByExerciseTypeUseCase'));
 
   container
     .register('FindLessonByIdController', FindLessonByIdController)

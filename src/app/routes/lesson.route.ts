@@ -7,6 +7,7 @@ import { FindLessonByIdController } from "../../context/lessons/infrastructure/c
 import { FindLessonsByTopicController } from "../../context/lessons/infrastructure/controllers/FindLessonsByTopicController";
 import { FindLessonsBySubtopicController } from "../../context/lessons/infrastructure/controllers/FindLessonsBySubtopicController";
 import { FindAllLessonsController } from "../../context/lessons/infrastructure/controllers/FindAllLessonsController";
+import { GroupLessonsByExerciseTypeController } from "../../context/lessons/infrastructure/controllers/GroupLessonsByExerciseTypeController";
 import { UserRepository } from "../../context/users/domain/UserRepository";
 import { verifyFirebaseToken, requireRole } from "../middleware/auth.middleware";
 
@@ -18,6 +19,7 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   const findLessonsByTopicController = container.get<FindLessonsByTopicController>("FindLessonsByTopicController");
   const findLessonsBySubtopicController = container.get<FindLessonsBySubtopicController>("FindLessonsBySubtopicController");
   const findAllLessonsController = container.get<FindAllLessonsController>("FindAllLessonsController");
+  const groupLessonsByExerciseTypeController = container.get<GroupLessonsByExerciseTypeController>("GroupLessonsByExerciseTypeController");
 
   const userRepository = container.get<UserRepository>("UserRepository");
   const authMiddleware = verifyFirebaseToken(userRepository);
@@ -29,6 +31,8 @@ export const register = async (app: Express, container: ContainerBuilder) => {
   app.delete('/lessons/:id', authMiddleware, requireRole(['admin']), (req, res) => deleteLessonController.run(req, res));
 
   app.get('/lessons', authMiddleware, requireRole(['student', 'admin']), (req, res) => findAllLessonsController.run(req, res));
+
+  app.get('/lessons/grouped/by-exercise-type', authMiddleware, requireRole(['student', 'admin']), (req, res) => groupLessonsByExerciseTypeController.run(req, res));
 
   app.get('/lessons/:id', authMiddleware, requireRole(['student', 'admin']), (req, res) => findLessonByIdController.run(req, res));
 
