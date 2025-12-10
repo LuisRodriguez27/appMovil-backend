@@ -38,31 +38,6 @@ export class FireBaseAchievementRepository implements AchievementRepository {
 			});
 		});
 
-		// HARDCODED ACHIEVEMENT FOR DEBUGGING - "Primeros Pasos"
-		const firstLessonAchievement = Achievement.fromPrimitives({
-			id: 'first_lesson_debug_id',
-			title: 'Primeros Pasos',
-			description: 'Completa tu primera lección',
-			rarity: 'common',
-			condition: { type: 'complete_lessons', value: 1 },
-			points: 10,
-			icon: '🎯',
-			createdAt: new Date().toISOString()
-		});
-
-		// Ensure we don't duplicate if it exists in DB
-		if (!dbAchievements.some(a => a.id === 'first_lesson_debug_id')) {
-			console.log(`🔍 "Primeros Pasos" missing in DB (Collection: ${this.collection}). Creating it now...`);
-			try {
-				await this.create(firstLessonAchievement);
-				dbAchievements.push(firstLessonAchievement);
-				console.log('💾 Achievement saved to Firestore SUCCESSFULLY!');
-			} catch (error) {
-				console.error('❌ ERROR saving achievement to Firestore:', error);
-			}
-		} else {
-			console.log('✅ "Primeros Pasos" achievement found in DB. ID: first_lesson_debug_id');
-		}
 
 		console.log(`📦 Returning ${dbAchievements.length} achievements`);
 		return dbAchievements;

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { GenerateExerciseUseCase } from '../../application/GenerateExerciseUseCase';
 
 export class GenerateExerciseController {
-  constructor(private readonly generateExerciseUseCase: GenerateExerciseUseCase) {}
+  constructor(private readonly generateExerciseUseCase: GenerateExerciseUseCase) { }
 
   async run(req: Request, res: Response): Promise<void> {
     try {
@@ -18,6 +18,9 @@ export class GenerateExerciseController {
 
       // Generar el ejercicio
       const exercises = await this.generateExerciseUseCase.execute({ lessonId });
+
+      console.log('📤 Enviando ejercicios al frontend:');
+      console.log(JSON.stringify(exercises, null, 2));
 
       res.status(200).json({
         success: true,

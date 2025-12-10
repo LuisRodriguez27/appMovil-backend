@@ -4,6 +4,7 @@ import { GeminiLiveService, ConversationContext } from '../../context/voice/infr
 import { GeminiLiveAudioService } from '../../context/voice/infrastructure/GeminiLiveAudioService';
 import { LessonService, LessonRequest, LessonResponse } from '../../context/voice/infrastructure/LessonService';
 import { VoiceSynthesisService, VoiceRequest } from '../../context/voice/infrastructure/VoiceSynthesisService';
+import { DirectAudioService } from '../../context/voice/infrastructure/DirectAudioService';
 
 interface ClientSession {
   ws: WebSocket;
@@ -27,6 +28,7 @@ export class VoiceWebSocketServer {
   private textService: GeminiLiveService;
   private lessonService: LessonService; // ⭐ Nuevo Servicio de Lecciones
   private voiceSynthesisService: VoiceSynthesisService; // ⭐ Nuevo Servicio de Voz
+  private directAudioService: DirectAudioService; // 🎤 Servicio de Audio Directo
   private sessions: Map<string, ClientSession>;
 
   constructor(server: HttpServer, path: string = '/ws') {
@@ -40,6 +42,7 @@ export class VoiceWebSocketServer {
     this.textService = new GeminiLiveService();
     this.lessonService = new LessonService(); // Inicializar
     this.voiceSynthesisService = new VoiceSynthesisService(); // Inicializar
+    this.directAudioService = new DirectAudioService(); // Inicializar servicio de audio directo
     this.sessions = new Map();
 
     this.setupServer();
@@ -123,6 +126,27 @@ export class VoiceWebSocketServer {
 
       case 'synthesize_audio':
         await this.handleSynthesizeAudio(session, message);
+        break;
+
+      // 🎤 --- AUDIO DIRECTO (NUEVOS) ---
+      case 'start_direct_audio':
+        await this.handleStartDirectAudio(session, message);
+        break;
+
+      case 'audio_chunk_input':
+        await this.handleAudioChunkInput(session, message);
+        break;
+
+      case 'text_from_speech':
+        await this.handleTextFromSpeech(session, message);
+        break;
+
+      case 'finish_user_turn':
+        await this.handleFinishUserTurn(session);
+        break;
+
+      case 'stop_direct_audio':
+        await this.handleStopDirectAudio(session);
         break;
 
       // --- ENDPOINTS ANTIGUOS (Legacy / Compatibilidad) ---
@@ -259,9 +283,114 @@ export class VoiceWebSocketServer {
     // ...
   }
 
+  // 🎤 --- MANEJADORES DE AUDIO DIRECTO ---
+
+  private async handleStartDirectAudio(session: ClientSession, message: any) {
+    console.log(`🎤 [${session.sessionId}] Iniciando sesión de audio directo...`);
+
+    try {
+      await this.directAudioService.startDirectAudioSession(
+        session.sessionId,
+        (audioData) => {
+          // Enviar chunks de audio de respuesta al frontend
+          this.sendMessage(session.ws, {
+            type: 'AUDIO_CHUNK_OUTPUT',
+            sessionId: session.sessionId,
+            audioData: audioData
+          });
+        },
+        () => {
+          // Notificar que la respuesta de audio se completó
+          console.log(`✅ [${session.sessionId}] Respuesta de audio directo completada`);
+          this.sendMessage(session.ws, {
+            type: 'DIRECT_AUDIO_RESPONSE_DONE',
+            sessionId: session.sessionId
+          });
+        },
+        (error) => {
+          console.error(`❌ [${session.sessionId}] Error en audio directo:`, error);
+          this.sendError(session.ws, 'Error en la sesión de audio directo.');
+        }
+      );
+
+      // Notificar al frontend que la sesión está lista
+      this.sendMessage(session.ws, {
+        type: 'DIRECT_AUDIO_READY',
+        sessionId: session.sessionId
+      });
+
+    } catch (error) {
+      console.error(`❌[${session.sessionId}] Error iniciando audio directo: `, error);
+      this.sendError(session.ws, 'No se pudo iniciar la sesión de audio directo.');
+    }
+  }
+
+  /**
+   * Maneja chunk de audio del micrófono
+   */
+  private async handleAudioChunkInput(
+    session: ClientSession, // Assuming ClientSession based on original code, not VoiceSession from snippet
+    message: any,
+  ): Promise<void> {
+    const sessionId = session.sessionId;
+
+    if (!message.audioData) {
+      console.error(`❌[${sessionId}] No audio data in message`);
+      return;
+    }
+
+    // Enviar audio chunk al servicio de audio directo
+    await this.directAudioService.sendAudioChunk(sessionId, message.audioData);
+  }
+
+  /**
+   * Maneja texto reconocido por speech-to-text
+   */
+  private async handleTextFromSpeech(
+    session: ClientSession, // Assuming ClientSession based on original code, not VoiceSession from snippet
+    message: any,
+  ): Promise<void> {
+    const sessionId = session.sessionId;
+
+    if (!message.text) {
+      console.error(`❌[${sessionId}] No text in message`);
+      return;
+    }
+
+    console.log(`💬[${sessionId}] Texto reconocido: "${message.text}"`);
+
+    // Enviar texto al servicio de audio directo
+    await this.directAudioService.sendTextFromSpeech(sessionId, message.text);
+  }
+
+  private async handleFinishUserTurn(session: ClientSession) {
+    console.log(`🏁[${session.sessionId}] Usuario terminó de hablar`);
+
+    try {
+      await this.directAudioService.finishUserTurn(session.sessionId);
+    } catch (error) {
+      console.error(`❌[${session.sessionId}] Error finalizando turno: `, error);
+    }
+  }
+
+  private async handleStopDirectAudio(session: ClientSession) {
+    console.log(`🛑[${session.sessionId}] Deteniendo sesión de audio directo`);
+
+    try {
+      await this.directAudioService.closeSession(session.sessionId);
+
+      this.sendMessage(session.ws, {
+        type: 'DIRECT_AUDIO_STOPPED',
+        sessionId: session.sessionId
+      });
+    } catch (error) {
+      console.error(`❌[${session.sessionId}] Error deteniendo sesión: `, error);
+    }
+  }
+
   // 🛑 Detener audio manualmente
   private handleStopAudio(session: ClientSession) {
-    console.log(`🛑 Recibida solicitud de detener audio [${session.sessionId}]`);
+    console.log(`🛑 Recibida solicitud de detener audio[${session.sessionId}]`);
 
     if (session.liveSession && typeof session.liveSession.close === 'function') {
       try {
@@ -269,7 +398,7 @@ export class VoiceWebSocketServer {
         console.log(`✅ Sesión de audio cancelada exitosamente.`);
         session.liveSession = null; // Limpiar referencia
       } catch (e) {
-        console.error(`⚠️ Error al intentar cerrar sesión de audio:`, e);
+        console.error(`⚠️ Error al intentar cerrar sesión de audio: `, e);
       }
     } else {
       console.log(`⚠️ No hay sesión de audio activa para detener.`);
