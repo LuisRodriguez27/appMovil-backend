@@ -11,10 +11,10 @@ export interface PromptParams {
 
 export class PromptBuilder {
   private static readonly TYPE_DESCRIPTIONS: Record<ExerciseType, string> = {
-    fill_blank: 'Ejercicio de llenar espacios en blanco. El texto debe tener espacios marcados con _____ que el estudiante debe completar. Para cada espacio, proporciona la respuesta correcta y EXACTAMENTE 2 respuestas incorrectas ÚNICAS y VARIADAS que sirvan como distractores verosímiles. IMPORTANTE: Las respuestas incorrectas deben ser DIFERENTES entre sí y NO deben repetirse en otros blanks del mismo ejercicio. Usa conceptos relacionados pero distintos para cada blank. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
-    multiple_choice: 'Ejercicio de opción múltiple con una pregunta y 4 opciones, donde solo una es correcta. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
+    fill_blank: 'Ejercicio de llenar espacios en blanco. El texto debe tener espacios marcados con _____ que el estudiante debe completar. REGLAS CRÍTICAS DE VARIEDAD: 1) NO repitas la misma palabra correcta. 2) NO uses palabras derivadas de la misma raíz (ej: "finito" y "finitud" es considerado REPETICIÓN y está PROHIBIDO). 3) NO uses sinónimos directos. Mensajes distintos deben usar vocabulario distinto. 4) Para cada espacio, proporciona la respuesta correcta y EXACTAMENTE 2 respuestas incorrectas ÚNICAS. 5) IMPORTANTE: Las respuestas incorrectas deben ser DIFERENTES entre sí y NO deben repetirse en otros blanks del mismo ejercicio. El lenguaje de programación usado debe ser Java, y no uses acentos en las palabras.',
+    multiple_choice: 'Ejercicio de opción múltiple con una pregunta y 4 opciones, donde solo una es correcta. El lenguaje de programacion usado debe ser Java. SI la pregunta incluye código, ponlo en el campo "codeSnippet", NO en "question". NO uses acentos en las palabras.',
     code_completion: 'Ejercicio de completar código Java ejecutable. IMPORTANTE: Los espacios en blanco "______" (6 guiones bajos) deben ser ÚNICAMENTE para código ejecutable válido (variables, métodos, operadores, etc.), NUNCA para comentarios. El código debe ser sintácticamente correcto cuando se completen los blanks. Proporciona el código inicial con espacios marcados y el código completo correcto en "correctCode". Para cada espacio en blanco, proporciona la respuesta correcta y 3 opciones incorrectas adicionales (total 4 opciones) que sean verosímiles. NO uses acentos en las palabras.',
-    true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar. El lenguaje de programacion usado debe ser Java, y no uses asentos en las palabras.',
+    true_false: 'Ejercicio de verdadero o falso con una afirmación que el estudiante debe evaluar. El lenguaje de programacion usado debe ser Java. SI la afirmación incluye código, ponlo en el campo "codeSnippet", NO en "statement". NO uses acentos en las palabras.',
     flowchart: 'Ejercicio de diagrama de flujo interactivo. El estudiante debe completar un diagrama arrastrando las etiquetas correctas. IMPORTANTE: 1) Solo proporciona "correctLabel" (la respuesta correcta), NO incluyas "incorrectLabels" (el sistema generará distractores automáticamente). 2) Puedes marcar algunos nodos intermedios como "isComplete: true" para dar pistas (no solo inicio/fin). 3) VARIA LA COMPLEJIDAD: Alterna entre diagramas básicos (lineales con 1 decisión) y avanzados (con 2-3 decisiones anidadas o en secuencia). 4) USA VARIEDAD DE NODOS: No todos los diagramas deben usar todos los tipos, varía según el algoritmo (algunos solo proceso/flujo, otros con decisiones/entrada-salida). 5) Tipos disponibles: "oval" (inicio/fin), "rectangle" (proceso/cálculo), "diamond" (decisión if-else), "parallelogram" (entrada/salida de datos). 6) Crea diagramas de 6-12 nodos. NO uses acentos.'
   };
 
@@ -52,15 +52,16 @@ REGLAS IMPORTANTES para fill_blank:
 - Mantén las opciones breves y relevantes al contexto`,
     multiple_choice: `Ejemplo de respuesta JSON:
 {
-  "question": "¿Cuál es la forma correcta de declarar una función en JavaScript?",
+  "question": "¿Cuál es la salida del siguiente código?",
+  "codeSnippet": "int x = 5;\\nSystem.out.println(x++);",
   "options": [
-    { "id": "a", "text": "function myFunc() {}" },
-    { "id": "b", "text": "func myFunc() {}" },
-    { "id": "c", "text": "def myFunc() {}" },
-    { "id": "d", "text": "fn myFunc() {}" }
+    { "id": "a", "text": "5" },
+    { "id": "b", "text": "6" },
+    { "id": "c", "text": "Error de compilación" },
+    { "id": "d", "text": "Null" }
   ],
   "correctOptionId": "a",
-  "tip": "La declaración de funciones en JavaScript utiliza una palabra clave específica y completa. A diferencia de lenguajes como Python que usa 'def' o Rust que usa 'fn', JavaScript es más explícito. Busca la palabra clave reservada estándar que define un bloque de código reutilizable."
+  "tip": "El operador de post-incremento (x++) evalúa primero la variable y LUEGO la incrementa. Por lo tanto, se imprime el valor original."
 }`,
     code_completion: `Ejemplo de respuesta JSON válida en JAVA:
 {
@@ -94,10 +95,11 @@ REGLAS CRITICAS para code_completion:
 - Los IDs de los blanks deben empezar en 0 y ser consecutivos en el orden que aparecen en el código`,
     true_false: `Ejemplo de respuesta JSON:
 {
-  "statement": "JavaScript es un lenguaje de programación compilado",
+  "statement": "El siguiente código compila correctamente:",
+  "codeSnippet": "int x = \"10\";",
   "correctAnswer": false,
-  "explanation": "JavaScript es un lenguaje interpretado, no compilado. El código se ejecuta directamente por el navegador o runtime como Node.js",
-  "tip": "Distingue entre lenguajes compilados (como C++ o Java) donde el código se transforma en binario antes de ejecutarse, y lenguajes interpretados o JIT (Just-In-Time) como los scripts web. Piensa en cómo el navegador lee y ejecuta el código línea por línea."
+  "explanation": "No compila porque estás intentando asignar un String (texto con comillas) a una variable de tipo int (entero). Java es fuertemente tipado.",
+  "tip": "Fíjate en los tipos de datos. 'int' es para números enteros, pero las comillas dobles indican una cadena de texto (String). No son compatibles directamente."
 }`,
     flowchart: `Ejemplo de respuesta JSON para diagrama de flujo:
 {

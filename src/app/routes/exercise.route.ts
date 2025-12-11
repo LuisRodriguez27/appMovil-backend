@@ -1,6 +1,7 @@
 import { Express } from "express";
 import { ContainerBuilder } from "node-dependency-injection";
 import { GenerateExerciseController } from "../../context/exercises/infrastructure/controllers/GenerateExerciseController";
+import { GenerateExerciseStreamController } from "../../context/exercises/infrastructure/controllers/GenerateExerciseStreamController";
 import { ValidateExerciseController } from "../../context/exercises/infrastructure/controllers/ValidateExerciseController";
 import { SubmitExerciseController } from "../../context/exercises/infrastructure/controllers/SubmitExerciseController";
 import { GetAttemptStatusController } from "../../context/exercises/infrastructure/controllers/GetAttemptStatusController";
@@ -20,6 +21,10 @@ export const register = async (app: Express, container: ContainerBuilder) => {
 
   // GET /lessons/:lessonId/exercise - Generar ejercicio para una lección
   app.get('/lessons/:lessonId/exercise', authMiddleware, requireRole(['student', 'admin']), (req, res) => generateExerciseController.run(req, res));
+
+  // GET /lessons/:lessonId/exercise/stream - Generar ejercicios con streaming (SSE)
+  const generateExerciseStreamController = container.get<GenerateExerciseStreamController>("GenerateExerciseStreamController");
+  app.get('/lessons/:lessonId/exercise/stream', authMiddleware, requireRole(['student', 'admin']), (req, res) => generateExerciseStreamController.run(req, res));
 
   // POST /lessons/:lessonId/exercise/validate - Validar respuesta de un ejercicio (síncrono con IA)
   app.post('/lessons/:lessonId/exercise/validate', authMiddleware, requireRole(['student', 'admin']), (req, res) => validateExerciseController.run(req, res));

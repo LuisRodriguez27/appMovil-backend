@@ -6,6 +6,7 @@ import { SubmitExerciseAnswerUseCase } from '../../context/exercises/application
 import { GetAttemptStatusUseCase } from '../../context/exercises/application/GetAttemptStatusUseCase';
 import { ProcessEvaluationWebhookUseCase } from '../../context/exercises/application/ProcessEvaluationWebhookUseCase';
 import { GenerateExerciseController } from '../../context/exercises/infrastructure/controllers/GenerateExerciseController';
+import { GenerateExerciseStreamController } from '../../context/exercises/infrastructure/controllers/GenerateExerciseStreamController';
 import { ValidateExerciseController } from '../../context/exercises/infrastructure/controllers/ValidateExerciseController';
 import { SubmitExerciseController } from '../../context/exercises/infrastructure/controllers/SubmitExerciseController';
 import { GetAttemptStatusController } from '../../context/exercises/infrastructure/controllers/GetAttemptStatusController';
@@ -51,6 +52,10 @@ export default function registerExercisesDependencies(container: ContainerBuilde
   // Controllers
   container
     .register('GenerateExerciseController', GenerateExerciseController)
+    .addArgument(new Reference('GenerateExerciseUseCase'));
+
+  container
+    .register('GenerateExerciseStreamController', GenerateExerciseStreamController)
     .addArgument(new Reference('GenerateExerciseUseCase'));
 
   container

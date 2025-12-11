@@ -31,7 +31,7 @@ export const FirebaseConfig = {
 
 export const GeminiConfig = {
     apiKey: process.env.GEMINI_API_KEY || '',
-    model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+    model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp',
     maxOutputTokens: parseInt(process.env.GEMINI_MAX_TOKENS || '2048'),
     temperature: parseFloat(process.env.GEMINI_TEMPERATURE || '0.7')
 }

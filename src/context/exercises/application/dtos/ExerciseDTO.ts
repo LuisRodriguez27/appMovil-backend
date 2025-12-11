@@ -8,6 +8,7 @@ export interface ExerciseDTO {
 
   // Common fields, standardized
   title: string;
+  codeSnippet?: string; // For multiple_choice, true_false, etc.
   question?: string; // For multiple_choice, true_false
   options?: { id: string; text: string }[];
   correctOptionId?: string; // For multiple_choice, true_false

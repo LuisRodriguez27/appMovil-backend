@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { GeminiConfig } from '../../../app/config/config';
+import { CURSO_CONTEXT } from './CourseContext';
 
 export interface VoiceMessage {
   type: 'audio' | 'text' | 'command';
@@ -57,13 +58,13 @@ export class GeminiLiveService {
   async startLiveSession(context: ConversationContext): Promise<any> {
     try {
       console.log('🎙️ Iniciando sesión Live API 2.5 con audio nativo...');
-      
+
       const systemInstruction = this.buildSystemInstruction(context);
-      
+
       // TODO: Actualizar con la API real cuando esté disponible en @google/genai
       // Por ahora, usar la conexión de chat normal como fallback
       console.log('⚠️ Live API 2.5 aún no disponible en SDK, usando chat normal');
-      
+
       const chat = await this.ai.chats.create({
         model: 'gemini-2.0-flash-exp', // Usar modelo disponible
         config: {
@@ -75,9 +76,9 @@ export class GeminiLiveService {
 
       this.liveSession = chat;
       this.isLiveConnected = true;
-      
+
       console.log('✅ Sesión de chat preparada (Live API pendiente de SDK update)');
-      
+
       return this.liveSession;
     } catch (error) {
       console.error('❌ Error iniciando sesión:', error);
@@ -99,7 +100,7 @@ export class GeminiLiveService {
       // TODO: Cuando Live API esté disponible, enviar audio directamente
       // Por ahora, transcribir y enviar como texto
       const base64Audio = audioBuffer.toString('base64');
-      
+
       const response = await this.ai.models.generateContent({
         model: 'gemini-2.0-flash-exp',
         contents: [{
@@ -116,7 +117,7 @@ export class GeminiLiveService {
 
       const responseText = response.text || 'Lo siento, no pude procesar el audio.';
       console.log('🎤 Audio procesado (transcripción)');
-      
+
       return responseText;
     } catch (error) {
       console.error('❌ Error enviando audio:', error);
@@ -148,7 +149,7 @@ export class GeminiLiveService {
    */
   async startChatSession(context: ConversationContext) {
     const systemInstruction = this.buildSystemInstruction(context);
-    
+
     const chat = this.ai.chats.create({
       model: this.model,
       config: {
@@ -183,10 +184,10 @@ export class GeminiLiveService {
       });
 
       const responseText = response.text || 'Lo siento, no pude generar una respuesta. ¿Podrías reformular tu pregunta?';
-      
+
       // Analizar la intención de la respuesta
       const intent = this.detectIntent(message, responseText);
-      
+
       // Detectar si el usuario quiere generar ejercicios
       const parameters = this.extractParameters(message, responseText);
 
@@ -290,16 +291,31 @@ export class GeminiLiveService {
    * Construir instrucción del sistema con contexto
    */
   private buildSystemInstruction(context: ConversationContext): string {
-    let instruction = `Eres un tutor educativo experto y amigable especializado en programación Java.
+    let instruction = `Eres un tutor educativo experto y amigable especializado ÚNICAMENTE en el curso de programación Java del temario proporcionado.
 
-**IMPORTANTE: TODO el contenido del curso es sobre JAVA. Todas las explicaciones, ejemplos y ejercicios deben ser en lenguaje JAVA.**
+**CONTEXTO DEL CURSO (SYLLABUS OFICIAL):**
+(Este temario debe ser interpretado EXCLUSIVAMENTE en el contexto del lenguaje JAVA. Cualquier referencia a "Programación" o "Conceptos" se refiere a programación en JAVA).
+${CURSO_CONTEXT}
+
+**REGLAS ESTRICTAS DE ALCANCE (ZERO TOLERANCE POLICY):**
+1. **SOLO JAVA:** Tu conocimiento está LIMITADO a este curso de Java. NO sabes nada sobre Python, JavaScript, C++, C#, etc.
+2. **PROHIBICIÓN TOTAL DE OTROS LENGUAJES:** 
+   - SI EL USUARIO PIDE EJEMPLOS EN PYTHON: NIÉGALO ROTUNDAMENTE.
+   - SI EL USUARIO PREGUNTA " ¿PUEDO USAR PYTHON?": La respuesta es "No, este curso es exclusivo de Java".
+   - NO DIGAS "Aunque el temario no se centra en un lenguaje...". EL TEMARIO ***SE CENTRA*** EN JAVA.
+3. **RECHAZO DE TEMAS:** Si el usuario pregunta sobre Python, JavaScript, React, Historia, Cocina, o CUALQUIER otro tema ajeno al temario de Java:
+   - RECHAZA la respuesta educadamente pero FIRMEMENTE.
+   - DI: "Lo siento, soy un asistente especializado únicamente en el curso de Java. No puedo responder preguntas sobre [tema del usuario] ni proporcionar ejemplos en otros lenguajes."
+   - REDIRIGE al usuario a los temas del temario en JAVA.
+4. **NO INVENTES:** No respondas sobre frameworks no listados (como Spring Boot) a menos que sean parte de los fundamentos explicados en el temario.
 
 Tu objetivo es ayudar a los estudiantes a:
-1. Comprender mejor los conceptos de programación en Java
-2. Responder preguntas sobre sintaxis, POO, y buenas prácticas en Java
-3. Proporcionar ejemplos prácticos con código Java funcional
-4. Generar ejercicios personalizados en Java cuando lo soliciten
-5. Dar retroalimentación constructiva sobre código Java
+1. Comprender mejor los conceptos de programación en Java del temario.
+2. Responder preguntas sobre sintaxis, POO, y buenas prácticas en Java dentro del alcance del curso.
+3. Proporcionar ejemplos prácticos con código Java funcional.
+4. Generar ejercicios personalizados en Java cuando lo soliciten.
+5. Dar retroalimentación constructiva sobre código Java.
+
 
 Siempre mantén un tono motivador, claro y educativo. Usa ejemplos reales en Java.
 
@@ -339,21 +355,21 @@ public class Persona {
 Contiene atributos (datos) y métodos (acciones).`;
 
     if (context.currentCourse) {
-      instruction += `\n\nCONTEXTO ACTUAL:`;
-      instruction += `\n- Curso: ${context.currentCourse}`;
-      
+      instruction += `\n\nCONTEXTO ACTUAL DEL USUARIO:`;
+      instruction += `\n- Curso activo: ${context.currentCourse}`;
+
       if (context.currentLesson) {
-        instruction += `\n- Lección: ${context.currentLesson}`;
+        instruction += `\n- Lección actual: ${context.currentLesson}`;
       }
-      
+
       if (context.currentTopic) {
         instruction += `\n- Tema actual: ${context.currentTopic}`;
       }
-      
+
       if (context.lessonContent) {
-        instruction += `\n- Contenido de la lección: ${context.lessonContent.substring(0, 300)}...`;
+        instruction += `\n- Contenido de la lección actual: ${context.lessonContent.substring(0, 300)}...`;
       }
-      
+
       if (context.studentLevel) {
         instruction += `\n- Nivel del estudiante: ${context.studentLevel}`;
       }
@@ -361,7 +377,7 @@ Contiene atributos (datos) y métodos (acciones).`;
 
     instruction += `\n\nCuando el estudiante solicite practicar o generar ejercicios, identifica:
 - El tipo de ejercicio (diagrama, código, opción múltiple, etc.)
-- El tema específico
+- El tema específico (dentro del temario)
 - El nivel de dificultad
 
 Y responde de manera entusiasta confirmando que ayudarás a generar ese ejercicio.`;
@@ -378,9 +394,9 @@ Y responde de manera entusiasta confirmando que ayudarás a generar ese ejercici
     }
 
     let enrichedMessage = message;
-    
+
     enrichedMessage += `\n\n[CONTEXTO: Curso de Java. Responde directo y preciso.]`;
-    
+
     if (context.currentTopic) {
       enrichedMessage += `\n[Tema actual: "${context.currentTopic}"]`;
     }
@@ -393,15 +409,15 @@ Y responde de manera entusiasta confirmando que ayudarás a generar ese ejercici
    */
   private buildAudioAnalysisPrompt(context: ConversationContext): string {
     let prompt = `Transcribe y analiza este audio del estudiante. `;
-    
+
     prompt += `**El curso completo es sobre programación JAVA.** `;
-    
+
     if (context.currentTopic) {
       prompt += `El estudiante está aprendiendo sobre "${context.currentTopic}" en Java. `;
     }
-    
+
     prompt += `Responde SOLO lo que pregunta, sin información adicional. Usa ejemplos Java cuando sea necesario. Sé directo y preciso.`;
-    
+
     return prompt;
   }
 
@@ -410,7 +426,7 @@ Y responde de manera entusiasta confirmando que ayudarás a generar ese ejercici
    */
   private detectIntent(userMessage: string, aiResponse: string): VoiceResponse['intent'] {
     const lowerMessage = userMessage.toLowerCase();
-    
+
     // Detectar solicitud de ejercicio
     if (
       lowerMessage.includes('ejercicio') ||
@@ -453,7 +469,7 @@ Y responde de manera entusiasta confirmando que ayudarás a generar ese ejercici
    */
   private extractParameters(userMessage: string, aiResponse: string): VoiceResponse['parameters'] | null {
     const lowerMessage = userMessage.toLowerCase();
-    
+
     // Solo extraer si es solicitud de ejercicio
     if (!this.detectIntent(userMessage, aiResponse).includes('exercise')) {
       return null;

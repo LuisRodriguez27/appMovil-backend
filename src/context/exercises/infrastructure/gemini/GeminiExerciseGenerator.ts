@@ -54,7 +54,7 @@ export class GeminiExerciseGenerator {
       });
 
       const text = result.text || '';
-
+      console.log('🤖 Raw Gemini Response:', text);
 
       // Parsear la respuesta
       const exerciseContent = ExerciseParser.parse(params.type, text);

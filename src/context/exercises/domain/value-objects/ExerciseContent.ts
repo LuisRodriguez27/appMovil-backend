@@ -12,6 +12,7 @@ export interface FillBlankContent {
 
 export interface MultipleChoiceContent {
   question: string;
+  codeSnippet?: string;
   options: {
     id: string;
     text: string;
@@ -34,6 +35,7 @@ export interface CodeCompletionContent {
 
 export interface TrueFalseContent {
   statement: string;
+  codeSnippet?: string;
   correctAnswer: boolean;
   explanation?: string;
   tip?: string;
