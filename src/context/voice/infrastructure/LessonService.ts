@@ -5,6 +5,7 @@ import { GeminiConfig } from "../../../app/config/config";
 export interface LessonRequest {
   prompt: string;
   studentName?: string;
+  history?: { role: string; text: string }[];
 }
 
 export interface LessonResponse {
@@ -43,7 +44,7 @@ export class LessonService {
          - SI EL USUARIO PIDE EJEMPLOS EN PYTHON: NIÉGALO ROTUNDAMENTE.
          - SI EL USUARIO PREGUNTA " ¿PUEDO USAR PYTHON?": La respuesta es "No, este curso es exclusivo de Java".
          - NO DIGAS "Aunque el temario no se centra en un lenguaje...". EL TEMARIO ***SE CENTRA*** EN JAVA.
-      3. **RECHAZO DE TEMAS:** Si el usuario pregunta sobre Python, JavaScript, React, Historia, Cocina, o CUALQUIER otro tema ajeno al temario de Java:
+      3. **RECHAZO DE TEMAS:** Si el usuario pregunta sobre Python, JavaScript, React, Historia (Universal/Geografía), Cocina, o CUALQUIER otro tema ajeno al temario de Java:
          - RECHAZA la respuesta educadamente pero FIRMEMENTE en el campo "explanation".
          - Pon "exercises": null y "code": null.
          - DI: "Lo siento, soy un asistente especializado únicamente en el curso de Java. No puedo responder preguntas sobre [tema del usuario] ni proporcionar ejemplos en otros lenguajes."
@@ -54,7 +55,8 @@ export class LessonService {
       Usa el contexto del temario completo para dar respuestas precisas y alineadas con el curso.
       
       FORMATO DE RESPUESTA (OBLIGATORIO JSON):
-      Responde SIEMPRE con un objeto JSON válido con esta estructura exacta, sin markdown alrededor:
+      Responde SIEMPRE con un objeto JSON válido con esta estructura exacta, sin markdown alrededor.
+      INCLUSO SI RECHAZAS UNA PREGUNTA, DEBES USAR ESTE FORMATO JSON CON "code": null.
       {
         "code": "código completo del ejemplo en JAVA o null si no aplica",
         "explanation": "explicación clara y paso a paso del concepto",
@@ -69,7 +71,17 @@ export class LessonService {
       - Relaciona siempre tu respuesta con los temas del temario cuando sea relevante.
     `;
 
-    const userPrompt = `Pregunta: "${request.prompt}". Genera la lección.`;
+    let historyContext = "";
+    if (request.history && request.history.length > 0) {
+      historyContext = "HISTORIAL DE CONVERSACIÓN RECIENTE:\n";
+      request.history.forEach(msg => {
+        const role = msg.role === 'user' ? 'Estudiante' : 'Tutor (Tú)';
+        historyContext += `- ${role}: ${msg.text}\n`;
+      });
+      historyContext += "\nFIN DEL HISTORIAL.\n\n";
+    }
+
+    const userPrompt = `${historyContext}Pregunta del estudiante: "${request.prompt}". Genera la lección o respuesta.`;
 
     try {
       const result = await this.client.models.generateContentStream({
@@ -79,7 +91,9 @@ export class LessonService {
         ],
         config: {
           systemInstruction: { parts: [{ text: systemInstruction }] },
-          responseMimeType: "application/json" // Forzamos JSON mode
+          responseMimeType: "application/json",
+          maxOutputTokens: 2048, // Aumentado para evitar cortes en respuestas largas
+          temperature: 0.7
         }
       });
 
